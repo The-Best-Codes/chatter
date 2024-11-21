@@ -2,6 +2,7 @@
   "name": "chatter",
   "module": "index.ts",
   "type": "module",
+  "packageManager": "bun@1.1.36",
   "scripts": {
     "dev": "bun run --watch index.ts",
     "css:watch": "bunx tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
