@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatter</title>
+    <link href="/public/css/tailwind.css" rel="stylesheet" />
+  </head>
+  <body
+    class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-full flex flex-col transition-colors duration-200"
+  >
+    <!-- Header -->
+    <header
+      class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700"
+    >
+      <div
+        class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center"
+      >
+        <h1 class="text-xl sm:text-2xl font-semibold">Chatter</h1>
+        <a
+          href="/logout"
+          class="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
+        >
+          Logout
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Chat Area -->
+    <main
+      class="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col min-h-0"
+    >
+      <!-- Messages Container -->
+      <div
+        id="messages"
+        class="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4 overflow-y-auto min-h-0"
+        style="display: none"
+      >
+        <div
+          id="empty-state"
+          class="hidden text-gray-500 dark:text-gray-400 text-sm h-6"
+        >
+          No messages yet. Start the conversation!
+        </div>
+      </div>
+
+      <!-- Loading State for Messages -->
+      <div
+        id="messages-loading"
+        class="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4 flex items-center justify-center min-h-0"
+      >
+        <div class="flex items-center space-x-3">
+          <img
+            src="/public/images/spinner.svg"
+            alt="Loading..."
+            class="w-6 h-6"
+          />
+          <span class="text-gray-500 dark:text-gray-400"
+            >Loading messages...</span
+          >
+        </div>
+      </div>
+
+      <!-- Typing Indicator -->
+      <div
+        id="typing-indicator"
+        class="text-gray-500 dark:text-gray-400 text-sm h-6 mb-2"
+      ></div>
+
+      <!-- Message Input -->
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4"
+      >
+        <form id="message-form" class="flex gap-4">
+          <textarea
+            id="message-input"
+            class="flex-1 resize-none bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200 min-h-[2.5rem] max-h-[150px] overflow-y-auto"
+            placeholder="Type your message..."
+            rows="1"
+          ></textarea>
+          <button
+            type="submit"
+            class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-6 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200 text-sm"
+          >
+            <span class="send-text">Send</span>
+            <span class="sending-text hidden">
+              <img
+                src="/public/images/spinner.svg"
+                alt="Sending..."
+                class="w-4 h-4 inline-block mr-2"
+              />
+              Sending...
+            </span>
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <script src="/public/pages/index/script.js"></script>
+  </body>
+</html>

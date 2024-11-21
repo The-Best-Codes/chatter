@@ -1,0 +1,25 @@
+{
+  "name": "chatter",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch index.ts",
+    "css:watch": "bunx tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
+    "css:build": "bunx tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --minify"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "autoprefixer": "^10.4.20",
+    "bcryptjs": "^2.4.3",
+    "postcss": "^8.4.49",
+    "sqlite3": "^5.1.7",
+    "tailwindcss": "^3.4.15"
+  }
+}
