@@ -55,6 +55,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const messageElement = document.createElement("div");
         messageElement.className =
             "bg-gray-50 dark:bg-gray-700 rounded-lg p-4 transition-colors duration-200 mb-4 last:mb-0";
+
+        // Sanitize and render markdown
+        const renderedContent = marked.parse(msg.content);
+
         messageElement.innerHTML = `
         <div class="flex justify-between items-start">
           <span class="font-medium text-blue-600 dark:text-blue-400">${msg.username}</span>
@@ -62,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
             msg.timestamp || new Date()
         ).toLocaleTimeString()}</span>
         </div>
-        <p class="mt-2 text-gray-800 dark:text-gray-200 whitespace-pre-wrap">${msg.content}</p>
+        <div class="mt-2 text-gray-800 dark:text-gray-200">${renderedContent}</div>
       `;
         return messageElement;
     }
@@ -81,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
         this.style.height = "auto";
         // Set new height but cap it at max height
         const maxHeight = 150; // 150px max height
-        const newHeight = Math.min(this.scrollHeight, maxHeight);
+        const newHeight = Math.min(this.scrollHeight + 2, maxHeight);
         this.style.height = newHeight + "px";
 
         // Handle typing indicator

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chatter</title>
     <link href="/public/css/tailwind.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   </head>
   <body
     class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-full flex flex-col transition-colors duration-200"
@@ -33,7 +34,7 @@
       <!-- Messages Container -->
       <div
         id="messages"
-        class="prose dark:prose-invertflex-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4 overflow-y-auto min-h-0"
+        class="prose prose-p:my-0 dark:prose-invert max-w-none flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4 overflow-y-auto min-h-0"
         style="display: none"
       >
         <div
@@ -64,7 +65,7 @@
       <!-- Typing Indicator -->
       <div
         id="typing-indicator"
-        class="text-gray-500 dark:text-gray-400 text-sm h-6 mb-2"
+        class="text-gray-500 dark:text-gray-400 text-sm h-6 max-h-6 mb-2"
       ></div>
 
       <!-- Message Input -->
