@@ -121,3 +121,10 @@ bun run pm2-startup  # Configure PM2 startup on boot
 
 - `PORT` - Server port (default: 5177)
 - `SCHEMA_PATH` - Path to SQLite schema file
+
+## Attributions
+
+- [Bun](https://bun.sh)
+- [TailwindCSS](https://tailwindcss.com/)
+- [Markdown Renderer](https://marked.js.org/)
+- [Chat Sound Effect by Universfield | 'New Notification #7'](https://pixabay.com/collections/interface-sounds-23710620/)
