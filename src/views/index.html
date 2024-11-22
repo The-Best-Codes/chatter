@@ -18,12 +18,31 @@
         class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center"
       >
         <h1 class="text-xl sm:text-2xl font-semibold">Chatter</h1>
-        <a
-          href="/logout"
-          class="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
-        >
-          Logout
-        </a>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <button
+              id="reconnect-button"
+              class="hidden bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-2 py-1 rounded-lg transition-colors duration-200 text-sm"
+            >
+              Retry
+            </button>
+            <div
+              id="connection-status"
+              class="h-2 w-2 rounded-full bg-yellow-500"
+            ></div>
+            <span
+              id="connection-text"
+              class="text-sm text-yellow-600 dark:text-yellow-400"
+              >Loading...</span
+            >
+          </div>
+          <a
+            href="/logout"
+            class="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
+          >
+            Logout
+          </a>
+        </div>
       </div>
     </header>
 

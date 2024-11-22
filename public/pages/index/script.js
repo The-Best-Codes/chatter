@@ -1,5 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const ws = new WebSocket(`ws://${window.location.host}/ws`);
+    let ws = null;
+    const MAX_RECONNECT_DELAY = 30000; // Maximum reconnection delay of 30 seconds
+    const INITIAL_DELAY = 1000; // Start with 1 second delay
+    let reconnectDelay = INITIAL_DELAY;
+    let reconnectTimeout = null;
+    let isConnected = false;
+
     const messagesElement = document.getElementById("messages");
     const messagesLoading = document.getElementById("messages-loading");
     const messageForm = document.getElementById("message-form");
@@ -9,9 +15,118 @@ document.addEventListener("DOMContentLoaded", () => {
     const sendButton = messageForm.querySelector('button[type="submit"]');
     const sendText = sendButton.querySelector(".send-text");
     const sendingText = sendButton.querySelector(".sending-text");
+    const reconnectButton = document.getElementById("reconnect-button");
+    const connectionStatus = document.getElementById("connection-status");
+    const connectionText = document.getElementById("connection-text");
 
     let typingTimeout;
     let isTyping = false;
+
+    // Update UI based on connection status
+    function updateConnectionStatus(status, message) {
+        connectionText.textContent = message;
+        reconnectButton.classList.toggle("hidden", status !== "disconnected");
+
+        switch (status) {
+            case "connected":
+                connectionStatus.className = "h-2 w-2 rounded-full bg-green-500";
+                connectionText.className = "text-sm text-green-600 dark:text-green-400";
+                break;
+            case "connecting":
+                connectionStatus.className = "h-2 w-2 rounded-full bg-yellow-500";
+                connectionText.className = "text-sm text-yellow-600 dark:text-yellow-400";
+                break;
+            case "disconnected":
+                connectionStatus.className = "h-2 w-2 rounded-full bg-red-500";
+                connectionText.className = "text-sm text-red-600 dark:text-red-400";
+                break;
+        }
+    }
+
+    // Initialize WebSocket connection
+    function connectWebSocket() {
+        if (ws) {
+            ws.close();
+        }
+
+        updateConnectionStatus("connecting", "Connecting...");
+
+        ws = new WebSocket(`ws://${window.location.host}/ws`);
+
+        ws.addEventListener("open", handleWebSocketOpen);
+        ws.addEventListener("message", handleWebSocketMessage);
+        ws.addEventListener("close", handleWebSocketClose);
+        ws.addEventListener("error", handleWebSocketError);
+    }
+
+    // Handle WebSocket open event
+    async function handleWebSocketOpen() {
+        isConnected = true;
+        reconnectDelay = INITIAL_DELAY; // Reset reconnect delay on successful connection
+        updateConnectionStatus("connected", "Connected");
+
+        try {
+            const response = await fetch("/messages");
+            if (!response.ok) {
+                throw new Error("Failed to load messages");
+            }
+            const messages = await response.json();
+            messages.reverse();
+
+            messages.forEach((msg) => {
+                const messageElement = createMessageElement(msg);
+                messagesElement.appendChild(messageElement);
+            });
+            updateEmptyState();
+        } catch (error) {
+            console.error("Error loading messages:", error);
+        } finally {
+            messagesLoading.style.display = "none";
+            messagesElement.style.display = "block";
+            requestAnimationFrame(() => {
+                scrollToBottom(false);
+            });
+        }
+    }
+
+    // Handle WebSocket close event
+    function handleWebSocketClose() {
+        if (isConnected) {
+            console.log("WebSocket connection closed");
+            isConnected = false;
+            updateConnectionStatus("disconnected", "Disconnected");
+            scheduleReconnect();
+        }
+    }
+
+    // Handle WebSocket error event
+    function handleWebSocketError(error) {
+        console.error("WebSocket error:", error);
+        updateConnectionStatus("disconnected", "Connection error");
+    }
+
+    // Schedule reconnection with exponential backoff
+    function scheduleReconnect() {
+        if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+        }
+
+        reconnectTimeout = setTimeout(() => {
+            console.log(`Attempting to reconnect in ${reconnectDelay}ms...`);
+            connectWebSocket();
+            // Exponential backoff with maximum delay
+            reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY);
+        }, reconnectDelay);
+    }
+
+    // Handle manual reconnection
+    reconnectButton.addEventListener("click", () => {
+        if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+        }
+        reconnectDelay = INITIAL_DELAY; // Reset delay on manual reconnect
+        connectWebSocket();
+    });
 
     // Function to check if user is near bottom
     function isNearBottom() {
@@ -99,7 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Handle WebSocket messages
-    ws.addEventListener("message", (event) => {
+    function handleWebSocketMessage(event) {
         const data = JSON.parse(event.data);
 
         switch (data.type) {
@@ -108,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 messagesElement.appendChild(messageElement);
                 updateEmptyState();
                 if (isNearBottom()) {
-                    scrollToBottom(true); // Smooth scroll for new messages
+                    scrollToBottom(true);
                 }
                 break;
 
@@ -116,14 +231,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 typingIndicator.textContent = data.message;
                 break;
         }
-    });
+    }
 
     // Handle form submission
     messageForm.addEventListener("submit", (e) => {
         e.preventDefault();
         const content = messageInput.value.trim();
-        if (content) {
-            // Show sending state
+        if (content && isConnected) {
             sendText.classList.add("hidden");
             sendingText.classList.remove("hidden");
             sendButton.disabled = true;
@@ -139,8 +253,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 messageInput.style.height = "auto";
             } catch (error) {
                 console.error("Failed to send message:", error);
+                updateConnectionStatus("disconnected", "Failed to send message");
+                scheduleReconnect();
             } finally {
-                // Hide sending state
                 sendText.classList.remove("hidden");
                 sendingText.classList.add("hidden");
                 sendButton.disabled = false;
@@ -160,40 +275,6 @@ document.addEventListener("DOMContentLoaded", () => {
     messagesElement.style.display = "none";
     messagesLoading.style.display = "flex";
 
-    ws.addEventListener("open", async () => {
-        try {
-            const response = await fetch("/messages");
-            if (!response.ok) {
-                throw new Error("Failed to load messages");
-            }
-            const messages = await response.json();
-
-            console.log("Received messages:", messages);
-
-            // With the current implementation, we need to reverse the array of messages
-            // to display them in the correct order
-            messages.reverse();
-
-            console.groupCollapsed("Adding messages");
-            messages.forEach((msg) => {
-                const messageElement = createMessageElement(msg);
-                console.log(messageElement);
-                messagesElement.appendChild(messageElement);
-            });
-            console.groupEnd();
-            console.log("Updating empty state");
-            updateEmptyState();
-        } catch (error) {
-            console.error("Error loading messages:", error);
-        } finally {
-            // Hide loading state and show messages
-            messagesLoading.style.display = "none";
-            messagesElement.style.display = "block";
-
-            // Now that the container is visible, scroll to bottom
-            requestAnimationFrame(() => {
-                scrollToBottom(false);
-            });
-        }
-    });
+    // Initialize WebSocket connection
+    connectWebSocket();
 });
