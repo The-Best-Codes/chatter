@@ -1,11 +1,13 @@
 import { WebSocketManager } from './websocket.js';
 import { UIManager } from './ui.js';
 import { ChatManager } from './chat.js';
+import { AudioManager } from './audio.js';
 
 document.addEventListener("DOMContentLoaded", () => {
     // Initialize managers
     const uiManager = new UIManager();
-    
+    const audioManager = new AudioManager();
+
     // Show initial loading state
     uiManager.showLoadingState();
 
@@ -26,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     // Initialize chat manager
-    const chatManager = new ChatManager(websocketManager, uiManager);
+    const chatManager = new ChatManager(websocketManager, uiManager, audioManager);
 
     // Start WebSocket connection
     websocketManager.connect();

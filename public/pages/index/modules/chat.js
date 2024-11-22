@@ -1,7 +1,8 @@
 export class ChatManager {
-    constructor(websocketManager, uiManager) {
+    constructor(websocketManager, uiManager, audioManager) {
         this.websocketManager = websocketManager;
         this.uiManager = uiManager;
+        this.audioManager = audioManager;
         this.typingTimeout = null;
         this.isTyping = false;
 
@@ -119,6 +120,7 @@ export class ChatManager {
         switch (data.type) {
             case "message":
                 this.uiManager.appendMessage(data);
+                this.audioManager.playMessageNotification();
                 break;
 
             case "typing":
