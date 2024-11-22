@@ -1,11 +1,20 @@
-import { Database } from "sqlite3";
+import { Database } from "bun:sqlite";
 import * as bcrypt from "bcryptjs";
 
-const db = new Database("chat.db");
+const DB_PATH = process.env.DB_PATH || `${import.meta.dir}/../../chat.db`;
+const SCHEMA_PATH = `${import.meta.dir}/schema.sql`;
+
+// Create database with proper path
+const db = new Database(DB_PATH);
 
 // Initialize database with schema
-const schema = await Bun.file(`${import.meta.dir}/schema.sql`).text();
-db.exec(schema);
+try {
+  const schema = await Bun.file(SCHEMA_PATH).text();
+  db.run(schema);
+} catch (err) {
+  console.error("Failed to initialize database schema:", err);
+  throw err;
+}
 
 export interface User {
   id: number;
@@ -26,103 +35,77 @@ export const createUser = async (
   password: string
 ): Promise<User | null> => {
   const hashedPassword = await bcrypt.hash(password, 10);
-  return new Promise((resolve, reject) => {
-    db.run(
-      "INSERT INTO users (username, password) VALUES (?, ?)",
-      [username, hashedPassword],
-      function (err) {
-        if (err) {
-          if (err.message.includes("UNIQUE constraint failed")) {
-            resolve(null);
-          } else {
-            reject(err);
-          }
-          return;
-        }
-        resolve({
-          id: this.lastID,
-          username,
-          created_at: new Date().toISOString(),
-        });
-      }
+  try {
+    const stmt = db.prepare(
+      "INSERT INTO users (username, password) VALUES (?, ?)"
     );
-  });
+    const result = stmt.run(username, hashedPassword);
+
+    if (result.lastInsertRowid) {
+      return {
+        id: Number(result.lastInsertRowid),
+        username,
+        created_at: new Date().toISOString(),
+      };
+    }
+    return null;
+  } catch (err: any) {
+    if (err.message.includes("UNIQUE constraint failed")) {
+      return null;
+    }
+    throw err;
+  }
 };
 
 export const verifyUser = async (
   username: string,
   password: string
 ): Promise<User | null> => {
-  return new Promise((resolve, reject) => {
-    db.get(
-      "SELECT * FROM users WHERE username = ?",
-      [username],
-      async (err, row: any) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        if (!row) {
-          resolve(null);
-          return;
-        }
-        const valid = await bcrypt.compare(password, row.password);
-        if (!valid) {
-          resolve(null);
-          return;
-        }
-        resolve({
-          id: row.id,
-          username: row.username,
-          created_at: row.created_at,
-        });
-      }
-    );
-  });
+  const stmt = db.prepare("SELECT * FROM users WHERE username = ?");
+  const row = stmt.get(username) as any;
+
+  if (!row) {
+    return null;
+  }
+
+  const valid = await bcrypt.compare(password, row.password);
+  if (!valid) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    username: row.username,
+    created_at: row.created_at,
+  };
 };
 
 export const createMessage = async (
   userId: number,
   content: string
 ): Promise<Message> => {
-  return new Promise((resolve, reject) => {
-    db.run(
-      "INSERT INTO messages (user_id, content) VALUES (?, ?)",
-      [userId, content],
-      function (err) {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve({
-          id: this.lastID,
-          user_id: userId,
-          content,
-          created_at: new Date().toISOString(),
-        });
-      }
-    );
-  });
+  const stmt = db.prepare(
+    "INSERT INTO messages (user_id, content) VALUES (?, ?)"
+  );
+  const result = stmt.run(userId, content);
+
+  return {
+    id: Number(result.lastInsertRowid),
+    user_id: userId,
+    content,
+    created_at: new Date().toISOString(),
+  };
 };
 
 export const getRecentMessages = async (
   limit: number = 50
 ): Promise<Message[]> => {
-  return new Promise((resolve, reject) => {
-    db.all(
-      `SELECT m.*, u.username 
-             FROM messages m 
-             JOIN users u ON m.user_id = u.id 
-             ORDER BY m.created_at DESC 
-             LIMIT ?`,
-      [limit],
-      (err, rows: Message[]) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(rows);
-      }
-    );
-  });
+  const stmt = db.prepare(`
+    SELECT m.*, u.username 
+    FROM messages m 
+    JOIN users u ON m.user_id = u.id 
+    ORDER BY m.created_at DESC 
+    LIMIT ?
+  `);
+  return stmt.all(limit) as Message[];
 };

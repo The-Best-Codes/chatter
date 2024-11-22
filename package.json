@@ -7,7 +7,7 @@
     "dev": "bun run --watch index.ts",
     "css:watch": "bunx tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
     "css:build": "bunx tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --minify",
-    "build": "bun build ./index.ts --outdir ./dist && bun run css:build",
+    "build": "bun build --target=bun ./index.ts --outdir ./dist && bun run css:build",
     "start": "bun run ./dist/index.js"
   },
   "devDependencies": {
