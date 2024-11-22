@@ -27,16 +27,26 @@ jobs:
       - name: Create archives
         run: |
           cd dist
+          # Create archives for Linux builds (both .tar.xz and .zip)
+          for dir in linux-*; do
+            if [ -d "$dir" ]; then
+              tar -cJf "$dir.tar.xz" "$dir"  # -J flag creates xz compression
+              zip -r "$dir.zip" "$dir"
+            fi
+          done
+          
+          # Create only zip archives for other platforms
           for dir in */; do
             dir=${dir%/}
-            tar -czf "$dir.tar.gz" "$dir"
-            zip -r "$dir.zip" "$dir"
+            if [[ ! "$dir" == linux-* ]] && [ -d "$dir" ]; then
+              zip -r "$dir.zip" "$dir"
+            fi
           done
 
       - name: Upload Release Assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for file in dist/*.{tar.gz,zip}; do
+          for file in dist/*.{tar.xz,zip}; do
             gh release upload ${{ github.event.release.tag_name }} "$file" --clobber
           done
