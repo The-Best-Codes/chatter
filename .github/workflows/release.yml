@@ -1,0 +1,39 @@
+name: Release Build
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build distribution
+        run: bun run build-dist
+
+      - name: Create archives
+        run: |
+          cd dist
+          for dir in */; do
+            dir=${dir%/}
+            tar -czf "$dir.tar.gz" "$dir"
+            zip -r "$dir.zip" "$dir"
+          done
+
+      - name: Upload Release Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for file in dist/*.{tar.gz,zip}; do
+            gh release upload ${{ github.event.release.tag_name }} "$file" --clobber
+          done

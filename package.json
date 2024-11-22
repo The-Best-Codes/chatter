@@ -28,7 +28,7 @@
     "bun-types": "^1.1.36"
   },
   "peerDependencies": {
-    "typescript": "^5.6.3"
+    "typescript": "^5.7.2"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.15",
