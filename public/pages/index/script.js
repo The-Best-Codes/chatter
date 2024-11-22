@@ -27,6 +27,11 @@ document.addEventListener("DOMContentLoaded", () => {
         connectionText.textContent = message;
         reconnectButton.classList.toggle("hidden", status !== "disconnected");
 
+        // Disable/enable send button based on connection status
+        sendButton.disabled = status !== "connected";
+        sendButton.classList.toggle("opacity-50", status !== "connected");
+        messageInput.disabled = status !== "connected";
+
         switch (status) {
             case "connected":
                 connectionStatus.className = "h-2 w-2 rounded-full bg-green-500";
@@ -236,8 +241,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // Handle form submission
     messageForm.addEventListener("submit", (e) => {
         e.preventDefault();
+
+        // Prevent sending if not connected
+        if (!isConnected) {
+            return;
+        }
+
         const content = messageInput.value.trim();
-        if (content && isConnected) {
+        if (content) {
             sendText.classList.add("hidden");
             sendingText.classList.remove("hidden");
             sendButton.disabled = true;
@@ -263,11 +274,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Handle Shift+Enter
+    // Handle keydown for Enter key
     messageInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            messageForm.dispatchEvent(new Event("submit"));
+            // Prevent sending if not connected
+            if (!isConnected) {
+                e.preventDefault();
+                return;
+            }
+
+            const content = messageInput.value.trim();
+            if (content) {
+                e.preventDefault();
+                messageForm.dispatchEvent(new Event("submit"));
+            }
         }
     });
 
