@@ -176,7 +176,7 @@ out
 # Finder (MacOS) folder config
 .DS_Store
 
-# Distribution directories
+# Dist
 dist/
 
 # Other stuff
