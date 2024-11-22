@@ -21,7 +21,7 @@ function generateSessionId(): string {
 }
 
 function serveFile(filePath: string, type: string): Response {
-  const file = Bun.file(`${import.meta.dir}/src/views/${filePath}`);
+  const file = Bun.file(`${process.cwd()}/src/views/${filePath}`);
   return new Response(file, {
     headers: { "Content-Type": type },
   });
