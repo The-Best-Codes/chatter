@@ -1,8 +1,8 @@
 import { Database } from "bun:sqlite";
 import * as bcrypt from "bcryptjs";
 
-const DB_PATH = process.env.DB_PATH || `${import.meta.dir}/../../chat.db`;
-const SCHEMA_PATH = `${import.meta.dir}/schema.sql`;
+const DB_PATH = process.env.DB_PATH || `${process.cwd()}/chat.db`;
+const SCHEMA_PATH = process.env.SCHEMA_PATH || `${import.meta.dir}/schema.sql`;
 
 // Create database with proper path
 const db = new Database(DB_PATH);

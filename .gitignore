@@ -180,3 +180,4 @@ dist
 # Other stuff
 chat.db
 exec
+build.index.js

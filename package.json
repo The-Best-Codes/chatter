@@ -7,9 +7,9 @@
     "dev": "bun run --watch index.ts",
     "css:watch": "bunx tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
     "css:build": "bunx tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --minify",
-    "build": "bun build --minify --target=bun ./index.ts --outdir ./dist && bun run css:build",
+    "build": "bun build --minify --target=bun ./index.ts --outfile ./build.index.js && bun run css:build",
     "build:linux": "bun build --compile --minify --target=bun-linux-x64-baseline ./index.ts --outfile ./exec/linux-x64-baseline",
-    "start": "bun run ./dist/index.js"
+    "start": "SCHEMA_PATH=./src/db/schema.sql bun run ./build.index.js"
   },
   "devDependencies": {
     "@types/bun": "^1.1.13",
