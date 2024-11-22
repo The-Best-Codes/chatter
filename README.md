@@ -12,11 +12,46 @@ A real-time chat application built with Bun, WebSocket, SQLite, and TailwindCSS.
 - 🔄 Auto-scroll with smart scroll lock
 - 📱 Responsive design
 
-## Prerequisites
+## Installation
+
+1. Go to the [Releases](https://github.com/The-Best-Codes/chatter/releases/latest) page and download the appropriate file for your system:
+
+### Windows
+
+- Download `windows-modern.zip` (or `windows-base.zip` for older CPUs)
+- Right-click and extract the ZIP file
+- Double-click the executable to start (or run it from the command line with `./chatter.exe`)
+- Open `http://localhost:5177` in your browser
+
+### macOS (Darwin)
+
+- Download `darwin-modern.zip` (or `darwin-base.zip` for older CPUs)
+- Extract the ZIP file
+- Make the file executable and run it:
+  ```bash
+  chmod +x ./chatter && ./chatter
+  ```
+- Open `http://localhost:5177` in your browser
+
+### Linux
+
+- Download `linux-modern.tar.xz` (or `linux-base.tar.xz`)
+- Extract the archive
+- Make the file executable and run it:
+  ```bash
+  chmod +x ./chatter && ./chatter
+  ```
+- Open `http://localhost:5177` in your browser
+
+## Development
+
+If you want to develop or modify the application, follow these steps:
+
+### Prerequisites
 
 - [Bun](https://bun.sh) v1.1.36 or higher
 
-## Installation
+### Setup
 
 1. Clone the repository
 2. Install dependencies:
@@ -25,7 +60,7 @@ A real-time chat application built with Bun, WebSocket, SQLite, and TailwindCSS.
 bun install
 ```
 
-## Development
+### Development Server
 
 Run the development server with auto-reload:
 
@@ -39,7 +74,7 @@ Watch and compile CSS:
 bun run css:watch
 ```
 
-## Production
+## Production Build
 
 Build for production:
 
