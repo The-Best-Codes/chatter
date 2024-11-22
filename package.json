@@ -19,7 +19,8 @@
     "pm2-start": "pm2 start --name chatter ./build.index.js",
     "pm2-stop": "pm2 stop chatter",
     "pm2-restart": "pm2 restart chatter",
-    "pm2-startup": "pm2 save && pm2 startup"
+    "pm2-startup": "pm2 save && pm2 startup",
+    "binary": "bun exec"
   },
   "devDependencies": {
     "@types/bun": "^1.1.13",

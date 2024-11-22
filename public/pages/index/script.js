@@ -26,18 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to scroll to bottom with optional smooth behavior
     function scrollToBottom(smooth = false) {
-        console.group("Scroll to bottom function called");
-        console.log("Smooth:", smooth);
-        console.log("Scroll height:", messagesElement.scrollHeight);
-        console.log("Message children length:", messagesElement.children.length);
         messagesElement.scrollTo({
             top: messagesElement.scrollHeight,
             behavior: smooth ? "smooth" : "auto"
         });
-        console.log("After scroll position:", messagesElement.scrollTop);
-        console.log("(After scroll) Client height:", messagesElement.clientHeight);
-        console.log("(After scroll) Scroll height:", messagesElement.scrollHeight);
-        console.groupEnd();
     }
 
     // Function to update empty state visibility
