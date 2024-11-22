@@ -5,6 +5,7 @@ import {
   getRecentMessages,
   type User,
 } from "./src/db/database";
+import crypto from "crypto";
 
 const port = process.env.PORT || 5177;
 
@@ -17,7 +18,7 @@ const wsUsers = new WeakMap<WebSocket, User>();
 const connections = new Map<string, any>();
 
 function generateSessionId(): string {
-  return Math.random().toString(36).substring(2);
+  return crypto.randomBytes(16).toString("hex");
 }
 
 function serveFile(filePath: string, type: string): Response {
