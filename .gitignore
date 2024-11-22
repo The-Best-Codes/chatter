@@ -180,3 +180,9 @@ out
 chat.db
 exec/
 build.index.js
+dist/darwin-base
+dist/linux-base
+dist/windows-base
+dist/darwin-modern
+#dist/linux-modern
+dist/windows-modern
