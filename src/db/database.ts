@@ -1,15 +1,10 @@
 import { Database } from "sqlite3";
-import * as fs from "fs";
-import * as path from "path";
 import * as bcrypt from "bcryptjs";
 
 const db = new Database("chat.db");
 
 // Initialize database with schema
-const schema = fs.readFileSync(
-  path.join(process.cwd(), "src/db/schema.sql"),
-  "utf8"
-);
+const schema = await Bun.file(`${import.meta.dir}/schema.sql`).text();
 db.exec(schema);
 
 export interface User {

@@ -1,5 +1,3 @@
-import { readFileSync } from "fs";
-import { join } from "path";
 import {
   createUser,
   verifyUser,
@@ -22,9 +20,9 @@ function generateSessionId(): string {
   return Math.random().toString(36).substring(2);
 }
 
-function serveFile(path: string, type: string): Response {
-  const content = readFileSync(join(process.cwd(), "src/views", path));
-  return new Response(content, {
+function serveFile(filePath: string, type: string): Response {
+  const file = Bun.file(`${import.meta.dir}/src/views/${filePath}`);
+  return new Response(file, {
     headers: { "Content-Type": type },
   });
 }
@@ -43,7 +41,7 @@ const server: any = Bun.serve({
 
     // Static files
     if (url.pathname.startsWith("/public/")) {
-      const filePath = join(process.cwd(), url.pathname);
+      const filePath = `${process.cwd()}${url.pathname}`;
       const file = Bun.file(filePath);
       return new Response(file);
     }
