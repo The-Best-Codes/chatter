@@ -5,7 +5,7 @@ import {
   getRecentMessages,
   type User,
 } from "./src/db/database";
-import { LIMITS, validateInput } from "./src/constants";
+import { LIMITS, validateInput, escapeHtml } from "./src/constants";
 import crypto from "crypto";
 
 const port = process.env.PORT || 5177;
@@ -212,13 +212,15 @@ const server: any = Bun.serve({
               data.content,
               LIMITS.MESSAGE_MAX_LENGTH
             );
-            const msg = await createMessage(user.id, validatedContent);
+            // Escape HTML in the message
+            const safeContent = escapeHtml(validatedContent);
+            const msg = await createMessage(user.id, safeContent);
             server.publish(
               "chat",
               JSON.stringify({
                 type: "message",
                 username: user.username,
-                content: validatedContent,
+                content: safeContent,
                 timestamp: new Date().toISOString(),
               })
             );

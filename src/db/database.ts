@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 import * as bcrypt from "bcryptjs";
-import { LIMITS, validateInput } from "../constants";
+import { LIMITS, validateInput, escapeHtml } from "../constants";
 
 const DB_PATH = process.env.DB_PATH || `${process.cwd()}/chat.db`;
 const SCHEMA_PATH =
@@ -39,6 +39,9 @@ export const createUser = async (
   // Validate input lengths
   username = validateInput(username, LIMITS.USERNAME_MAX_LENGTH);
   password = validateInput(password, LIMITS.PASSWORD_MAX_LENGTH);
+
+  // Escape HTML in username
+  username = escapeHtml(username);
 
   const hashedPassword = await bcrypt.hash(password, 10);
   try {
