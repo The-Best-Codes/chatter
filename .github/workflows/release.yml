@@ -44,10 +44,20 @@ jobs:
             fi
           done
 
-      - name: Upload Release Assets
+      - name: Get Latest Release Tag
+        if: github.event_name == 'workflow_dispatch'
+        id: get_latest_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          latest_tag=$(gh release list -L 1 --json tagName --jq '.[0].tagName')
+          echo "latest_tag=$latest_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Release Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || steps.get_latest_release.outputs.latest_tag }}
+        run: |
           for file in dist/*.{tar.xz,zip}; do
-            gh release upload ${{ github.event.release.tag_name }} "$file" --clobber
+            gh release upload "$RELEASE_TAG" "$file" --clobber
           done
