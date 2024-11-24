@@ -92,7 +92,7 @@
       <div
         class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4"
       >
-        <form id="message-form" class="flex gap-4">
+        <form id="message-form" class="flex gap-2">
           <textarea
             disabled
             id="message-input"
@@ -100,21 +100,40 @@
             placeholder="Type your message..."
             rows="1"
           ></textarea>
-          <button
-            type="submit"
-            disabled
-            class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-6 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200 text-sm"
-          >
-            <span class="send-text">Send</span>
-            <span class="sending-text hidden">
-              <img
-                src="/public/images/spinner.svg"
-                alt="Sending..."
-                class="w-4 h-4 inline-block mr-2"
+          <div class="flex items-center gap-2">
+            <label class="relative cursor-pointer">
+              <input
+                type="file"
+                id="file-upload"
+                class="hidden"
+                accept="image/*"
               />
-              Sending...
-            </span>
-          </button>
+              <div
+                id="upload-button"
+                class="p-2 rounded-lg bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <img
+                  id="upload-icon"
+                  src="/public/images/image.svg"
+                  alt="Upload image"
+                  class="w-6 h-6 dark:invert"
+                />
+                <img
+                  id="upload-loader"
+                  src="/public/images/spinner.svg"
+                  alt="Uploading..."
+                  class="w-6 h-6 dark:invert hidden"
+                />
+              </div>
+            </label>
+            <button
+              disabled
+              type="submit"
+              class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Send
+            </button>
+          </div>
         </form>
       </div>
     </main>

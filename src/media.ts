@@ -69,9 +69,8 @@ export class MediaManager {
           fit: "inside",
           withoutEnlargement: true,
         })
-        .jpeg({
-          quality: 80,
-          progressive: true,
+        .webp({
+          quality: 70,
         })
         .toBuffer();
 

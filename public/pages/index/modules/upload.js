@@ -1,7 +1,9 @@
 export class UploadManager {
     constructor(uiManager) {
         this.uiManager = uiManager;
+        this.isUploading = false;
         this.setupPasteListener();
+        this.setupFileUploadListener();
     }
 
     setupPasteListener() {
@@ -19,10 +21,45 @@ export class UploadManager {
         });
     }
 
+    setupFileUploadListener() {
+        const fileInput = document.getElementById('file-upload');
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                await this.handleImageUpload(file);
+                // Reset the input so the same file can be uploaded again
+                fileInput.value = '';
+            }
+        });
+    }
+
+    setUploadingState(isUploading) {
+        this.isUploading = isUploading;
+        const uploadButton = document.getElementById('upload-button');
+        const uploadIcon = document.getElementById('upload-icon');
+        const uploadLoader = document.getElementById('upload-loader');
+        const fileInput = document.getElementById('file-upload');
+
+        if (isUploading) {
+            uploadButton.classList.add('opacity-50', 'cursor-not-allowed');
+            uploadIcon.classList.add('hidden');
+            uploadLoader.classList.remove('hidden');
+            fileInput.disabled = true;
+            this.uiManager.disableInput();
+        } else {
+            uploadButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            uploadIcon.classList.remove('hidden');
+            uploadLoader.classList.add('hidden');
+            fileInput.disabled = false;
+            this.uiManager.enableInput();
+        }
+    }
+
     async handleImageUpload(file) {
+        if (this.isUploading) return;
+
         try {
-            // Disable input and show loading state
-            this.uiManager.disableInput('Uploading image...');
+            this.setUploadingState(true);
 
             const formData = new FormData();
             formData.append('image', file);
@@ -33,10 +70,13 @@ export class UploadManager {
             });
 
             if (!response.ok) {
-                throw new Error('Upload failed');
+                throw new Error(`Upload failed: ${response.statusText}`);
             }
 
             const data = await response.json();
+
+            // Enable the input before we insert the markdown
+            this.setUploadingState(false);
 
             // Insert markdown at cursor position or end
             const imageMarkdown = `![Uploaded Image](${data.url})`;
@@ -64,7 +104,7 @@ export class UploadManager {
             console.error('Upload error:', error);
             this.uiManager.showError('Failed to upload image. Please try again.');
         } finally {
-            this.uiManager.enableInput();
+            this.setUploadingState(false);
         }
     }
 }
