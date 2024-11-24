@@ -12,6 +12,9 @@ export class UIManager {
         this.reconnectButton = document.getElementById("reconnect-button");
         this.connectionStatus = document.getElementById("connection-status");
         this.connectionText = document.getElementById("connection-text");
+        this.uploadStatus = document.createElement("div");
+        this.uploadStatus.className = "text-sm text-gray-500 dark:text-gray-400 hidden";
+        this.messageForm.insertBefore(this.uploadStatus, this.messageInput.nextSibling);
 
         this.setupTextareaAutoResize();
     }
@@ -53,8 +56,8 @@ export class UIManager {
             <div class="flex justify-between items-start">
                 <span class="font-medium text-blue-600 dark:text-blue-400">${msg.username}</span>
                 <span class="text-xs text-gray-500 dark:text-gray-400">${new Date(
-                    msg.timestamp || new Date()
-                ).toLocaleTimeString()}</span>
+            msg.timestamp || new Date()
+        ).toLocaleTimeString()}</span>
             </div>
             <div class="mt-2 text-gray-800 dark:text-gray-200">${renderedContent}</div>
         `;
@@ -140,5 +143,31 @@ export class UIManager {
         this.sendText.classList.remove("hidden");
         this.sendingText.classList.add("hidden");
         this.sendButton.disabled = false;
+    }
+
+    disableInput(message = '') {
+        this.messageInput.disabled = true;
+        this.sendButton.disabled = true;
+        this.sendButton.classList.add('opacity-50');
+        if (message) {
+            this.uploadStatus.textContent = message;
+            this.uploadStatus.classList.remove('hidden');
+        }
+    }
+
+    enableInput() {
+        this.messageInput.disabled = false;
+        this.sendButton.disabled = false;
+        this.sendButton.classList.remove('opacity-50');
+        this.uploadStatus.classList.add('hidden');
+    }
+
+    showError(message) {
+        this.uploadStatus.textContent = message;
+        this.uploadStatus.className = "text-sm text-red-600 dark:text-red-400";
+        this.uploadStatus.classList.remove('hidden');
+        setTimeout(() => {
+            this.uploadStatus.classList.add('hidden');
+        }, 3000);
     }
 }

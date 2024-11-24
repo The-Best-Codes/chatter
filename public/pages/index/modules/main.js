@@ -5,6 +5,7 @@ import { AudioManager } from './audio.js';
 import { SettingsManager } from './settings.js';
 import { NotificationManager } from './notifications.js';
 import { UserManager } from './user.js';
+import { UploadManager } from './upload.js';
 
 document.addEventListener("DOMContentLoaded", async () => {
     // Initialize managers
@@ -13,6 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const uiManager = new UIManager();
     const audioManager = new AudioManager(settingsManager);
     const userManager = new UserManager();
+    const uploadManager = new UploadManager(uiManager);
 
     try {
         // Initialize user info first

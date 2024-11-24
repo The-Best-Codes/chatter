@@ -183,3 +183,4 @@ dist/
 chat.db
 exec/
 build.index.js
+media/

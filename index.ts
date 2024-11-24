@@ -7,6 +7,7 @@ import {
 } from "./src/db/database";
 import { LIMITS, validateInput, escapeHtml } from "./src/constants";
 import crypto from "crypto";
+import { MediaManager } from "./src/media";
 
 const port = process.env.PORT || 5177;
 
@@ -40,6 +41,16 @@ const server: any = Bun.serve({
       ?.split("=")[1];
 
     const user = sessionId ? sessions.get(sessionId) : null;
+
+    // Serve media files
+    if (url.pathname.startsWith("/media/")) {
+      const filePath = `${process.cwd()}${url.pathname}`;
+      const file = Bun.file(filePath);
+      if (await file.exists()) {
+        return new Response(file);
+      }
+      return new Response("Not Found", { status: 404 });
+    }
 
     // Static files
     if (url.pathname.startsWith("/public/")) {
@@ -184,6 +195,43 @@ const server: any = Bun.serve({
             headers: { "Content-Type": "application/json" },
           }
         );
+
+      case "/upload":
+        if (!user) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+        if (req.method !== "POST") {
+          return new Response("Method not allowed", { status: 405 });
+        }
+        try {
+          const formData = await req.formData();
+          const image = formData.get("image");
+
+          if (!image || !(image instanceof File)) {
+            return new Response("No image provided", { status: 400 });
+          }
+
+          const buffer = await image.arrayBuffer();
+          const result = await MediaManager.getInstance().processAndSaveImage(
+            Buffer.from(buffer),
+            image.name
+          );
+
+          return new Response(JSON.stringify({ url: result.url }), {
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch (error) {
+          console.error("Upload error:", error);
+          return new Response(
+            JSON.stringify({
+              error: error instanceof Error ? error.message : "Upload failed",
+            }),
+            {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
 
       default:
         return new Response("Not Found", { status: 404 });
