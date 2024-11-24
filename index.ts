@@ -5,6 +5,7 @@ import {
   getRecentMessages,
   type User,
 } from "./src/db/database";
+import { LIMITS, validateInput } from "./src/constants";
 import crypto from "crypto";
 
 const port = process.env.PORT || 5177;
@@ -205,16 +206,31 @@ const server: any = Bun.serve({
 
       switch (data.type) {
         case "message":
-          const msg = await createMessage(user.id, data.content);
-          server.publish(
-            "chat",
-            JSON.stringify({
-              type: "message",
-              username: user.username,
-              content: data.content,
-              timestamp: new Date().toISOString(),
-            })
-          );
+          try {
+            // Validate message content
+            const validatedContent = validateInput(
+              data.content,
+              LIMITS.MESSAGE_MAX_LENGTH
+            );
+            const msg = await createMessage(user.id, validatedContent);
+            server.publish(
+              "chat",
+              JSON.stringify({
+                type: "message",
+                username: user.username,
+                content: validatedContent,
+                timestamp: new Date().toISOString(),
+              })
+            );
+          } catch (error) {
+            // Send error back to the client
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message: (error as Error)?.message || "Failed to send message",
+              })
+            );
+          }
           break;
 
         case "typing":

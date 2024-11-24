@@ -1,8 +1,10 @@
 import { Database } from "bun:sqlite";
 import * as bcrypt from "bcryptjs";
+import { LIMITS, validateInput } from "../constants";
 
 const DB_PATH = process.env.DB_PATH || `${process.cwd()}/chat.db`;
-const SCHEMA_PATH = process.env.SCHEMA_PATH || `${process.cwd()}/src/db/schema.sql`;
+const SCHEMA_PATH =
+  process.env.SCHEMA_PATH || `${process.cwd()}/src/db/schema.sql`;
 
 // Create database with proper path
 const db = new Database(DB_PATH);
@@ -34,6 +36,10 @@ export const createUser = async (
   username: string,
   password: string
 ): Promise<User | null> => {
+  // Validate input lengths
+  username = validateInput(username, LIMITS.USERNAME_MAX_LENGTH);
+  password = validateInput(password, LIMITS.PASSWORD_MAX_LENGTH);
+
   const hashedPassword = await bcrypt.hash(password, 10);
   try {
     const stmt = db.prepare(
@@ -61,6 +67,10 @@ export const verifyUser = async (
   username: string,
   password: string
 ): Promise<User | null> => {
+  // Validate input lengths
+  username = validateInput(username, LIMITS.USERNAME_MAX_LENGTH);
+  password = validateInput(password, LIMITS.PASSWORD_MAX_LENGTH);
+
   const stmt = db.prepare("SELECT * FROM users WHERE username = ?");
   const row = stmt.get(username) as any;
 
@@ -84,6 +94,9 @@ export const createMessage = async (
   userId: number,
   content: string
 ): Promise<Message> => {
+  // Validate message length
+  content = validateInput(content, LIMITS.MESSAGE_MAX_LENGTH);
+
   const stmt = db.prepare(
     "INSERT INTO messages (user_id, content) VALUES (?, ?)"
   );
