@@ -41,7 +41,10 @@ export class NotificationManager {
             return;
         }
 
-        const notification = new Notification(title, {
+        // Truncate title if it exceeds 100 characters
+        const truncatedTitle = title.length > 100 ? title.substring(0, 97) + '...' : title;
+
+        const notification = new Notification(truncatedTitle, {
             icon: '/favicon.ico',
             ...options
         });
