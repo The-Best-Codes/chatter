@@ -1,10 +1,11 @@
 export class ChatManager {
-    constructor(websocketManager, uiManager, audioManager, settingsManager, notificationManager) {
+    constructor(websocketManager, uiManager, audioManager, settingsManager, notificationManager, userManager) {
         this.websocketManager = websocketManager;
         this.uiManager = uiManager;
         this.audioManager = audioManager;
         this.settingsManager = settingsManager;
         this.notificationManager = notificationManager;
+        this.userManager = userManager;
         this.typingTimeout = null;
         this.isTyping = false;
 
@@ -123,7 +124,7 @@ export class ChatManager {
             case "message":
                 this.uiManager.appendMessage(data);
                 this.audioManager.playMessageNotification();
-                if (data.username !== 'You') {  // TODO: Fix this, since the username is never 'You' (unless the user is logged in as 'You')
+                if (!this.userManager.isCurrentUser(data.username)) {
                     this.notificationManager.notify('New Message', {
                         body: `${data.username}: ${data.content}`,
                         tag: 'chat-message'

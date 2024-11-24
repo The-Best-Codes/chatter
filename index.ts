@@ -170,6 +170,20 @@ const server: any = Bun.serve({
           headers: { "Content-Type": "application/json" },
         });
 
+      case "/me":
+        if (!user) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+        return new Response(
+          JSON.stringify({
+            username: user.username,
+            id: user.id,
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
       default:
         return new Response("Not Found", { status: 404 });
     }
