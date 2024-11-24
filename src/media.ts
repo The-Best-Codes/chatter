@@ -65,7 +65,7 @@ export class MediaManager {
     try {
       // Process image with sharp
       const processed = await sharp(imageBuffer)
-        .resize(1200, 1200, {
+        .resize(480, 1200, {
           fit: "inside",
           withoutEnlargement: true,
         })
