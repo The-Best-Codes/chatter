@@ -1,5 +1,6 @@
 export class AudioManager {
-    constructor() {
+    constructor(settingsManager) {
+        this.settingsManager = settingsManager;
         this.notificationSound = new Audio('/public/sounds/notification.mp3');
         this.notificationSound.volume = 1; // Full volume
 
@@ -12,21 +13,36 @@ export class AudioManager {
         this.notificationSound.load();
     }
 
-    playMessageNotification(overrideFocus = false) {
-        // Only play if the window is not focused (unless overrideFocus is true)
-        if (!document.hasFocus() || overrideFocus) {
-            try {
-                this.notificationSound.currentTime = 0; // Reset audio to start
-                const playPromise = this.notificationSound.play();
+    shouldPlaySound() {
+        const soundSetting = this.settingsManager.getSetting('sound');
 
-                if (playPromise !== undefined) {
-                    playPromise.catch(error => {
-                        console.log('Error playing notification sound:', error);
-                    });
-                }
-            } catch (error) {
-                console.error('Error playing notification sound:', error);
+        if (soundSetting === 'never') {
+            return false;
+        }
+
+        if (soundSetting === 'always') {
+            return true;
+        }
+
+        return soundSetting === 'unfocused' && !document.hasFocus();
+    }
+
+    playMessageNotification() {
+        if (!this.shouldPlaySound()) {
+            return;
+        }
+
+        try {
+            this.notificationSound.currentTime = 0; // Reset audio to start
+            const playPromise = this.notificationSound.play();
+
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log('Error playing notification sound:', error);
+                });
             }
+        } catch (error) {
+            console.error('Error playing notification sound:', error);
         }
     }
 
