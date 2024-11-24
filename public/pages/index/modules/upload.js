@@ -48,6 +48,9 @@ export class UploadManager {
                 imageMarkdown +
                 currentValue.substring(cursorPos);
 
+            textarea.setSelectionRange(cursorPos + imageMarkdown.length, cursorPos + imageMarkdown.length);
+            textarea.focus();
+
             // Select the default name for easy editing
             const startSelect = cursorPos + 2; // After '!['
             const endSelect = startSelect + 'Uploaded Image'.length;

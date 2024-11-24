@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 
 const MEDIA_DIR = path.join(process.cwd(), "media");
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
 
 interface ProcessedImage {
   path: string;
