@@ -88,7 +88,7 @@ export class MediaManager {
       }
 
       // Generate unique filename
-      const ext = ".jpg";
+      const ext = ".webp";
       const filename = `${crypto.randomBytes(16).toString("hex")}${ext}`;
       const filepath = path.join(MEDIA_DIR, filename);
 

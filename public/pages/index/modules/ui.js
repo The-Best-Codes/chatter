@@ -7,11 +7,27 @@ export class UIManager {
         this.typingIndicator = document.getElementById("typing-indicator");
         this.emptyState = document.getElementById("empty-state");
         this.sendButton = this.messageForm.querySelector('button[type="submit"]');
-        this.sendText = this.sendButton.querySelector(".send-text");
-        this.sendingText = this.sendButton.querySelector(".sending-text");
         this.reconnectButton = document.getElementById("reconnect-button");
         this.connectionStatus = document.getElementById("connection-status");
         this.connectionText = document.getElementById("connection-text");
+
+        // Configure marked with custom renderers
+        marked.use({
+            renderer: {
+                image(data) {
+                    return `<img 
+                        src="${data.href || ''}" 
+                        alt="${data.text || ''}" 
+                        ${data.title ? `title="${data.title}"` : ''} 
+                        class="w-80 h-60 bg-gray-500 animate-pulse"
+                        onLoad="this.classList.remove('w-80', 'h-60', 'bg-gray-500', 'animate-pulse')" 
+                        loading="lazy"
+                    >`;
+                }
+            },
+            gfm: true,
+            breaks: true
+        });
 
         this.setupTextareaAutoResize();
     }
@@ -131,15 +147,13 @@ export class UIManager {
     }
 
     showSending() {
-        this.sendText.classList.add("hidden");
-        this.sendingText.classList.remove("hidden");
         this.sendButton.disabled = true;
+        this.sendButton.classList.add('opacity-50');
     }
 
     hideSending() {
-        this.sendText.classList.remove("hidden");
-        this.sendingText.classList.add("hidden");
         this.sendButton.disabled = false;
+        this.sendButton.classList.remove('opacity-50');
     }
 
     disableInput() {

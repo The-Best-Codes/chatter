@@ -22,7 +22,7 @@
     "pm2-restart": "pm2 restart chatter",
     "pm2-startup": "pm2 save && pm2 startup",
     "binary": "bun exec",
-    "build-dist": "bun run build && bun run css:build && rm -rf dist && bun run ./scripts/compile.ts"
+    "build-dist": "bun run build && rm -rf dist && bun run ./scripts/compile.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.1.13",
