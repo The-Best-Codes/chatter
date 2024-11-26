@@ -60,7 +60,7 @@ export class UIManager {
     createMessageElement(msg) {
         const messageElement = document.createElement("div");
         messageElement.className =
-            "bg-gray-50 dark:bg-gray-700 rounded-lg p-4 transition-colors duration-200 mb-4 last:mb-0";
+            "bg-gray-50 dark:bg-gray-700 rounded-lg p-4 transition-colors duration-200 mb-4 last:mb-0 max-w-full overflow-auto";
 
         // Sanitize and render markdown
         const renderedContent = marked.parse(msg.content);
