@@ -23,6 +23,9 @@ export class UIManager {
                         onLoad="this.classList.remove('w-80', 'h-60', 'bg-gray-500', 'animate-pulse')" 
                         loading="lazy"
                     >`;
+                },
+                link(data) {
+                    return `<a href="${data.href || ''}" target="_blank" rel="noopener noreferrer">${data.text || ''}</a>`;
                 }
             },
             gfm: true,
