@@ -17,7 +17,7 @@
     "b.darwin-modern": "bun build --compile --minify --target=bun-darwin-x64-modern ./index.ts --outfile ./exec/darwin-x64-modern",
     "b.all": "bun run b.linux-base && bun run b.linux-modern && bun run b.windows-base && bun run b.windows-modern && bun run b.darwin-base && bun run b.darwin-modern",
     "start": "SCHEMA_PATH=./src/db/schema.sql bun run ./build.index.js",
-    "pm2-start": "pm2 start --name chatter ./build.index.js",
+    "pm2-start": "pm2 start --name chatter --interpreter ~/.bun/bin/bun ./build.index.js",
     "pm2-stop": "pm2 stop chatter",
     "pm2-restart": "pm2 restart chatter",
     "pm2-startup": "pm2 save && pm2 startup",
