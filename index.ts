@@ -8,6 +8,7 @@ import {
 import { LIMITS, validateInput, escapeHtml } from "./src/constants";
 import crypto from "crypto";
 import { MediaManager } from "./src/media";
+import { EmojiConvertor } from "emoji-js";
 
 const port = process.env.PORT || 5177;
 
@@ -18,6 +19,13 @@ const typingUsers = new Set<string>();
 // WebSocket connections with their associated users
 const wsUsers = new WeakMap<WebSocket, User>();
 const connections = new Map<string, any>();
+
+// Read receipts
+const readReceipts = new Map<string, Set<string>>();
+
+// Emoji converter
+const emoji = new EmojiConvertor();
+emoji.replace_mode = 'unified';
 
 function generateSessionId(): string {
   return crypto.randomBytes(16).toString("hex");
@@ -262,13 +270,15 @@ const server: any = Bun.serve({
             );
             // Escape HTML in the message
             const safeContent = escapeHtml(validatedContent);
-            const msg = await createMessage(user.id, safeContent);
+            // Convert emojis
+            const contentWithEmojis = emoji.replace_colons(safeContent);
+            const msg = await createMessage(user.id, contentWithEmojis);
             server.publish(
               "chat",
               JSON.stringify({
                 type: "message",
                 username: user.username,
-                content: safeContent,
+                content: contentWithEmojis,
                 timestamp: new Date().toISOString(),
               })
             );
@@ -309,6 +319,56 @@ const server: any = Bun.serve({
             JSON.stringify({
               type: "typing",
               message: typingMessage,
+            })
+          );
+          break;
+
+        case "read_receipt":
+          if (!readReceipts.has(data.messageId)) {
+            readReceipts.set(data.messageId, new Set());
+          }
+          readReceipts.get(data.messageId).add(user.username);
+          server.publish(
+            "chat",
+            JSON.stringify({
+              type: "read_receipt",
+              messageId: data.messageId,
+              username: user.username,
+            })
+          );
+          break;
+
+        case "reaction":
+          server.publish(
+            "chat",
+            JSON.stringify({
+              type: "reaction",
+              messageId: data.messageId,
+              reaction: data.reaction,
+              username: user.username,
+            })
+          );
+          break;
+
+        case "edit_message":
+          server.publish(
+            "chat",
+            JSON.stringify({
+              type: "edit_message",
+              messageId: data.messageId,
+              newContent: data.newContent,
+              username: user.username,
+            })
+          );
+          break;
+
+        case "delete_message":
+          server.publish(
+            "chat",
+            JSON.stringify({
+              type: "delete_message",
+              messageId: data.messageId,
+              username: user.username,
             })
           );
           break;

@@ -32,6 +32,21 @@ export interface Message {
   username?: string;
 }
 
+export interface ReadReceipt {
+  id: number;
+  message_id: number;
+  user_id: number;
+  created_at: string;
+}
+
+export interface Reaction {
+  id: number;
+  message_id: number;
+  user_id: number;
+  reaction: string;
+  created_at: string;
+}
+
 export const createUser = async (
   username: string,
   password: string
@@ -124,4 +139,62 @@ export const getRecentMessages = async (
     LIMIT ?
   `);
   return stmt.all(limit) as Message[];
+};
+
+export const createReadReceipt = async (
+  messageId: number,
+  userId: number
+): Promise<ReadReceipt> => {
+  const stmt = db.prepare(
+    "INSERT INTO read_receipts (message_id, user_id) VALUES (?, ?)"
+  );
+  const result = stmt.run(messageId, userId);
+
+  return {
+    id: Number(result.lastInsertRowid),
+    message_id: messageId,
+    user_id: userId,
+    created_at: new Date().toISOString(),
+  };
+};
+
+export const createReaction = async (
+  messageId: number,
+  userId: number,
+  reaction: string
+): Promise<Reaction> => {
+  const stmt = db.prepare(
+    "INSERT INTO reactions (message_id, user_id, reaction) VALUES (?, ?, ?)"
+  );
+  const result = stmt.run(messageId, userId, reaction);
+
+  return {
+    id: Number(result.lastInsertRowid),
+    message_id: messageId,
+    user_id: userId,
+    reaction,
+    created_at: new Date().toISOString(),
+  };
+};
+
+export const editMessage = async (
+  messageId: number,
+  newContent: string
+): Promise<void> => {
+  // Validate message length
+  newContent = validateInput(newContent, LIMITS.MESSAGE_MAX_LENGTH);
+
+  const stmt = db.prepare(
+    "UPDATE messages SET content = ? WHERE id = ?"
+  );
+  stmt.run(newContent, messageId);
+};
+
+export const deleteMessage = async (
+  messageId: number
+): Promise<void> => {
+  const stmt = db.prepare(
+    "DELETE FROM messages WHERE id = ?"
+  );
+  stmt.run(messageId);
 };

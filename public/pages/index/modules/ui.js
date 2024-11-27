@@ -76,6 +76,14 @@ export class UIManager {
         ).toLocaleTimeString()}</span>
             </div>
             <div class="mt-2 text-gray-800 dark:text-gray-200">${renderedContent}</div>
+            <div class="mt-2 flex gap-2">
+                <button class="reaction" data-message-id="${msg.id}" data-reaction="👍">👍</button>
+                <button class="reaction" data-message-id="${msg.id}" data-reaction="❤️">❤️</button>
+                <button class="reaction" data-message-id="${msg.id}" data-reaction="😂">😂</button>
+                <button class="edit-message" data-message-id="${msg.id}">Edit</button>
+                <button class="delete-message" data-message-id="${msg.id}">Delete</button>
+            </div>
+            <div class="mt-2 text-xs text-gray-500 dark:text-gray-400 read-receipts" data-message-id="${msg.id}"></div>
         `;
         return messageElement;
     }
@@ -91,6 +99,41 @@ export class UIManager {
 
     updateTypingIndicator(message) {
         this.typingIndicator.textContent = message;
+    }
+
+    updateReadReceipt(messageId, username) {
+        const readReceiptElement = this.messagesElement.querySelector(`.read-receipts[data-message-id="${messageId}"]`);
+        if (readReceiptElement) {
+            const currentReceipts = readReceiptElement.textContent.split(', ').filter(Boolean);
+            if (!currentReceipts.includes(username)) {
+                currentReceipts.push(username);
+                readReceiptElement.textContent = currentReceipts.join(', ');
+            }
+        }
+    }
+
+    updateReaction(messageId, reaction, username) {
+        const messageElement = this.messagesElement.querySelector(`.reaction[data-message-id="${messageId}"]`);
+        if (messageElement) {
+            messageElement.textContent = `${reaction} (${username})`;
+        }
+    }
+
+    updateEditedMessage(messageId, newContent, username) {
+        const messageElement = this.messagesElement.querySelector(`.edit-message[data-message-id="${messageId}"]`);
+        if (messageElement) {
+            const contentElement = messageElement.closest("div").querySelector(".mt-2.text-gray-800.dark:text-gray-200");
+            if (contentElement) {
+                contentElement.innerHTML = marked.parse(newContent);
+            }
+        }
+    }
+
+    removeMessage(messageId, username) {
+        const messageElement = this.messagesElement.querySelector(`.delete-message[data-message-id="${messageId}"]`);
+        if (messageElement) {
+            messageElement.closest("div").remove();
+        }
     }
 
     isNearBottom() {

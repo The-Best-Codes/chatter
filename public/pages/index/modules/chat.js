@@ -26,6 +26,15 @@ export class ChatManager {
         this.uiManager.reconnectButton.addEventListener("click", () => {
             this.websocketManager.manualReconnect();
         });
+
+        // Handle message edit
+        this.uiManager.messagesElement.addEventListener("click", (e) => this.handleEditMessage(e));
+
+        // Handle message delete
+        this.uiManager.messagesElement.addEventListener("click", (e) => this.handleDeleteMessage(e));
+
+        // Handle message reaction
+        this.uiManager.messagesElement.addEventListener("click", (e) => this.handleReaction(e));
     }
 
     handleSubmit(e) {
@@ -135,6 +144,60 @@ export class ChatManager {
             case "typing":
                 this.uiManager.updateTypingIndicator(data.message);
                 break;
+
+            case "read_receipt":
+                this.uiManager.updateReadReceipt(data.messageId, data.username);
+                break;
+
+            case "reaction":
+                this.uiManager.updateReaction(data.messageId, data.reaction, data.username);
+                break;
+
+            case "edit_message":
+                this.uiManager.updateEditedMessage(data.messageId, data.newContent, data.username);
+                break;
+
+            case "delete_message":
+                this.uiManager.removeMessage(data.messageId, data.username);
+                break;
+        }
+    }
+
+    handleEditMessage(e) {
+        if (e.target.classList.contains("edit-message")) {
+            const messageId = e.target.dataset.messageId;
+            const newContent = prompt("Edit your message:");
+            if (newContent) {
+                this.websocketManager.send({
+                    type: "edit_message",
+                    messageId,
+                    newContent,
+                });
+            }
+        }
+    }
+
+    handleDeleteMessage(e) {
+        if (e.target.classList.contains("delete-message")) {
+            const messageId = e.target.dataset.messageId;
+            if (confirm("Are you sure you want to delete this message?")) {
+                this.websocketManager.send({
+                    type: "delete_message",
+                    messageId,
+                });
+            }
+        }
+    }
+
+    handleReaction(e) {
+        if (e.target.classList.contains("reaction")) {
+            const messageId = e.target.dataset.messageId;
+            const reaction = e.target.dataset.reaction;
+            this.websocketManager.send({
+                type: "reaction",
+                messageId,
+                reaction,
+            });
         }
     }
 }
