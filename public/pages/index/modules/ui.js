@@ -65,7 +65,7 @@ export class UIManager {
         messageElement.className =
             "bg-gray-50 dark:bg-gray-700 rounded-lg p-4 transition-colors duration-200 mb-4 last:mb-0 max-w-full overflow-auto";
 
-        // First handle headers and other block-level elements
+        /* // First handle headers and other block-level elements
         const preprocessed = msg.content.split('\n').map(line => {
             // If line starts with #, treat it as a header
             if (line.trim().startsWith('#')) {
@@ -73,7 +73,9 @@ export class UIManager {
             }
             // Otherwise replace newline with <br>
             return line + '<br>';
-        }).join('\n');
+        }).join('\n'); */
+
+        const preprocessed = msg.content;
 
         const renderedContent = marked.parse(preprocessed);
 
