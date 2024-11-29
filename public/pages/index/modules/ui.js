@@ -81,10 +81,11 @@ export class UIManager {
     }
 
     appendMessage(msg) {
+        const wasAtBottom = this.isNearBottom();
         const messageElement = this.createMessageElement(msg);
         this.messagesElement.appendChild(messageElement);
         this.updateEmptyState();
-        if (this.isNearBottom()) {
+        if (wasAtBottom) {
             this.scrollToBottom(true);
         }
     }
