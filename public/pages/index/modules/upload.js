@@ -8,14 +8,36 @@ export class UploadManager {
 
     setupPasteListener() {
         this.uiManager.messageInput.addEventListener('paste', async (e) => {
-            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            try {
+                const clipboardData = e.clipboardData || e.originalEvent.clipboardData;
+                const items = clipboardData.items;
 
-            for (const item of items) {
-                if (item.type.indexOf('image') === 0) {
+                // Check for image first
+                for (const item of items) {
+                    if (item.type.indexOf('image') === 0) {
+                        e.preventDefault();
+                        const file = item.getAsFile();
+                        await this.handleImageUpload(file);
+                        return;
+                    }
+                }
+
+                // Check for rich text
+                if (clipboardData.getData('text/html')) {
                     e.preventDefault();
-                    const file = item.getAsFile();
-                    await this.handleImageUpload(file);
-                    break;
+                    const html = clipboardData.getData('text/html');
+                    const markdown = this.convertHtmlToMarkdown(html);
+                    this.insertTextAtCursor(markdown);
+                    return;
+                }
+
+            } catch (error) {
+                if (error.name === 'SecurityError') {
+                    console.error('Clipboard permission denied:', error);
+                    this.uiManager.showError('Please allow clipboard access to paste content');
+                } else {
+                    console.error('Error handling paste:', error);
+                    this.uiManager.showError('Failed to process pasted content');
                 }
             }
         });
@@ -106,5 +128,149 @@ export class UploadManager {
         } finally {
             this.setUploadingState(false);
         }
+    }
+
+    convertHtmlToMarkdown(html) {
+        // Create a temporary div to parse HTML
+        const div = document.createElement('div');
+        div.innerHTML = this.sanitizeHtml(html);
+
+        // Convert common elements to markdown
+        let markdown = '';
+        const process = (node) => {
+            switch (node.nodeType) {
+                case Node.TEXT_NODE:
+                    markdown += node.textContent;
+                    break;
+                case Node.ELEMENT_NODE:
+                    switch (node.nodeName.toLowerCase()) {
+                        case 'h1':
+                            markdown += '# ' + this.getTextContent(node) + '\n\n';
+                            break;
+                        case 'h2':
+                            markdown += '## ' + this.getTextContent(node) + '\n\n';
+                            break;
+                        case 'h3':
+                            markdown += '### ' + this.getTextContent(node) + '\n\n';
+                            break;
+                        case 'p':
+                            markdown += this.processInlineElements(node) + '\n\n';
+                            break;
+                        case 'strong':
+                        case 'b':
+                            markdown += '**' + this.getTextContent(node) + '**';
+                            break;
+                        case 'em':
+                        case 'i':
+                            markdown += '_' + this.getTextContent(node) + '_';
+                            break;
+                        case 'a':
+                            markdown += '[' + this.getTextContent(node) + '](' + node.getAttribute('href') + ')';
+                            break;
+                        case 'ul':
+                            node.childNodes.forEach(li => {
+                                if (li.nodeName.toLowerCase() === 'li') {
+                                    markdown += '- ' + this.processInlineElements(li) + '\n';
+                                }
+                            });
+                            markdown += '\n';
+                            break;
+                        case 'ol':
+                            let index = 1;
+                            node.childNodes.forEach(li => {
+                                if (li.nodeName.toLowerCase() === 'li') {
+                                    markdown += `${index}. ` + this.processInlineElements(li) + '\n';
+                                    index++;
+                                }
+                            });
+                            markdown += '\n';
+                            break;
+                        case 'br':
+                            markdown += '\n';
+                            break;
+                        default:
+                            node.childNodes.forEach(process);
+                    }
+                    break;
+            }
+        };
+
+        div.childNodes.forEach(process);
+        return markdown.trim();
+    }
+
+    sanitizeHtml(html) {
+        // Remove potentially dangerous elements and attributes
+        const div = document.createElement('div');
+        div.innerHTML = html;
+
+        const scripts = div.getElementsByTagName('script');
+        const styles = div.getElementsByTagName('style');
+        const iframes = div.getElementsByTagName('iframe');
+
+        // Remove elements from last to first to avoid index issues
+        for (let i = scripts.length - 1; i >= 0; i--) scripts[i].remove();
+        for (let i = styles.length - 1; i >= 0; i--) styles[i].remove();
+        for (let i = iframes.length - 1; i >= 0; i--) iframes[i].remove();
+
+        // Remove potentially dangerous attributes
+        const allElements = div.getElementsByTagName('*');
+        for (const element of allElements) {
+            element.removeAttribute('onclick');
+            element.removeAttribute('onload');
+            element.removeAttribute('onerror');
+            element.removeAttribute('style');
+        }
+
+        return div.innerHTML;
+    }
+
+    processInlineElements(node) {
+        let text = '';
+        node.childNodes.forEach(child => {
+            if (child.nodeType === Node.TEXT_NODE) {
+                text += child.textContent;
+            } else if (child.nodeType === Node.ELEMENT_NODE) {
+                let content = '';
+                switch (child.nodeName.toLowerCase()) {
+                    case 'strong':
+                    case 'b':
+                        content = '**' + this.getTextContent(child) + '**';
+                        break;
+                    case 'em':
+                    case 'i':
+                        content = '_' + this.getTextContent(child) + '_';
+                        break;
+                    case 'a':
+                        content = '[' + this.getTextContent(child) + '](' + child.getAttribute('href') + ')';
+                        break;
+                    default:
+                        content = this.getTextContent(child);
+                }
+                text += content;
+            }
+        });
+        return text;
+    }
+
+    getTextContent(node) {
+        return node.textContent;
+    }
+
+    insertTextAtCursor(text) {
+        const textarea = this.uiManager.messageInput;
+        const cursorPos = textarea.selectionStart;
+        const currentValue = textarea.value;
+
+        textarea.value = currentValue.substring(0, cursorPos) +
+            text +
+            currentValue.substring(cursorPos);
+
+        const newCursorPos = cursorPos + text.length;
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+        textarea.focus();
+
+        // Trigger input event for auto-resize
+        textarea.dispatchEvent(new Event('input'));
     }
 }
