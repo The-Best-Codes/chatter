@@ -65,9 +65,17 @@ export class UIManager {
         messageElement.className =
             "bg-gray-50 dark:bg-gray-700 rounded-lg p-4 transition-colors duration-200 mb-4 last:mb-0 max-w-full overflow-auto";
 
-        // Sanitize and render markdown
-        const content = msg.content.replace(/\n/g, '<br>');
-        const renderedContent = marked.parse(content);
+        // First handle headers and other block-level elements
+        const preprocessed = msg.content.split('\n').map(line => {
+            // If line starts with #, treat it as a header
+            if (line.trim().startsWith('#')) {
+                return line;
+            }
+            // Otherwise replace newline with <br>
+            return line + '<br>';
+        }).join('\n');
+
+        const renderedContent = marked.parse(preprocessed);
 
         messageElement.innerHTML = `
             <div class="flex justify-between items-start">
