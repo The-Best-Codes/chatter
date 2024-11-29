@@ -66,7 +66,8 @@ export class UIManager {
             "bg-gray-50 dark:bg-gray-700 rounded-lg p-4 transition-colors duration-200 mb-4 last:mb-0 max-w-full overflow-auto";
 
         // Sanitize and render markdown
-        const renderedContent = marked.parse(msg.content);
+        const content = msg.content.replace(/\n/g, '<br>');
+        const renderedContent = marked.parse(content);
 
         messageElement.innerHTML = `
             <div class="flex justify-between items-start">
@@ -75,7 +76,7 @@ export class UIManager {
             msg.timestamp || new Date()
         ).toLocaleTimeString()}</span>
             </div>
-            <div class="mt-2 text-gray-800 dark:text-gray-200">${renderedContent}</div>
+            <div class="mt-2 text-gray-800 dark:text-gray-200 inline-block">${renderedContent}</div>
         `;
         return messageElement;
     }
