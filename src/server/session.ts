@@ -6,10 +6,9 @@ const DB_PATH = process.env.DB_PATH || `${process.cwd()}/chat.db`;
 const SESSION_EXPIRY_HOURS = 24 * 7 * 13; // 13 weeks (~ 3 months)
 const db = new Database(DB_PATH);
 
-// TODO: Encryption key should be stored securely in production
 const ENCRYPTION_KEY =
   process.env.ENCRYPTION_KEY ||
-  "525366de48672be221b10f2d3ca9fe00c386ddf655583cba12df05461fe48e1d";
+  "0000000000000000000000000000000000000000000000000000000000000000";
 const IV_LENGTH = 16;
 
 function encrypt(text: string): string {

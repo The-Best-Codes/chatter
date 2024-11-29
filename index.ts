@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import { getSession } from "./src/server/session";
 import { handleRequest } from "./src/server/routes";
 import { createWebSocketHandler } from "./src/server/websocket";
