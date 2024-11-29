@@ -100,8 +100,12 @@ export class UploadManager {
             // Enable the input before we insert the markdown
             this.setUploadingState(false);
 
+            // Sanitize the URL before creating the markdown
+            const sanitizedUrl = this.sanitizeUrl(data.url);
+            // Escape the image description
+            const escapedDesc = this.escapeMarkdown('Uploaded Image');
             // Insert markdown at cursor position or end
-            const imageMarkdown = `![Uploaded Image](${data.url})`;
+            const imageMarkdown = `![${escapedDesc}](${sanitizedUrl})`;
             const textarea = this.uiManager.messageInput;
             const cursorPos = textarea.selectionStart;
 
@@ -130,10 +134,31 @@ export class UploadManager {
         }
     }
 
+    sanitizeUrl(url) {
+        try {
+            // Create a URL object to validate the URL
+            const parsedUrl = new URL(url);
+            // Only allow specific protocols
+            if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+                throw new Error('Invalid URL protocol');
+            }
+            // Encode the URL components to prevent XSS
+            return encodeURI(url);
+        } catch (e) {
+            console.error('Invalid URL:', e);
+            throw new Error('Invalid URL provided');
+        }
+    }
+
+    escapeMarkdown(text) {
+        // Escape markdown special characters
+        return text.replace(/([\\`*_{}\[\]()#+\-.!])/g, '\\$1');
+    }
+
     convertHtmlToMarkdown(html) {
-        // Create a temporary div to parse HTML
-        const div = document.createElement('div');
-        div.innerHTML = this.sanitizeHtml(html);
+        // Create a new DOMParser
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(this.sanitizeHtml(html), 'text/html');
 
         // Convert common elements to markdown
         let markdown = '';
@@ -195,34 +220,53 @@ export class UploadManager {
             }
         };
 
-        div.childNodes.forEach(process);
+        doc.childNodes.forEach(process);
         return markdown.trim();
     }
 
     sanitizeHtml(html) {
-        // Remove potentially dangerous elements and attributes
-        const div = document.createElement('div');
-        div.innerHTML = html;
+        // Create a new DOMParser
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
 
-        const scripts = div.getElementsByTagName('script');
-        const styles = div.getElementsByTagName('style');
-        const iframes = div.getElementsByTagName('iframe');
+        // List of allowed tags
+        const allowedTags = new Set(['p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3']);
+        // List of allowed attributes
+        const allowedAttributes = new Set(['href']);
 
-        // Remove elements from last to first to avoid index issues
-        for (let i = scripts.length - 1; i >= 0; i--) scripts[i].remove();
-        for (let i = styles.length - 1; i >= 0; i--) styles[i].remove();
-        for (let i = iframes.length - 1; i >= 0; i--) iframes[i].remove();
+        function sanitizeNode(node) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                // Remove node if it's not in allowed tags
+                if (!allowedTags.has(node.tagName.toLowerCase())) {
+                    node.remove();
+                    return;
+                }
 
-        // Remove potentially dangerous attributes
-        const allElements = div.getElementsByTagName('*');
-        for (const element of allElements) {
-            element.removeAttribute('onclick');
-            element.removeAttribute('onload');
-            element.removeAttribute('onerror');
-            element.removeAttribute('style');
+                // Remove all attributes except allowed ones
+                const attributes = Array.from(node.attributes);
+                attributes.forEach(attr => {
+                    if (!allowedAttributes.has(attr.name)) {
+                        node.removeAttribute(attr.name);
+                    }
+                });
+
+                // If it's an anchor tag, sanitize the href
+                if (node.tagName.toLowerCase() === 'a' && node.hasAttribute('href')) {
+                    try {
+                        const sanitizedHref = this.sanitizeUrl(node.getAttribute('href'));
+                        node.setAttribute('href', sanitizedHref);
+                    } catch (e) {
+                        node.removeAttribute('href');
+                    }
+                }
+            }
+
+            // Recursively sanitize child nodes
+            Array.from(node.childNodes).forEach(child => sanitizeNode(child));
         }
 
-        return div.innerHTML;
+        sanitizeNode(doc.body);
+        return doc.body.innerHTML;
     }
 
     processInlineElements(node) {
