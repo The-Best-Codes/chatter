@@ -52,9 +52,12 @@ export async function getRecentUserStatuses(
     SELECT us.*, u.username
     FROM user_status us
     JOIN users u ON us.user_id = u.id
+    WHERE us.last_seen >= datetime('now', '-10 minutes') 
+      AND us.status = 'online'
     ORDER BY us.last_seen DESC
     LIMIT ?
   `);
+
   const statuses = stmt.all(limit) as any[];
 
   return statuses.map((status) => ({
@@ -64,13 +67,22 @@ export async function getRecentUserStatuses(
   }));
 }
 
-// Mark users as offline if they haven't been seen in 5 minutes
+export async function setAllUsersOffline(): Promise<void> {
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO user_status (user_id, status, last_seen)
+    SELECT id, 'offline', datetime('now')
+    FROM users
+  `);
+  stmt.run();
+}
+
+// Mark users as offline if they haven't been seen in 10 minutes
 setInterval(() => {
   const stmt = db.prepare(`
     UPDATE user_status
     SET status = 'offline'
     WHERE status = 'online'
-    AND last_seen < datetime('now', '-5 minutes')
+    AND last_seen < datetime('now', '-10 minutes')
   `);
   stmt.run();
-}, 1000 * 60); // Run every minute
+}, 60000); // Check every minute

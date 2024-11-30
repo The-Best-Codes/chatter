@@ -14,6 +14,7 @@ export class WebSocketManager {
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.uiManager = null;
+        this.pingInterval = null;
     }
 
     setUIManager(uiManager) {
@@ -38,6 +39,9 @@ export class WebSocketManager {
             this.reconnectDelay = INITIAL_DELAY;
             this.onConnectionStatusChange('connected', 'Connected');
             this.onOpen();
+
+            // Start sending periodic pings
+            this.startPinging();
         };
 
         this.ws.onmessage = (event) => {
@@ -45,6 +49,13 @@ export class WebSocketManager {
 
             if (data.type === 'status_update' && this.uiManager) {
                 this.uiManager.updateUserStatus(data.username, data.status);
+            } else if (data.type === 'initial_status' && this.uiManager) {
+                // Update UI with all online users
+                data.users.forEach(user => {
+                    this.uiManager.updateUserStatus(user.username, user.status);
+                });
+            } else if (data.type === 'ping') {
+                // Handle ping response
             } else {
                 this.onMessage(event);
             }
@@ -63,6 +74,18 @@ export class WebSocketManager {
             console.error('WebSocket error:', error);
             this.onConnectionStatusChange('error', 'Connection error');
         };
+    }
+
+    disconnect() {
+        if (this.pingInterval) {
+            clearInterval(this.pingInterval);
+            this.pingInterval = null;
+        }
+
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
     }
 
     handleReconnect() {
@@ -108,5 +131,24 @@ export class WebSocketManager {
 
     isConnectedStatus() {
         return this.isConnected;
+    }
+
+    startPinging() {
+        // Clear any existing ping interval
+        if (this.pingInterval) {
+            clearInterval(this.pingInterval);
+        }
+
+        // Send a ping every 5 minutes
+        this.pingInterval = setInterval(() => {
+            if (this.ws && this.isConnected) {
+                this.ws.send(JSON.stringify({ type: 'ping' }));
+            }
+        }, 5 * 60 * 1000); // 5 minutes
+
+        // Send initial ping
+        if (this.ws && this.isConnected) {
+            this.ws.send(JSON.stringify({ type: 'ping' }));
+        }
     }
 }

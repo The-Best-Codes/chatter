@@ -4,8 +4,13 @@ dotenv.config();
 import { getSession } from "./src/server/session";
 import { handleRequest } from "./src/server/routes";
 import { createWebSocketHandler } from "./src/server/websocket";
+import { setAllUsersOffline } from "./src/server/status";
 
 const port = process.env.PORT || 5177;
+
+// Set all users to offline when server starts
+await setAllUsersOffline();
+
 const wsHandler = createWebSocketHandler();
 
 const server: any = Bun.serve({

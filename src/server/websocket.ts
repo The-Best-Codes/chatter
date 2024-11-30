@@ -19,19 +19,28 @@ export function createWebSocketHandler() {
       ws.subscribe("chat");
       ws.subscribe("status");
 
-      // Set user as online
-      setUserStatus(user.id, "online");
+      // First send initial list of online users to the new connection
+      getRecentUserStatuses().then((statuses) => {
+        ws.send(
+          JSON.stringify({
+            type: "initial_status",
+            users: statuses,
+          })
+        );
 
-      // Broadcast user's online status
-      serverInstance.publish(
-        "status",
-        JSON.stringify({
-          type: "status_update",
-          username: user.username,
-          status: "online",
-          lastSeen: new Date().toISOString(),
-        })
-      );
+        // Then set user as online and broadcast their status
+        setUserStatus(user.id, "online").then(() => {
+          serverInstance.publish(
+            "status",
+            JSON.stringify({
+              type: "status_update",
+              username: user.username,
+              status: "online",
+              lastSeen: new Date().toISOString(),
+            })
+          );
+        });
+      });
     },
 
     async message(ws: ServerWebSocket<unknown>, message: string) {
@@ -43,6 +52,11 @@ export function createWebSocketHandler() {
       const data = JSON.parse(message);
 
       switch (data.type) {
+        case "ping":
+          // Update user's last seen time
+          await setUserStatus(user.id, "online");
+          break;
+
         case "message":
           try {
             const validatedContent = validateInput(
@@ -113,50 +127,30 @@ export function createWebSocketHandler() {
       }
     },
 
-    close(ws: ServerWebSocket<unknown>, code: number, reason: string) {
+    close(ws: ServerWebSocket<unknown>) {
       const user = wsUsers.get(ws);
-      if (user) {
-        connections.delete(user.username);
-        typingUsers.delete(user.username);
-        wsUsers.delete(ws);
-
-        // Set user as offline
-        setUserStatus(user.id, "offline");
-
-        // Broadcast user's offline status
-        serverInstance.publish(
-          "status",
-          JSON.stringify({
-            type: "status_update",
-            username: user.username,
-            status: "offline",
-            lastSeen: new Date().toISOString(),
-          })
-        );
-
-        // Update typing message if needed
-        const typing = Array.from(typingUsers);
-        let typingMessage = "";
-        if (typing.length === 1) {
-          typingMessage = `${typing[0]} is typing...`;
-        } else if (typing.length === 2) {
-          typingMessage = `${typing[0]} and ${typing[1]} are typing...`;
-        } else if (typing.length === 3) {
-          typingMessage = `${typing[0]}, ${typing[1]}, and ${typing[2]} are typing...`;
-        } else if (typing.length > 3) {
-          typingMessage = `${typing[0]}, ${typing[1]}, ${typing[2]}, and ${
-            typing.length - 3
-          } others are typing...`;
-        }
-
-        serverInstance.publish(
-          "chat",
-          JSON.stringify({
-            type: "typing",
-            message: typingMessage,
-          })
-        );
+      if (!user) {
+        return;
       }
+
+      // Set user as offline when they disconnect
+      setUserStatus(user.id, "offline");
+
+      // Broadcast user's offline status
+      serverInstance.publish(
+        "status",
+        JSON.stringify({
+          type: "status_update",
+          username: user.username,
+          status: "offline",
+          lastSeen: new Date().toISOString(),
+        })
+      );
+
+      connections.delete(user.username);
+      wsUsers.delete(ws);
+      ws.unsubscribe("chat");
+      ws.unsubscribe("status");
     },
   };
 
