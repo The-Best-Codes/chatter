@@ -11,6 +11,13 @@ export class WebSocketManager {
         this.onOpen = onOpen;
         this.onMessage = onMessage;
         this.onConnectionStatusChange = onConnectionStatusChange;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+        this.uiManager = null;
+    }
+
+    setUIManager(uiManager) {
+        this.uiManager = uiManager;
     }
 
     connect() {
@@ -18,51 +25,62 @@ export class WebSocketManager {
             this.ws.close();
         }
 
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws`;
+
         this.onConnectionStatusChange("connecting", "Connecting...");
 
-        this.ws = new WebSocket(`ws://${window.location.host}/ws`);
-        this.ws.addEventListener("open", () => this.handleOpen());
-        this.ws.addEventListener("message", (event) => this.handleMessage(event));
-        this.ws.addEventListener("close", () => this.handleClose());
-        this.ws.addEventListener("error", (error) => this.handleError(error));
+        this.ws = new WebSocket(wsUrl);
+
+        this.ws.onopen = () => {
+            this.reconnectAttempts = 0;
+            this.isConnected = true;
+            this.reconnectDelay = INITIAL_DELAY;
+            this.onConnectionStatusChange('connected', 'Connected');
+            this.onOpen();
+        };
+
+        this.ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'status_update' && this.uiManager) {
+                this.uiManager.updateUserStatus(data.username, data.status);
+            } else {
+                this.onMessage(event);
+            }
+        };
+
+        this.ws.onclose = () => {
+            if (this.isConnected) {
+                console.log("WebSocket connection closed");
+                this.isConnected = false;
+                this.onConnectionStatusChange('disconnected', 'Disconnected');
+                this.handleReconnect();
+            }
+        };
+
+        this.ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            this.onConnectionStatusChange('error', 'Connection error');
+        };
     }
 
-    async handleOpen() {
-        this.isConnected = true;
-        this.reconnectDelay = INITIAL_DELAY;
-        this.onConnectionStatusChange("connected", "Connected");
-        await this.onOpen();
-    }
-
-    handleClose() {
-        if (this.isConnected) {
-            console.log("WebSocket connection closed");
-            this.isConnected = false;
-            this.onConnectionStatusChange("disconnected", "Disconnected");
-            this.scheduleReconnect();
+    handleReconnect() {
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            this.onConnectionStatusChange('error', 'Failed to reconnect');
+            return;
         }
-    }
 
-    handleError(error) {
-        console.error("WebSocket error:", error);
-        this.onConnectionStatusChange("disconnected", "Connection error");
-    }
+        this.reconnectAttempts++;
+        this.onConnectionStatusChange('connecting', `Reconnecting (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
 
-    handleMessage(event) {
-        this.onMessage(event);
-    }
-
-    scheduleReconnect() {
         if (this.reconnectTimeout) {
             clearTimeout(this.reconnectTimeout);
         }
 
         this.reconnectTimeout = setTimeout(() => {
-            console.log(`Attempting to reconnect in ${this.reconnectDelay}ms...`);
             this.connect();
-            // Exponential backoff with maximum delay
-            this.reconnectDelay = Math.min(this.reconnectDelay * 2, MAX_RECONNECT_DELAY);
-        }, this.reconnectDelay);
+        }, Math.min(1000 * Math.pow(2, this.reconnectAttempts), 10000));
     }
 
     send(data) {
@@ -73,7 +91,7 @@ export class WebSocketManager {
             } catch (error) {
                 console.error("Failed to send message:", error);
                 this.onConnectionStatusChange("disconnected", "Failed to send message");
-                this.scheduleReconnect();
+                this.handleReconnect();
                 return false;
             }
         }

@@ -9,14 +9,14 @@
     <script type="module" src="/public/pages/index/modules/main.js"></script>
   </head>
   <body
-    class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-full flex flex-col transition-colors duration-200"
+    class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-full flex flex-col overflow-hidden"
   >
     <!-- Header -->
     <header
       class="bg-white dark:bg-gray-800 shadow-xs border-b border-gray-200 dark:border-gray-700"
     >
       <div
-        class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center"
+        class="w-full mx-auto px-4 sm:px-4 lg:px-4 py-4 flex justify-between items-center"
       >
         <h1 class="text-xl sm:text-2xl font-semibold">Chatter</h1>
         <div class="flex items-center gap-4">
@@ -47,95 +47,112 @@
       </div>
     </header>
 
-    <!-- Main Chat Area -->
-    <main
-      class="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col min-h-0"
-    >
-      <!-- Messages Container -->
-      <div
-        id="messages"
-        class="prose prose-p:my-0 prose-img:rounded-lg prose-img:max-h-60 prose-a:text-blue-500 dark:prose-invert max-w-none flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-xs border border-gray-200 dark:border-gray-700 p-4 mb-4 overflow-y-auto min-h-0"
-        style="display: none"
+    <!-- Main Area -->
+    <div class="flex-1 flex overflow-hidden min-h-0">
+      <!-- Sidebar -->
+      <aside
+        class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col min-h-0"
       >
         <div
-          id="empty-state"
-          class="hidden text-gray-500 dark:text-gray-400 text-sm h-6"
+          class="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0"
         >
-          No messages yet. Start the conversation!
+          <h2 class="text-lg font-semibold">Users</h2>
         </div>
-      </div>
+        <div id="users-list" class="flex-1 overflow-y-auto p-4 min-h-0">
+          <!-- Users will be dynamically inserted here -->
+        </div>
+      </aside>
 
-      <!-- Loading State for Messages -->
-      <div
-        id="messages-loading"
-        class="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-xs border border-gray-200 dark:border-gray-700 p-4 mb-4 flex items-center justify-center min-h-0"
+      <!-- Main Chat -->
+      <main
+        class="flex-1 px-4 sm:px-4 lg:px-6 py-4 sm:py-4 lg:py-6 flex flex-col min-h-0 overflow-hidden"
       >
-        <div class="flex items-center space-x-3">
-          <img
-            src="/public/images/spinner.svg"
-            alt="Loading..."
-            class="w-6 h-6"
-          />
-          <span class="text-gray-500 dark:text-gray-400"
-            >Loading messages...</span
+        <!-- Messages Container -->
+        <div
+          id="messages"
+          class="prose prose-p:my-0 prose-img:rounded-lg prose-img:max-h-60 prose-a:text-blue-500 dark:prose-invert max-w-none flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-xs border border-gray-200 dark:border-gray-700 p-4 overflow-y-auto min-h-0"
+          style="display: none"
+        >
+          <div
+            id="empty-state"
+            class="hidden text-gray-500 dark:text-gray-400 text-sm h-6"
           >
-        </div>
-      </div>
-
-      <!-- Typing Indicator -->
-      <div
-        id="typing-indicator"
-        class="text-gray-500 dark:text-gray-400 text-sm h-6 max-h-6 mb-2"
-      ></div>
-
-      <!-- Message Input -->
-      <div
-        class="bg-white dark:bg-gray-800 rounded-xl shadow-xs border border-gray-200 dark:border-gray-700 p-4"
-      >
-        <form id="message-form" class="flex gap-2">
-          <textarea
-            disabled
-            id="message-input"
-            class="flex-1 resize-none bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200 min-h-[2.5rem] max-h-[150px] overflow-y-auto"
-            placeholder="Type your message..."
-            rows="1"
-          ></textarea>
-          <div class="flex items-center gap-2">
-            <label class="relative cursor-pointer">
-              <input
-                type="file"
-                id="file-upload"
-                class="hidden"
-                accept="image/*"
-              />
-              <div
-                id="upload-button"
-                class="p-2 rounded-lg bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <img
-                  id="upload-icon"
-                  src="/public/images/image.svg"
-                  alt="Upload image"
-                  class="w-6 h-6"
-                />
-                <img
-                  id="upload-loader"
-                  src="/public/images/spinner.svg"
-                  alt="Uploading..."
-                  class="w-6 h-6 hidden"
-                />
-              </div>
-            </label>
-            <button
-              disabled
-              type="submit"
-              class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Send
-            </button>
+            No messages yet. Start the conversation!
           </div>
-        </form>
-      </div>
-    </main>
+        </div>
+
+        <!-- Loading State for Messages -->
+        <div
+          id="messages-loading"
+          class="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-xs border border-gray-200 dark:border-gray-700 p-4 flex items-center justify-center min-h-0"
+        >
+          <div class="flex items-center space-x-3">
+            <img
+              src="/public/images/spinner.svg"
+              alt="Loading..."
+              class="w-6 h-6"
+            />
+            <span class="text-gray-500 dark:text-gray-400"
+              >Loading messages...</span
+            >
+          </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div
+          id="typing-indicator"
+          class="text-gray-500 dark:text-gray-400 text-sm h-6 max-h-6 mt-2 mb-1"
+        ></div>
+
+        <!-- Message Input -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-xl shadow-xs border border-gray-200 dark:border-gray-700 p-4"
+        >
+          <form id="message-form" class="flex gap-2">
+            <textarea
+              disabled
+              id="message-input"
+              class="flex-1 resize-none bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200 min-h-[2.5rem] max-h-[150px] overflow-y-auto"
+              placeholder="Type your message..."
+              rows="1"
+            ></textarea>
+            <div class="flex items-center gap-2">
+              <label class="relative cursor-pointer">
+                <input
+                  type="file"
+                  id="file-upload"
+                  class="hidden"
+                  accept="image/*"
+                />
+                <div
+                  id="upload-button"
+                  class="p-2 rounded-lg bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <img
+                    id="upload-icon"
+                    src="/public/images/image.svg"
+                    alt="Upload image"
+                    class="w-6 h-6"
+                  />
+                  <img
+                    id="upload-loader"
+                    src="/public/images/spinner.svg"
+                    alt="Uploading..."
+                    class="w-6 h-6 hidden"
+                  />
+                </div>
+              </label>
+              <button
+                disabled
+                type="submit"
+                class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
   </body>
 </html>

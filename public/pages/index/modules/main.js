@@ -36,6 +36,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         );
 
+        // Set UI manager in WebSocket manager for status updates
+        websocketManager.setUIManager(uiManager);
+
         // Initialize chat manager
         const chatManager = new ChatManager(websocketManager, uiManager, audioManager, settingsManager, notificationManager, userManager);
 

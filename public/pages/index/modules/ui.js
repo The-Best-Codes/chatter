@@ -10,6 +10,8 @@ export class UIManager {
         this.reconnectButton = document.getElementById("reconnect-button");
         this.connectionStatus = document.getElementById("connection-status");
         this.connectionText = document.getElementById("connection-text");
+        this.usersList = document.getElementById("users-list");
+        this.users = new Map(); // Store user statuses
 
         // Configure marked with custom renderers
         marked.use({
@@ -185,5 +187,38 @@ export class UIManager {
 
     showError(message) {
         alert(message);
+    }
+
+    updateUserStatus(username, status) {
+        this.users.set(username, status);
+        this.renderUsers();
+    }
+
+    removeUser(username) {
+        this.users.delete(username);
+        this.renderUsers();
+    }
+
+    renderUsers() {
+        if (!this.usersList) return;
+
+        this.usersList.innerHTML = '';
+
+        for (const [username, status] of this.users) {
+            const userElement = document.createElement('div');
+            userElement.className = 'flex items-center gap-2 py-2';
+
+            const statusDot = document.createElement('div');
+            statusDot.className = `h-2 w-2 rounded-full ${status === 'online' ? 'bg-green-500' : 'bg-red-500'
+                }`;
+
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = username;
+            nameSpan.className = 'text-sm';
+
+            userElement.appendChild(statusDot);
+            userElement.appendChild(nameSpan);
+            this.usersList.appendChild(userElement);
+        }
     }
 }
