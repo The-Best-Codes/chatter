@@ -49,12 +49,19 @@ export async function getRecentUserStatuses(
   limit: number = 50
 ): Promise<UserStatus[]> {
   const stmt = db.prepare(`
-    SELECT us.*, u.username
-    FROM user_status us
-    JOIN users u ON us.user_id = u.id
-    WHERE us.last_seen >= datetime('now', '-10 minutes') 
-      AND us.status = 'online'
-    ORDER BY us.last_seen DESC
+    SELECT u.username, 
+           COALESCE(us.status, 'offline') as status,
+           COALESCE(us.last_seen, datetime('now')) as last_seen
+    FROM users u
+    LEFT JOIN user_status us ON u.id = us.user_id
+    WHERE us.status = 'online' AND us.last_seen >= datetime('now', '-10 minutes')
+       OR us.status IS NULL
+       OR us.status = 'offline'
+    ORDER BY CASE 
+      WHEN us.status = 'online' THEN 0 
+      ELSE 1 
+    END,
+    us.last_seen DESC
     LIMIT ?
   `);
 
