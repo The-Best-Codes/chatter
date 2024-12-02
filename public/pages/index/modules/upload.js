@@ -136,13 +136,16 @@ export class UploadManager {
 
     sanitizeUrl(url) {
         try {
-            // Create a URL object to validate the URL
+            // Handle relative URLs
+            if (url.startsWith('/')) {
+                return encodeURI(url);
+            }
+
+            // For absolute URLs, validate the protocol
             const parsedUrl = new URL(url);
-            // Only allow specific protocols
             if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
                 throw new Error('Invalid URL protocol');
             }
-            // Encode the URL components to prevent XSS
             return encodeURI(url);
         } catch (e) {
             console.error('Invalid URL:', e);
