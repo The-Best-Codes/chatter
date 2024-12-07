@@ -1,6 +1,6 @@
 {
   "name": "chatter",
-  "version": "0.0.7-beta.1",
+  "version": "0.0.7-beta.2",
   "module": "index.ts",
   "type": "module",
   "packageManager": "bun@1.1.38",
@@ -19,7 +19,7 @@
     "start": "SCHEMA_PATH=./src/db/schema.sql bun run ./build.index.js",
     "pm2-start": "pm2 start --name chatter --interpreter ~/.bun/bin/bun ./build.index.js",
     "pm2-stop": "pm2 stop chatter",
-    "pm2-restart": "pm2 restart chatter",
+    "pm2-restart": "pm2 restart chatter --update-env",
     "pm2-startup": "pm2 save && pm2 startup",
     "binary": "bun exec",
     "build-dist": "bun run build && rm -rf dist && bun run ./scripts/compile.ts"

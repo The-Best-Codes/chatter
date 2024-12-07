@@ -10,6 +10,7 @@ import {
   timeBot,
   greetBot,
   registerBot,
+  aiBot,
 } from "./bots";
 
 const typingUsers = new Set<string>();
@@ -180,6 +181,7 @@ export function createWebSocketHandler() {
       registerBot(echoBot);
       registerBot(timeBot);
       registerBot(greetBot);
+      registerBot(aiBot);
     },
   };
 }
