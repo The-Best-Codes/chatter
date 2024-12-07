@@ -7,9 +7,11 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
+    user_id INTEGER,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_bot BOOLEAN DEFAULT FALSE,
+    bot_name TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 

@@ -3,6 +3,14 @@ import type { User } from "../db/database";
 import { createMessage } from "../db/database";
 import { LIMITS, validateInput, escapeHtml } from "../constants";
 import { setUserStatus, getRecentUserStatuses } from "./status";
+import {
+  initBots,
+  handleMessage,
+  echoBot,
+  timeBot,
+  greetBot,
+  registerBot,
+} from "./bots";
 
 const typingUsers = new Set<string>();
 const wsUsers = new WeakMap<ServerWebSocket<unknown>, User>();
@@ -64,7 +72,11 @@ export function createWebSocketHandler() {
               LIMITS.MESSAGE_MAX_LENGTH
             );
             const safeContent = escapeHtml(validatedContent);
-            const msg = await createMessage(user.id, safeContent);
+            const timestamp = new Date().toISOString();
+            const msg = await createMessage(safeContent, {
+              userId: user.id,
+              timestamp,
+            });
 
             serverInstance.publish(
               "chat",
@@ -72,9 +84,13 @@ export function createWebSocketHandler() {
                 type: "message",
                 username: user.username,
                 content: safeContent,
-                timestamp: new Date().toISOString(),
+                timestamp,
+                isBot: false,
               })
             );
+
+            // Process message through bots
+            handleMessage(safeContent, user, timestamp);
           } catch (error) {
             ws.send(
               JSON.stringify({
@@ -158,6 +174,12 @@ export function createWebSocketHandler() {
     handler,
     setServer: (server: Server) => {
       serverInstance = server;
+      initBots(server); // Initialize bots with server instance
+
+      // Register default bots
+      registerBot(echoBot);
+      registerBot(timeBot);
+      registerBot(greetBot);
     },
   };
 }

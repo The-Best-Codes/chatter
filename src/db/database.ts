@@ -26,10 +26,12 @@ export interface User {
 
 export interface Message {
   id: number;
-  user_id: number;
+  user_id?: number;
   content: string;
   created_at: string;
   username?: string;
+  is_bot?: boolean;
+  bot_name?: string;
 }
 
 export const createUser = async (
@@ -94,22 +96,35 @@ export const verifyUser = async (
 };
 
 export const createMessage = async (
-  userId: number,
-  content: string
+  content: string,
+  options: {
+    userId?: number;
+    isBot?: boolean;
+    botName?: string;
+    timestamp?: string;
+  }
 ): Promise<Message> => {
   // Validate message length
   content = validateInput(content, LIMITS.MESSAGE_MAX_LENGTH);
 
   const stmt = db.prepare(
-    "INSERT INTO messages (user_id, content) VALUES (?, ?)"
+    "INSERT INTO messages (user_id, content, is_bot, bot_name, created_at) VALUES (?, ?, ?, ?, ?)"
   );
-  const result = stmt.run(userId, content);
+  const result = stmt.run(
+    options.userId || null,
+    content,
+    options.isBot || false,
+    options.botName || null,
+    options.timestamp || new Date().toISOString()
+  );
 
   return {
     id: Number(result.lastInsertRowid),
-    user_id: userId,
+    user_id: options.userId,
     content,
-    created_at: new Date().toISOString(),
+    created_at: options.timestamp || new Date().toISOString(),
+    is_bot: options.isBot,
+    bot_name: options.botName,
   };
 };
 
@@ -119,9 +134,15 @@ export const getRecentMessages = async (
   const stmt = db.prepare(`
     SELECT m.*, u.username 
     FROM messages m 
-    JOIN users u ON m.user_id = u.id 
+    LEFT JOIN users u ON m.user_id = u.id 
     ORDER BY m.created_at DESC 
     LIMIT ?
   `);
-  return stmt.all(limit) as Message[];
+  const messages = stmt.all(limit) as Message[];
+
+  // For bot messages, use bot_name as username
+  return messages.map((msg) => ({
+    ...msg,
+    username: msg.is_bot ? msg.bot_name : msg.username,
+  }));
 };
