@@ -13,6 +13,14 @@ export class UIManager {
         this.usersList = document.getElementById("users-list");
         this.users = new Map(); // Store user statuses
 
+        // Mobile menu elements
+        this.mobileMenuButton = document.getElementById("mobile-menu-button");
+        this.sidebar = document.getElementById("sidebar");
+        this.closeIcon = document.getElementById("close-icon");
+        this.menuIcon = document.getElementById("menu-icon");
+
+        this.setupMobileMenu();
+
         // Configure marked with custom renderers
         marked.use({
             renderer: {
@@ -151,6 +159,25 @@ export class UIManager {
             const maxHeight = 150; // 150px max height
             const newHeight = Math.min(this.messageInput.scrollHeight + 2, maxHeight);
             this.messageInput.style.height = newHeight + "px";
+        });
+    }
+
+    setupMobileMenu() {
+        this.mobileMenuButton.addEventListener("click", () => {
+            this.sidebar.classList.toggle("-translate-x-full");
+            this.mobileMenuButton.classList.toggle("translate-x-48");
+            this.closeIcon.classList.toggle("hidden");
+            this.menuIcon.classList.toggle("hidden");
+        });
+
+        // Close sidebar when clicking outside
+        document.addEventListener("click", (e) => {
+            if (window.innerWidth < 1024 && // Only on mobile
+                !this.sidebar.contains(e.target) &&
+                !this.mobileMenuButton.contains(e.target) &&
+                !this.sidebar.classList.contains("-translate-x-full")) {
+                this.sidebar.classList.add("-translate-x-full");
+            }
         });
     }
 

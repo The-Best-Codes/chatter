@@ -49,9 +49,24 @@
 
     <!-- Main Area -->
     <div class="flex-1 flex overflow-hidden min-h-0">
+      <!-- Mobile Menu Button -->
+      <button
+        id="mobile-menu-button"
+        class="lg:hidden fixed top-18 left-4 z-50 bg-white dark:bg-gray-800 p-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out transform"
+        aria-label="Toggle menu"
+      >
+        <span class="sr-only">Toggle menu</span>
+        <img
+          class="w-6 h-6 hidden"
+          id="close-icon"
+          src="/public/images/x.svg"
+        />
+        <img class="w-6 h-6" id="menu-icon" src="/public/images/menu.svg" />
+      </button>
       <!-- Sidebar -->
       <aside
-        class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col min-h-0"
+        id="sidebar"
+        class="fixed inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 lg:relative lg:inset-auto lg:w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col min-h-0 transition-transform duration-300 ease-in-out z-40 mt-16 lg:mt-0 w-3/4 sm:w-1/2"
       >
         <div
           class="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0"
