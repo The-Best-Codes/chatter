@@ -26,6 +26,11 @@ export async function handleMessage(
   user: User,
   timestamp: string
 ) {
+  // Skip processing messages from bots to prevent infinite loops
+  if ('isBot' in user && user.isBot) {
+    return;
+  }
+
   for (const bot of bots) {
     for (const pattern of bot.patterns) {
       const match = content.match(pattern.regex);
