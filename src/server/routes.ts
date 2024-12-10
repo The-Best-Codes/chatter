@@ -186,11 +186,25 @@ export async function handleRequest(
         await deleteSession(sessionId);
       }
 
+      // Return an HTML page that ensures redirect happens
+      const redirectHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="refresh" content="0;url=/login">
+  <title>Logging out...</title>
+</head>
+<body>
+  <p>Logging out... If you are not redirected, <a href="/login">click here</a>.</p>
+  <script>window.location.href = "/login";</script>
+</body>
+</html>`;
+
       return addCorsHeaders(
-        new Response("", {
-          status: 302,
+        new Response(redirectHtml, {
+          status: 200,
           headers: {
-            Location: "/login",
+            "Content-Type": "text/html",
             "Set-Cookie":
               "sessionId=; HttpOnly; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
           },
