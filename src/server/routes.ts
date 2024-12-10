@@ -14,6 +14,18 @@ export async function handleRequest(
   server: any,
   user: any
 ): Promise<Response> {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "Content-Type, Authorization, X-Requested-With",
+      },
+    });
+  }
+
   const url = new URL(req.url);
 
   // Serve media files
@@ -26,11 +38,30 @@ export async function handleRequest(
     return new Response("Not Found", { status: 404 });
   }
 
+  // Add CORS headers helper function
+  const addCorsHeaders = (response: Response): Response => {
+    const headers = new Headers(response.headers);
+    headers.set("Access-Control-Allow-Origin", "*");
+    headers.set(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-Requested-With"
+    );
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  };
+
   // Static files
   if (url.pathname.startsWith("/public/")) {
     const filePath = `${process.cwd()}${url.pathname}`;
     const file = Bun.file(filePath);
-    return new Response(file);
+    return addCorsHeaders(new Response(file));
   }
 
   // WebSocket upgrade
@@ -42,19 +73,23 @@ export async function handleRequest(
     // @ts-expect-error ts(2322): Type 'undefined' is not assignable to type 'Response'.
     return upgraded
       ? undefined
-      : new Response("WebSocket upgrade failed", { status: 400 });
+      : addCorsHeaders(
+          new Response("WebSocket upgrade failed", { status: 400 })
+        );
   }
 
   // Routes
   switch (url.pathname) {
     case "/":
       if (!user) {
-        return new Response("", {
-          status: 302,
-          headers: { Location: "/login" },
-        });
+        return addCorsHeaders(
+          new Response("", {
+            status: 302,
+            headers: { Location: "/login" },
+          })
+        );
       }
-      return serveFile("index.html", "text/html");
+      return addCorsHeaders(serveFile("index.html", "text/html"));
 
     case "/login":
       if (req.method === "POST") {
@@ -64,39 +99,45 @@ export async function handleRequest(
 
           if (user) {
             const sessionId = await createSession(user);
-            return new Response(JSON.stringify({ success: true }), {
-              status: 200,
-              headers: {
-                "Content-Type": "application/json",
-                "Set-Cookie": `sessionId=${sessionId}; HttpOnly; Path=/`,
-              },
-            });
+            return addCorsHeaders(
+              new Response(JSON.stringify({ success: true }), {
+                status: 200,
+                headers: {
+                  "Content-Type": "application/json",
+                  "Set-Cookie": `sessionId=${sessionId}; HttpOnly; Path=/`,
+                },
+              })
+            );
           }
 
-          return new Response(
-            JSON.stringify({
-              success: false,
-              error: "Invalid username or password",
-            }),
-            {
-              status: 401,
-              headers: { "Content-Type": "application/json" },
-            }
+          return addCorsHeaders(
+            new Response(
+              JSON.stringify({
+                success: false,
+                error: "Invalid username or password",
+              }),
+              {
+                status: 401,
+                headers: { "Content-Type": "application/json" },
+              }
+            )
           );
         } catch (error) {
-          return new Response(
-            JSON.stringify({
-              success: false,
-              error: "Invalid request format",
-            }),
-            {
-              status: 400,
-              headers: { "Content-Type": "application/json" },
-            }
+          return addCorsHeaders(
+            new Response(
+              JSON.stringify({
+                success: false,
+                error: "Invalid request format",
+              }),
+              {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              }
+            )
           );
         }
       }
-      return serveFile("login.html", "text/html");
+      return addCorsHeaders(serveFile("login.html", "text/html"));
 
     case "/signup":
       if (req.method === "POST") {
@@ -105,36 +146,42 @@ export async function handleRequest(
           const user = await createUser(username, password);
 
           if (user) {
-            return new Response(JSON.stringify({ success: true }), {
-              status: 200,
-              headers: { "Content-Type": "application/json" },
-            });
+            return addCorsHeaders(
+              new Response(JSON.stringify({ success: true }), {
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+              })
+            );
           }
 
-          return new Response(
-            JSON.stringify({
-              success: false,
-              error: "Username already exists",
-            }),
-            {
-              status: 409,
-              headers: { "Content-Type": "application/json" },
-            }
+          return addCorsHeaders(
+            new Response(
+              JSON.stringify({
+                success: false,
+                error: "Username already exists",
+              }),
+              {
+                status: 409,
+                headers: { "Content-Type": "application/json" },
+              }
+            )
           );
         } catch (error) {
-          return new Response(
-            JSON.stringify({
-              success: false,
-              error: "Invalid request format",
-            }),
-            {
-              status: 400,
-              headers: { "Content-Type": "application/json" },
-            }
+          return addCorsHeaders(
+            new Response(
+              JSON.stringify({
+                success: false,
+                error: "Invalid request format",
+              }),
+              {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              }
+            )
           );
         }
       }
-      return serveFile("signup.html", "text/html");
+      return addCorsHeaders(serveFile("signup.html", "text/html"));
 
     case "/logout":
       const sessionId = req.headers
@@ -147,51 +194,61 @@ export async function handleRequest(
         await deleteSession(sessionId);
       }
 
-      return new Response("", {
-        status: 302,
-        headers: {
-          Location: "/login",
-          "Set-Cookie":
-            "sessionId=; HttpOnly; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-        },
-      });
+      return addCorsHeaders(
+        new Response("", {
+          status: 302,
+          headers: {
+            Location: "/login",
+            "Set-Cookie":
+              "sessionId=; HttpOnly; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+          },
+        })
+      );
 
     case "/messages":
       if (!user) {
-        return new Response("Unauthorized", { status: 401 });
+        return addCorsHeaders(new Response("Unauthorized", { status: 401 }));
       }
       const messages = await getRecentMessages();
-      return new Response(JSON.stringify(messages), {
-        headers: { "Content-Type": "application/json" },
-      });
+      return addCorsHeaders(
+        new Response(JSON.stringify(messages), {
+          headers: { "Content-Type": "application/json" },
+        })
+      );
 
     case "/me":
       if (!user) {
-        return new Response("Unauthorized", { status: 401 });
+        return addCorsHeaders(new Response("Unauthorized", { status: 401 }));
       }
-      return new Response(
-        JSON.stringify({
-          username: user.username,
-          id: user.id,
-        }),
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+      return addCorsHeaders(
+        new Response(
+          JSON.stringify({
+            username: user.username,
+            id: user.id,
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        )
       );
 
     case "/upload":
       if (!user) {
-        return new Response("Unauthorized", { status: 401 });
+        return addCorsHeaders(new Response("Unauthorized", { status: 401 }));
       }
       if (req.method !== "POST") {
-        return new Response("Method not allowed", { status: 405 });
+        return addCorsHeaders(
+          new Response("Method not allowed", { status: 405 })
+        );
       }
       try {
         const formData = await req.formData();
         const image = formData.get("image");
 
         if (!image || !(image instanceof File)) {
-          return new Response("No image provided", { status: 400 });
+          return addCorsHeaders(
+            new Response("No image provided", { status: 400 })
+          );
         }
 
         const buffer = await image.arrayBuffer();
@@ -200,23 +257,27 @@ export async function handleRequest(
           image.name
         );
 
-        return new Response(JSON.stringify({ url: result.url }), {
-          headers: { "Content-Type": "application/json" },
-        });
+        return addCorsHeaders(
+          new Response(JSON.stringify({ url: result.url }), {
+            headers: { "Content-Type": "application/json" },
+          })
+        );
       } catch (error) {
         console.error("Upload error:", error);
-        return new Response(
-          JSON.stringify({
-            error: error instanceof Error ? error.message : "Upload failed",
-          }),
-          {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          }
+        return addCorsHeaders(
+          new Response(
+            JSON.stringify({
+              error: error instanceof Error ? error.message : "Upload failed",
+            }),
+            {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            }
+          )
         );
       }
 
     default:
-      return new Response("Not Found", { status: 404 });
+      return addCorsHeaders(new Response("Not Found", { status: 404 }));
   }
 }
