@@ -81,14 +81,6 @@ export async function handleRequest(
   // Routes
   switch (url.pathname) {
     case "/":
-      if (!user) {
-        return addCorsHeaders(
-          new Response("", {
-            status: 302,
-            headers: { Location: "/login" },
-          })
-        );
-      }
       return addCorsHeaders(serveFile("index.html", "text/html"));
 
     case "/login":
@@ -205,6 +197,22 @@ export async function handleRequest(
         })
       );
 
+    case "/me":
+      if (!user) {
+        return addCorsHeaders(
+          new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          })
+        );
+      }
+      return addCorsHeaders(
+        new Response(JSON.stringify(user), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        })
+      );
+
     case "/messages":
       if (!user) {
         return addCorsHeaders(new Response("Unauthorized", { status: 401 }));
@@ -214,22 +222,6 @@ export async function handleRequest(
         new Response(JSON.stringify(messages), {
           headers: { "Content-Type": "application/json" },
         })
-      );
-
-    case "/me":
-      if (!user) {
-        return addCorsHeaders(new Response("Unauthorized", { status: 401 }));
-      }
-      return addCorsHeaders(
-        new Response(
-          JSON.stringify({
-            username: user.username,
-            id: user.id,
-          }),
-          {
-            headers: { "Content-Type": "application/json" },
-          }
-        )
       );
 
     case "/upload":
