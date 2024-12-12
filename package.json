@@ -1,6 +1,6 @@
 {
   "name": "chatter",
-  "version": "0.0.7-beta.5",
+  "version": "0.0.7",
   "module": "index.ts",
   "type": "module",
   "packageManager": "bun@1.1.38",
@@ -22,7 +22,8 @@
     "pm2-restart": "pm2 restart chatter --update-env",
     "pm2-startup": "pm2 save && pm2 startup",
     "binary": "bun exec",
-    "build-dist": "bun run build && rm -rf dist && bun run ./scripts/compile.ts"
+    "build-dist": "bun run build && rm -rf dist && bun run ./scripts/compile.ts",
+    "deps:update": "bun update --latest && bun install tailwindcss@next @tailwindcss/postcss@next"
   },
   "devDependencies": {
     "@types/bun": "^1.1.14",

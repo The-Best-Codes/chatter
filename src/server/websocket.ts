@@ -10,7 +10,6 @@ import {
   timeBot,
   greetBot,
   registerBot,
-  aiBot,
 } from "./bots";
 
 const typingUsers = new Set<string>();
@@ -34,7 +33,7 @@ export function createWebSocketHandler() {
           JSON.stringify({
             type: "initial_status",
             users: statuses,
-          })
+          }),
         );
 
         // Then set user as online and broadcast their status
@@ -46,7 +45,7 @@ export function createWebSocketHandler() {
               username: user.username,
               status: "online",
               lastSeen: new Date().toISOString(),
-            })
+            }),
           );
         });
       });
@@ -70,7 +69,7 @@ export function createWebSocketHandler() {
           try {
             const validatedContent = validateInput(
               data.content,
-              LIMITS.MESSAGE_MAX_LENGTH
+              LIMITS.MESSAGE_MAX_LENGTH,
             );
             const safeContent = escapeHtml(validatedContent);
             const timestamp = new Date().toISOString();
@@ -87,7 +86,7 @@ export function createWebSocketHandler() {
                 content: safeContent,
                 timestamp,
                 isBot: false,
-              })
+              }),
             );
 
             // Process message through bots
@@ -97,7 +96,7 @@ export function createWebSocketHandler() {
               JSON.stringify({
                 type: "error",
                 message: (error as Error)?.message || "Failed to send message",
-              })
+              }),
             );
           }
           break;
@@ -128,7 +127,7 @@ export function createWebSocketHandler() {
             JSON.stringify({
               type: "typing",
               message: typingMessage,
-            })
+            }),
           );
           break;
 
@@ -138,7 +137,7 @@ export function createWebSocketHandler() {
             JSON.stringify({
               type: "status_list",
               statuses,
-            })
+            }),
           );
           break;
       }
@@ -161,7 +160,7 @@ export function createWebSocketHandler() {
           username: user.username,
           status: "offline",
           lastSeen: new Date().toISOString(),
-        })
+        }),
       );
 
       connections.delete(user.username);
@@ -181,7 +180,6 @@ export function createWebSocketHandler() {
       registerBot(echoBot);
       registerBot(timeBot);
       registerBot(greetBot);
-      registerBot(aiBot);
     },
   };
 }
