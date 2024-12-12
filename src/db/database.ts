@@ -36,7 +36,7 @@ export interface Message {
 
 export const createUser = async (
   username: string,
-  password: string
+  password: string,
 ): Promise<User | null> => {
   // Validate input lengths
   username = validateInput(username, LIMITS.USERNAME_MAX_LENGTH);
@@ -48,7 +48,7 @@ export const createUser = async (
   const hashedPassword = await bcrypt.hash(password, 10);
   try {
     const stmt = db.prepare(
-      "INSERT INTO users (username, password) VALUES (?, ?)"
+      "INSERT INTO users (username, password) VALUES (?, ?)",
     );
     const result = stmt.run(username, hashedPassword);
 
@@ -70,7 +70,7 @@ export const createUser = async (
 
 export const verifyUser = async (
   username: string,
-  password: string
+  password: string,
 ): Promise<User | null> => {
   // Validate input lengths
   username = validateInput(username, LIMITS.USERNAME_MAX_LENGTH);
@@ -102,20 +102,20 @@ export const createMessage = async (
     isBot?: boolean;
     botName?: string;
     timestamp?: string;
-  }
+  },
 ): Promise<Message> => {
   // Validate message length
   content = validateInput(content, LIMITS.MESSAGE_MAX_LENGTH);
 
   const stmt = db.prepare(
-    "INSERT INTO messages (user_id, content, is_bot, bot_name, created_at) VALUES (?, ?, ?, ?, ?)"
+    "INSERT INTO messages (user_id, content, is_bot, bot_name, created_at) VALUES (?, ?, ?, ?, ?)",
   );
   const result = stmt.run(
     options.userId || null,
     content,
     options.isBot || false,
     options.botName || null,
-    options.timestamp || new Date().toISOString()
+    options.timestamp || new Date().toISOString(),
   );
 
   return {
@@ -129,13 +129,13 @@ export const createMessage = async (
 };
 
 export const getRecentMessages = async (
-  limit: number = 50
+  limit: number = 50,
 ): Promise<Message[]> => {
   const stmt = db.prepare(`
-    SELECT m.*, u.username 
-    FROM messages m 
-    LEFT JOIN users u ON m.user_id = u.id 
-    ORDER BY m.created_at DESC 
+    SELECT m.*, u.username
+    FROM messages m
+    LEFT JOIN users u ON m.user_id = u.id
+    ORDER BY m.created_at DESC
     LIMIT ?
   `);
   const messages = stmt.all(limit) as Message[];

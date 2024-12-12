@@ -18,7 +18,7 @@ function encrypt(text: string): string {
   const cipher = crypto.createCipheriv(
     "aes-256-cbc",
     Buffer.from(ENCRYPTION_KEY, "hex"),
-    iv
+    iv,
   );
   let encrypted = cipher.update(text, "utf8", "hex");
   encrypted += cipher.final("hex");
@@ -33,7 +33,7 @@ function decrypt(text: string): string {
   const decipher = crypto.createDecipheriv(
     "aes-256-cbc",
     Buffer.from(ENCRYPTION_KEY, "hex"),
-    iv
+    iv,
   );
   let decrypted = decipher.update(encryptedHex, "hex", "utf8");
   decrypted += decipher.final("utf8");
@@ -53,11 +53,11 @@ export async function createSession(user: User): Promise<string> {
     JSON.stringify({
       userId: user.id,
       username: user.username,
-    })
+    }),
   );
 
   const stmt = db.prepare(
-    "INSERT INTO sessions (id, user_id, expires_at, data) VALUES (?, ?, ?, ?)"
+    "INSERT INTO sessions (id, user_id, expires_at, data) VALUES (?, ?, ?, ?)",
   );
   stmt.run(sessionId, user.id, expiresAt.toISOString(), sessionData);
 
@@ -66,7 +66,7 @@ export async function createSession(user: User): Promise<string> {
 
 export async function getSession(sessionId: string): Promise<User | null> {
   const stmt = db.prepare(
-    "SELECT * FROM sessions WHERE id = ? AND expires_at > datetime('now')"
+    "SELECT * FROM sessions WHERE id = ? AND expires_at > datetime('now')",
   );
   const session = stmt.get(sessionId) as any;
 
@@ -94,9 +94,12 @@ export async function deleteSession(sessionId: string): Promise<void> {
 }
 
 // Cleanup expired sessions periodically
-setInterval(() => {
-  const stmt = db.prepare(
-    "DELETE FROM sessions WHERE expires_at <= datetime('now')"
-  );
-  stmt.run();
-}, 1000 * 60 * 60); // Run every hour
+setInterval(
+  () => {
+    const stmt = db.prepare(
+      "DELETE FROM sessions WHERE expires_at <= datetime('now')",
+    );
+    stmt.run();
+  },
+  1000 * 60 * 60,
+); // Run every hour

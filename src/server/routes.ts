@@ -12,7 +12,7 @@ function serveFile(filePath: string, type: string): Response {
 export async function handleRequest(
   req: Request,
   server: any,
-  user: any
+  user: any,
 ): Promise<Response> {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -44,11 +44,11 @@ export async function handleRequest(
     headers.set("Access-Control-Allow-Origin", "*");
     headers.set(
       "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
+      "GET, POST, PUT, DELETE, OPTIONS",
     );
     headers.set(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, X-Requested-With"
+      "Content-Type, Authorization, X-Requested-With",
     );
     headers.set("Access-Control-Allow-Credentials", "true");
     return new Response(response.body, {
@@ -75,7 +75,7 @@ export async function handleRequest(
     return upgraded
       ? undefined
       : addCorsHeaders(
-          new Response("WebSocket upgrade failed", { status: 400 })
+          new Response("WebSocket upgrade failed", { status: 400 }),
         );
   }
 
@@ -99,7 +99,7 @@ export async function handleRequest(
                   "Content-Type": "application/json",
                   "Set-Cookie": `sessionId=${sessionId}; HttpOnly; Path=/`,
                 },
-              })
+              }),
             );
           }
 
@@ -112,8 +112,8 @@ export async function handleRequest(
               {
                 status: 401,
                 headers: { "Content-Type": "application/json" },
-              }
-            )
+              },
+            ),
           );
         } catch (error) {
           return addCorsHeaders(
@@ -125,8 +125,8 @@ export async function handleRequest(
               {
                 status: 400,
                 headers: { "Content-Type": "application/json" },
-              }
-            )
+              },
+            ),
           );
         }
       }
@@ -143,7 +143,7 @@ export async function handleRequest(
               new Response(JSON.stringify({ success: true }), {
                 status: 200,
                 headers: { "Content-Type": "application/json" },
-              })
+              }),
             );
           }
 
@@ -156,8 +156,8 @@ export async function handleRequest(
               {
                 status: 409,
                 headers: { "Content-Type": "application/json" },
-              }
-            )
+              },
+            ),
           );
         } catch (error) {
           return addCorsHeaders(
@@ -169,8 +169,8 @@ export async function handleRequest(
               {
                 status: 400,
                 headers: { "Content-Type": "application/json" },
-              }
-            )
+              },
+            ),
           );
         }
       }
@@ -209,7 +209,7 @@ export async function handleRequest(
             "Set-Cookie":
               "sessionId=; HttpOnly; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
           },
-        })
+        }),
       );
 
     case "/me":
@@ -218,14 +218,14 @@ export async function handleRequest(
           new Response(JSON.stringify({ error: "Unauthorized" }), {
             status: 401,
             headers: { "Content-Type": "application/json" },
-          })
+          }),
         );
       }
       return addCorsHeaders(
         new Response(JSON.stringify(user), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
     case "/messages":
@@ -236,7 +236,7 @@ export async function handleRequest(
       return addCorsHeaders(
         new Response(JSON.stringify(messages), {
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
     case "/upload":
@@ -245,7 +245,7 @@ export async function handleRequest(
       }
       if (req.method !== "POST") {
         return addCorsHeaders(
-          new Response("Method not allowed", { status: 405 })
+          new Response("Method not allowed", { status: 405 }),
         );
       }
       try {
@@ -254,20 +254,20 @@ export async function handleRequest(
 
         if (!image || !(image instanceof File)) {
           return addCorsHeaders(
-            new Response("No image provided", { status: 400 })
+            new Response("No image provided", { status: 400 }),
           );
         }
 
         const buffer = await image.arrayBuffer();
         const result = await MediaManager.getInstance().processAndSaveImage(
           Buffer.from(buffer),
-          image.name
+          image.name,
         );
 
         return addCorsHeaders(
           new Response(JSON.stringify({ url: result.url }), {
             headers: { "Content-Type": "application/json" },
-          })
+          }),
         );
       } catch (error) {
         console.error("Upload error:", error);
@@ -279,8 +279,8 @@ export async function handleRequest(
             {
               status: 500,
               headers: { "Content-Type": "application/json" },
-            }
-          )
+            },
+          ),
         );
       }
 

@@ -56,7 +56,7 @@ export class MediaManager {
 
   async processAndSaveImage(
     imageBuffer: Buffer,
-    originalName: string
+    originalName: string,
   ): Promise<ProcessedImage> {
     if (imageBuffer.length > MAX_IMAGE_SIZE) {
       throw new Error("Image size exceeds maximum allowed size");

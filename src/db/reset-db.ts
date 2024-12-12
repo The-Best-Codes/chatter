@@ -5,7 +5,7 @@ import readline from "node:readline/promises";
 
 async function askQuestion(
   rl: readline.Interface,
-  question: string
+  question: string,
 ): Promise<string> {
   return await rl.question(question);
 }
@@ -18,7 +18,7 @@ async function resetDatabase() {
 
   console.log(
     "\x1b[31m%s\x1b[0m",
-    "WARNING: This will delete all data in the database!"
+    "WARNING: This will delete all data in the database!",
   );
   console.log("This action will:");
   console.log("1. Drop all existing tables");
@@ -27,7 +27,7 @@ async function resetDatabase() {
 
   const confirm1 = await askQuestion(
     rl,
-    "Are you sure you want to continue? (yes/no): "
+    "Are you sure you want to continue? (yes/no): ",
   );
   if (confirm1.toLowerCase() !== "yes") {
     console.log("Database reset cancelled.");
@@ -51,7 +51,7 @@ async function resetDatabase() {
     // Read the schema file
     const schema = fs.readFileSync(
       path.join(process.cwd(), "src/db/schema.sql"),
-      "utf-8"
+      "utf-8",
     );
 
     console.log("Dropping existing tables...");

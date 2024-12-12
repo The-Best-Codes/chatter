@@ -11,7 +11,7 @@ export interface UserStatus {
 
 export async function setUserStatus(
   userId: number,
-  status: "online" | "offline"
+  status: "online" | "offline",
 ): Promise<void> {
   const stmt = db.prepare(`
     INSERT INTO user_status (user_id, status, last_seen)
@@ -24,7 +24,7 @@ export async function setUserStatus(
 }
 
 export async function getUserStatus(
-  userId: number
+  userId: number,
 ): Promise<UserStatus | null> {
   const stmt = db.prepare(`
     SELECT us.*, u.username
@@ -46,10 +46,10 @@ export async function getUserStatus(
 }
 
 export async function getRecentUserStatuses(
-  limit: number = 50
+  limit: number = 50,
 ): Promise<UserStatus[]> {
   const stmt = db.prepare(`
-    SELECT u.username, 
+    SELECT u.username,
            COALESCE(us.status, 'offline') as status,
            COALESCE(us.last_seen, datetime('now')) as last_seen
     FROM users u
@@ -57,9 +57,9 @@ export async function getRecentUserStatuses(
     WHERE us.status = 'online' AND us.last_seen >= datetime('now', '-10 minutes')
        OR us.status IS NULL
        OR us.status = 'offline'
-    ORDER BY CASE 
-      WHEN us.status = 'online' THEN 0 
-      ELSE 1 
+    ORDER BY CASE
+      WHEN us.status = 'online' THEN 0
+      ELSE 1
     END,
     us.last_seen DESC
     LIMIT ?
