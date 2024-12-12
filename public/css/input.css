@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @plugin '@tailwindcss/typography';
 
@@ -13,38 +13,38 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
-  }
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
 }
 
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-  background-color: transparent;
+    width: 5px;
+    height: 5px;
+    background-color: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #888;
-  border-radius: 5px;
+    background-color: #888;
+    border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #555;
+    background-color: #555;
 }
 
 ::-webkit-scrollbar-track {
-  background-color: transparent;
+    background-color: transparent;
 }
 
 ::-webkit-scrollbar-track:hover {
-  background-color: transparent;
+    background-color: transparent;
 }
 
 ::-webkit-scrollbar-corner {
-  background-color: transparent;
+    background-color: transparent;
 }
