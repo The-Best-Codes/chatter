@@ -84,6 +84,36 @@ export async function handleRequest(
     case "/":
       return addCorsHeaders(serveFile("index.html", "text/html"));
 
+    case "/health":
+      if (req.method === "GET") {
+        try {
+          return addCorsHeaders(
+            new Response(
+              JSON.stringify({ status: "ok", application: "Chatter" }),
+              {
+                headers: { "Content-Type": "application/json" },
+              },
+            ),
+          );
+        } catch (error) {
+          return addCorsHeaders(
+            new Response(
+              JSON.stringify({
+                success: false,
+                error: "Invalid request format",
+              }),
+              {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              },
+            ),
+          );
+        }
+      }
+      return addCorsHeaders(
+        new Response("Method not allowed", { status: 405 }),
+      );
+
     case "/login":
       if (req.method === "POST") {
         try {
