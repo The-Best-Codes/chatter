@@ -74,6 +74,22 @@ Watch and compile CSS:
 bun run css:watch
 ```
 
+### Using Daytona for Development
+
+Daytona simplifies the setup of development environments. Follow the steps below to set up Chatter using Daytona:
+
+1. **Install Daytona**: Follow the [Daytona installation guide](https://www.daytona.io/docs/installation/installation/).
+2. **Create the Workspace**:
+   ```bash
+   daytona create https://github.com/The-Best-Codes/chatter
+   ```
+3. **Start the Application**:
+   ```bash
+   bun run dev
+   ```
+
+---
+
 ## Production Build
 
 Build for production:
