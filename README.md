@@ -1,6 +1,27 @@
 # Chatter
 
-A real-time chat application built with Bun, WebSocket, SQLite, and TailwindCSS.
+[![License](https://img.shields.io/github/license/The-Best-Codes/chatter)](https://github.com/The-Best-Codes/chatter/blob/main/LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/The-Best-Codes/chatter?style=social)](https://github.com/The-Best-Codes/chatter/stargazers)
+[![GitHub Issues](https://img.shields.io/github/issues/The-Best-Codes/chatter)](https://github.com/The-Best-Codes/chatter/issues)
+
+A real-time chat application built with **Bun**, **WebSocket**, **SQLite**, and **Tailwind CSS**.
+
+## Table of Contents
+
+1.  [Features](#features)
+2.  [Installation](#installation)
+    - [Pre-built Executables](#pre-built-executables)
+      - [Windows](#windows)
+      - [macOS (Darwin)](#macos-darwin)
+      - [Linux](#linux)
+    - [Development Setup](#development-setup)
+3.  [Daytona - Recommended Development](#daytona---recommended-development)
+4.  [Development Server](#development-server)
+5.  [Production Build and Deployment](#production-build-and-deployment)
+6.  [Project Structure](#project-structure)
+7.  [Technologies](#technologies)
+8.  [Environment Variables](#environment-variables)
+9.  [Attributions](#attributions)
 
 ## Features
 
@@ -14,55 +35,86 @@ A real-time chat application built with Bun, WebSocket, SQLite, and TailwindCSS.
 
 ## Installation
 
-1. Go to the [Releases](https://github.com/The-Best-Codes/chatter/releases/latest) page and download the appropriate file for your system:
+### Pre-built Executables
 
-### Windows
+If you just want to use Chatter without setting up a development environment, you can download pre-built executables from the [Releases](https://github.com/The-Best-Codes/chatter/releases/latest) page.
 
-- Download `windows-modern.zip` (or `windows-base.zip` for older CPUs)
-- Right-click and extract the ZIP file
-- Double-click the executable to start (or run it from the command line with `./chatter.exe`)
-- Open `http://localhost:5177` in your browser
+> [!IMPORTANT]
+> Choose the correct executable for your operating system and CPU architecture (`modern` for newer CPUs, `base` for older ones).
 
-### macOS (Darwin)
+#### Windows
 
-- Download `darwin-modern.zip` (or `darwin-base.zip` for older CPUs)
-- Extract the ZIP file
-- Make the file executable and run it:
-  ```bash
-  chmod +x ./chatter && ./chatter
-  ```
-- Open `http://localhost:5177` in your browser
+1.  Download `windows-modern.zip` (or `windows-base.zip`).
+2.  Right-click and extract the ZIP file.
+3.  Double-click the executable to start (or run from the command line with `./chatter.exe`).
+4.  Open `http://localhost:5177` in your browser.
 
-### Linux
+#### macOS (Darwin)
 
-- Download `linux-modern.tar.xz` (or `linux-base.tar.xz`)
-- Extract the archive
-- Make the file executable and run it:
-  ```bash
-  chmod +x ./chatter && ./chatter
-  ```
-- Open `http://localhost:5177` in your browser
+1.  Download `darwin-modern.zip` (or `darwin-base.zip`).
+2.  Extract the ZIP file.
+3.  Make the file executable and run it:
+    ```bash
+    chmod +x ./chatter && ./chatter
+    ```
+4.  Open `http://localhost:5177` in your browser.
 
-## Development
+#### Linux
 
-If you want to develop or modify the application, follow these steps:
+1.  Download `linux-modern.tar.xz` (or `linux-base.tar.xz`).
+2.  Extract the archive.
+3.  Make the file executable and run it:
+    ```bash
+    chmod +x ./chatter && ./chatter
+    ```
+4.  Open `http://localhost:5177` in your browser.
 
-### Prerequisites
+### Development Setup
 
-- [Bun](https://bun.sh) v1.1.36 or higher
+If you want to contribute or modify the application, follow these steps:
 
-### Setup
+> [!NOTE]
+> It's highly recommended to use Daytona for development. This setup is described in detail in the next section.
 
-1. Clone the repository
-2. Install dependencies:
+1.  **Prerequisites:** Ensure you have [Bun](https://bun.sh) v1.1.36 or higher installed.
+2.  **Clone the Repository:**
+    ```bash
+    git clone https://github.com/The-Best-Codes/chatter.git
+    cd chatter
+    ```
+3.  **Install Dependencies:**
+    ```bash
+    bun install
+    ```
 
-```bash
-bun install
-```
+## Daytona - Recommended Development
 
-### Development Server
+> [!TIP]
+> Daytona is the easiest, fastest, and most isolated way to set up your development environment for Chatter. It creates a containerized workspace that includes all the necessary tools and dependencies.
 
-Run the development server with auto-reload:
+1.  **Install Daytona**: Follow the [Daytona installation guide](https://www.daytona.io/docs/installation/installation/).
+2.  **Create the Workspace**:
+    ```bash
+    daytona create https://github.com/The-Best-Codes/chatter
+    ```
+3.  **Navigate to the Workspace**:
+    ```bash
+    daytona open chatter
+    ```
+4.  **Start the Application**:
+    ```bash
+    bun run dev
+    ```
+
+> [!NOTE]
+> When using Daytona, you can skip the steps in the "Development Setup" section.
+
+## Development Server
+
+> [!TIP]
+> If you are not using Daytona, follow this steps to start the development server.
+
+Start the development server with auto-reload:
 
 ```bash
 bun run dev
@@ -74,29 +126,17 @@ Watch and compile CSS:
 bun run css:watch
 ```
 
-### Using Daytona for Development
+## Production Build and Deployment
 
-Daytona simplifies the setup of development environments. Follow the steps below to set up Chatter using Daytona:
+### Building for Production
 
-1. **Install Daytona**: Follow the [Daytona installation guide](https://www.daytona.io/docs/installation/installation/).
-2. **Create the Workspace**:
-   ```bash
-   daytona create https://github.com/The-Best-Codes/chatter
-   ```
-3. **Start the Application**:
-   ```bash
-   bun run dev
-   ```
-
----
-
-## Production Build
-
-Build for production:
+To prepare the application for production, run:
 
 ```bash
 bun run build
 ```
+
+### Starting the Production Server
 
 Start the production server:
 
@@ -114,6 +154,9 @@ bun run pm2-stop     # Stop PM2 service
 bun run pm2-restart  # Restart PM2 service
 bun run pm2-startup  # Configure PM2 startup on boot
 ```
+
+> [!CAUTION]
+> Make sure to configure your production environment variables correctly when deploying with PM2.
 
 ## Project Structure
 
