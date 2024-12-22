@@ -1,0 +1,39 @@
+{
+  "name": "Chatter Dev",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "eamodio.gitlens",
+        "GitHub.copilot",
+        "GitHub.copilot-chat"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": true
+        },
+        "typescript.tsdk": "./node_modules/typescript/lib",
+        "javascript.preferences.quoteStyle": "single",
+        "typescript.preferences.quoteStyle": "single",
+        "files.eol": "\n"
+      }
+    }
+  },
+  "forwardPorts": [5177],
+  "portsAttributes": {
+    "5177": {
+      "label": "Chatter App",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "postCreateCommand": "bun install && bun run css:watch && bun run deps:update",
+  "remoteUser": "vscode"
+}
