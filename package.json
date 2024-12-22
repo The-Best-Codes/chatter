@@ -1,6 +1,6 @@
 {
   "name": "chatter",
-  "version": "0.0.8-beta.1",
+  "version": "0.0.8-beta.2",
   "module": "index.ts",
   "type": "module",
   "packageManager": "bun@1.1.41",
@@ -27,19 +27,19 @@
   },
   "devDependencies": {
     "@types/bun": "^1.1.14",
-    "bun-types": "^1.1.38"
+    "bun-types": "^1.1.42"
   },
   "peerDependencies": {
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.0.0-beta.7",
+    "@tailwindcss/postcss": "^4.0.0-beta.8",
     "@tailwindcss/typography": "^0.5.15",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.7",
     "postcss": "^8.4.49",
     "sharp": "^0.33.5",
-    "tailwindcss": "^4.0.0-beta.7"
+    "tailwindcss": "^4.0.0-beta.8"
   }
 }
