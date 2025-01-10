@@ -26,20 +26,20 @@
     "deps:update": "bun update --latest && bun install tailwindcss@next @tailwindcss/postcss@next"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.14",
-    "bun-types": "^1.1.42"
+    "@types/bun": "^1.1.16",
+    "bun-types": "^1.1.43"
   },
   "peerDependencies": {
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.0.0-beta.8",
-    "@tailwindcss/typography": "^0.5.15",
+    "@tailwindcss/postcss": "^4.0.0-beta.9",
+    "@tailwindcss/typography": "^0.5.16",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.7",
     "postcss": "^8.4.49",
     "sharp": "^0.33.5",
-    "tailwindcss": "^4.0.0-beta.8"
+    "tailwindcss": "^4.0.0-beta.9"
   }
 }
