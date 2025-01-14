@@ -1,140 +1,153 @@
 export class ChatManager {
-    constructor(websocketManager, uiManager, audioManager, settingsManager, notificationManager, userManager) {
-        this.websocketManager = websocketManager;
-        this.uiManager = uiManager;
-        this.audioManager = audioManager;
-        this.settingsManager = settingsManager;
-        this.notificationManager = notificationManager;
-        this.userManager = userManager;
-        this.typingTimeout = null;
-        this.isTyping = false;
+  constructor(
+    websocketManager,
+    uiManager,
+    audioManager,
+    settingsManager,
+    notificationManager,
+    userManager,
+  ) {
+    this.websocketManager = websocketManager;
+    this.uiManager = uiManager;
+    this.audioManager = audioManager;
+    this.settingsManager = settingsManager;
+    this.notificationManager = notificationManager;
+    this.userManager = userManager;
+    this.typingTimeout = null;
+    this.isTyping = false;
 
-        this.setupEventListeners();
+    this.setupEventListeners();
+  }
+
+  setupEventListeners() {
+    // Handle form submission
+    this.uiManager.messageForm.addEventListener("submit", (e) =>
+      this.handleSubmit(e),
+    );
+
+    // Handle keydown for Enter key
+    this.uiManager.messageInput.addEventListener("keydown", (e) =>
+      this.handleKeydown(e),
+    );
+
+    // Handle typing status
+    this.uiManager.messageInput.addEventListener("input", () =>
+      this.handleTyping(),
+    );
+
+    // Handle reconnect button
+    this.uiManager.reconnectButton.addEventListener("click", () => {
+      this.websocketManager.manualReconnect();
+    });
+  }
+
+  handleSubmit(e) {
+    e.preventDefault();
+
+    // Prevent sending if not connected
+    if (!this.websocketManager.isConnectedStatus()) {
+      return;
     }
 
-    setupEventListeners() {
-        // Handle form submission
-        this.uiManager.messageForm.addEventListener("submit", (e) => this.handleSubmit(e));
+    const content = this.uiManager.getMessageContent();
+    if (content) {
+      this.uiManager.showSending();
 
-        // Handle keydown for Enter key
-        this.uiManager.messageInput.addEventListener("keydown", (e) => this.handleKeydown(e));
+      const success = this.websocketManager.send({
+        type: "message",
+        content,
+      });
 
-        // Handle typing status
-        this.uiManager.messageInput.addEventListener("input", () => this.handleTyping());
+      if (success) {
+        this.uiManager.clearMessageInput();
+      }
 
-        // Handle reconnect button
-        this.uiManager.reconnectButton.addEventListener("click", () => {
-            this.websocketManager.manualReconnect();
-        });
+      this.uiManager.hideSending();
     }
+  }
 
-    handleSubmit(e) {
+  handleKeydown(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      // Prevent sending if not connected
+      if (!this.websocketManager.isConnectedStatus()) {
         e.preventDefault();
+        return;
+      }
 
-        // Prevent sending if not connected
-        if (!this.websocketManager.isConnectedStatus()) {
-            return;
-        }
+      const content = this.uiManager.getMessageContent();
+      if (content) {
+        e.preventDefault();
+        this.uiManager.messageForm.dispatchEvent(new Event("submit"));
+      }
+    }
+  }
 
-        const content = this.uiManager.getMessageContent();
-        if (content) {
-            this.uiManager.showSending();
-
-            const success = this.websocketManager.send({
-                type: "message",
-                content,
-            });
-
-            if (success) {
-                this.uiManager.clearMessageInput();
-            }
-
-            this.uiManager.hideSending();
-        }
+  handleTyping() {
+    if (!this.isTyping) {
+      this.isTyping = true;
+      this.sendTypingStatus(true);
     }
 
-    handleKeydown(e) {
-        if (e.key === "Enter" && !e.shiftKey) {
-            // Prevent sending if not connected
-            if (!this.websocketManager.isConnectedStatus()) {
-                e.preventDefault();
-                return;
-            }
-
-            const content = this.uiManager.getMessageContent();
-            if (content) {
-                e.preventDefault();
-                this.uiManager.messageForm.dispatchEvent(new Event("submit"));
-            }
-        }
+    // Clear previous timeout
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
     }
 
-    handleTyping() {
-        if (!this.isTyping) {
-            this.isTyping = true;
-            this.sendTypingStatus(true);
-        }
+    // Set new timeout
+    this.typingTimeout = setTimeout(() => {
+      this.isTyping = false;
+      this.sendTypingStatus(false);
+    }, 1000);
+  }
 
-        // Clear previous timeout
-        if (this.typingTimeout) {
-            clearTimeout(this.typingTimeout);
-        }
+  sendTypingStatus(isTyping) {
+    this.websocketManager.send({
+      type: "typing",
+      isTyping: isTyping,
+    });
+  }
 
-        // Set new timeout
-        this.typingTimeout = setTimeout(() => {
-            this.isTyping = false;
-            this.sendTypingStatus(false);
-        }, 1000);
+  async handleInitialLoad() {
+    try {
+      const response = await fetch("/messages");
+      if (!response.ok) {
+        throw new Error("Failed to load messages");
+      }
+      const messages = await response.json();
+      messages.reverse();
+
+      messages.forEach((msg) => {
+        this.uiManager.appendMessage(msg);
+      });
+      this.uiManager.updateEmptyState();
+    } catch (error) {
+      console.error("Error loading messages:", error);
+    } finally {
+      this.uiManager.hideLoadingState();
+      requestAnimationFrame(() => {
+        this.uiManager.scrollToBottom(false);
+      });
     }
+  }
 
-    sendTypingStatus(isTyping) {
-        this.websocketManager.send({
-            type: "typing",
-            isTyping: isTyping
-        });
-    }
+  handleWebSocketMessage(event) {
+    const data = JSON.parse(event.data);
 
-    async handleInitialLoad() {
-        try {
-            const response = await fetch("/messages");
-            if (!response.ok) {
-                throw new Error("Failed to load messages");
-            }
-            const messages = await response.json();
-            messages.reverse();
-
-            messages.forEach((msg) => {
-                this.uiManager.appendMessage(msg);
-            });
-            this.uiManager.updateEmptyState();
-        } catch (error) {
-            console.error("Error loading messages:", error);
-        } finally {
-            this.uiManager.hideLoadingState();
-            requestAnimationFrame(() => {
-                this.uiManager.scrollToBottom(false);
-            });
+    switch (data.type) {
+      case "message":
+        this.uiManager.appendMessage(data);
+        this.audioManager.playMessageNotification();
+        if (!this.userManager.isCurrentUser(data.username)) {
+          this.notificationManager.notify("New Message", {
+            body: `${data.username}: ${data.content}`,
+            tag: "chat-message",
+          });
         }
+        break;
+
+      case "typing":
+        this.uiManager.updateTypingIndicator(data.message);
+        break;
     }
-
-    handleWebSocketMessage(event) {
-        const data = JSON.parse(event.data);
-
-        switch (data.type) {
-            case "message":
-                this.uiManager.appendMessage(data);
-                this.audioManager.playMessageNotification();
-                if (!this.userManager.isCurrentUser(data.username)) {
-                    this.notificationManager.notify('New Message', {
-                        body: `${data.username}: ${data.content}`,
-                        tag: 'chat-message'
-                    });
-                }
-                break;
-
-            case "typing":
-                this.uiManager.updateTypingIndicator(data.message);
-                break;
-        }
-    }
+  }
 }

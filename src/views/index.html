@@ -61,9 +61,22 @@
                             >Loading...</span
                         >
                     </div>
+
+                    <!-- Settings button -->
+                    <button
+                        id="settings-button"
+                        class="h-10 w-10 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 p-2 rounded-lg transition-colors duration-200 cursor-pointer"
+                        aria-label="Open settings"
+                    >
+                        <img
+                            src="/public/images/settings.svg"
+                            alt="Settings"
+                            class="dark:invert"
+                        />
+                    </button>
                     <a
                         href="/logout"
-                        class="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
+                        class="h-10 flex justify-center items-center bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm cursor-pointer"
                     >
                         Logout
                     </a>
@@ -196,6 +209,86 @@
                     </form>
                 </div>
             </main>
+        </div>
+
+        <!-- Settings Modal -->
+        <div
+            id="settings-modal"
+            class="fixed inset-0 z-50 overflow-auto bg-black/50 backdrop-blur-sm hidden"
+        >
+            <div class="flex items-center justify-center min-h-screen">
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full relative"
+                >
+                    <h2 class="text-2xl font-semibold mb-4">Settings</h2>
+                    <button
+                        id="close-settings-modal"
+                        class="absolute top-2 right-2 cursor-pointer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    >
+                        <img
+                            src="/public/images/x.svg"
+                            alt="Close"
+                            class="dark:invert"
+                        />
+                    </button>
+
+                    <div class="mb-4">
+                        <label
+                            for="theme-select"
+                            class="block text-gray-700 dark:text-gray-300 mb-2"
+                            >Theme</label
+                        >
+                        <select
+                            id="theme-select"
+                            class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        >
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label
+                            for="notification-select"
+                            class="block text-gray-700 dark:text-gray-300 mb-2"
+                            >Notifications</label
+                        >
+                        <select
+                            id="notification-select"
+                            class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        >
+                            <option value="always">Always</option>
+                            <option value="unfocused">Unfocused</option>
+                            <option value="never">Never</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label
+                            for="sound-select"
+                            class="block text-gray-700 dark:text-gray-300 mb-2"
+                            >Sound</label
+                        >
+                        <select
+                            id="sound-select"
+                            class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        >
+                            <option value="always">Always</option>
+                            <option value="unfocused">Unfocused</option>
+                            <option value="never">Never</option>
+                        </select>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button
+                            id="save-settings-button"
+                            class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
+                        >
+                            Save Settings
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </body>
 </html>

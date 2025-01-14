@@ -2,7 +2,7 @@
 
 @plugin '@tailwindcss/typography';
 
-@variant dark (@media (prefers-color-scheme: dark));
+@variant dark (&:where(.dark, .dark *));
 
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,

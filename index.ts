@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { getSession } from "./src/server/session";
 import { handleRequest } from "./src/server/routes";
-import { createWebSocketHandler } from "./src/server/websocket";
+import { getSession } from "./src/server/session";
 import { setAllUsersOffline } from "./src/server/status";
+import { createWebSocketHandler } from "./src/server/websocket";
 
 const port = process.env.PORT || 5177;
 
