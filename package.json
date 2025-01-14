@@ -1,9 +1,9 @@
 {
   "name": "chatter",
-  "version": "0.0.9-beta.0",
+  "version": "0.0.9",
   "module": "index.ts",
   "type": "module",
-  "packageManager": "bun@1.1.42",
+  "packageManager": "bun@1.1.43",
   "scripts": {
     "dev": "bun run --watch index.ts",
     "css:watch": "bunx @tailwindcss/cli@next -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
@@ -38,7 +38,7 @@
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.7",
-    "postcss": "^8.4.49",
+    "postcss": "^8.5.0",
     "sharp": "^0.33.5",
     "tailwindcss": "^4.0.0-beta.9"
   }
