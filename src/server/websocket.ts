@@ -1,16 +1,17 @@
 import type { Server, ServerWebSocket } from "bun";
+// TODO: Don't escape code in backticks (markdown code blocks)
+import { escapeHtml, LIMITS, validateInput } from "../constants";
 import type { User } from "../db/database";
 import { createMessage } from "../db/database";
-import { LIMITS, validateInput, escapeHtml } from "../constants";
-import { setUserStatus, getRecentUserStatuses } from "./status";
 import {
-  initBots,
-  handleMessage,
   echoBot,
-  timeBot,
   greetBot,
+  handleMessage,
+  initBots,
   registerBot,
+  timeBot,
 } from "./bots";
+import { getRecentUserStatuses, setUserStatus } from "./status";
 
 const typingUsers = new Set<string>();
 const wsUsers = new WeakMap<ServerWebSocket<unknown>, User>();

@@ -1,4 +1,4 @@
-import { createUser, verifyUser, getRecentMessages } from "../db/database";
+import { createUser, getRecentMessages, verifyUser } from "../db/database";
 import { MediaManager } from "../media";
 import { createSession, deleteSession } from "./session";
 

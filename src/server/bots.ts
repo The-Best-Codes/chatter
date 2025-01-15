@@ -1,6 +1,5 @@
 import type { Server } from "bun";
-import { type User } from "../db/database";
-import { createMessage } from "../db/database";
+import { createMessage, type User } from "../db/database";
 
 interface Bot {
   name: string;

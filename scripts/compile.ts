@@ -1,4 +1,4 @@
-import { mkdir, readdir, copyFile, access, stat } from "fs/promises";
+import { access, copyFile, mkdir, readdir, stat } from "fs/promises";
 import { join } from "path";
 
 const DIST_DIR = "./dist";
@@ -121,7 +121,7 @@ async function main() {
         const execPath = join("./exec", execName);
         const destPath = join(
           platformDir,
-          platform.name === "windows" ? "chatter.exe" : "chatter"
+          platform.name === "windows" ? "chatter.exe" : "chatter",
         );
 
         console.log(`Copying executable from ${execPath} to ${destPath}`);

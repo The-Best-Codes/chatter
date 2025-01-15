@@ -1,6 +1,6 @@
-import { Database } from "bun:sqlite";
 import * as bcrypt from "bcryptjs";
-import { LIMITS, validateInput, escapeHtml } from "../constants";
+import { Database } from "bun:sqlite";
+import { escapeHtml, LIMITS, validateInput } from "../constants";
 
 const DB_PATH = process.env.DB_PATH || `${process.cwd()}/chat.db`;
 const SCHEMA_PATH =
