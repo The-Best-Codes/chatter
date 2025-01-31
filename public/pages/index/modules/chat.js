@@ -68,15 +68,15 @@ export class ChatManager {
 
   handleKeydown(e) {
     if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); // Prevent the default form submit action first
+
       // Prevent sending if not connected
       if (!this.websocketManager.isConnectedStatus()) {
-        e.preventDefault();
         return;
       }
 
       const content = this.uiManager.getMessageContent();
       if (content) {
-        e.preventDefault();
         this.uiManager.messageForm.dispatchEvent(new Event("submit"));
       }
     }
