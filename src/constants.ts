@@ -1,7 +1,7 @@
 export const LIMITS = {
   USERNAME_MAX_LENGTH: 50,
   PASSWORD_MAX_LENGTH: 128,
-  MESSAGE_MAX_LENGTH: 2000,
+  MESSAGE_MAX_LENGTH: 10000,
 } as const;
 
 export function escapeHtml(unsafe: string): string {
