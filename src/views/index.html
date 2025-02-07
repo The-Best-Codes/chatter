@@ -4,6 +4,32 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Chatter</title>
+        <!-- Prevent wrong theme flash -->
+        <script>
+            // Immediately check localStorage and system preference
+            let theme = localStorage.getItem("chatter_theme");
+            if (theme) {
+                theme = JSON.parse(theme);
+            } else {
+                // Check system preference as fallback
+                theme = window.matchMedia("(prefers-color-scheme: dark)")
+                    .matches
+                    ? "dark"
+                    : "light";
+            }
+            if (theme === "dark") {
+                document.documentElement.classList.add("dark");
+            }
+        </script>
+        <style>
+            /* Ensure theme is applied before showing content */
+            body {
+                visibility: hidden;
+            }
+            .theme-loaded body {
+                visibility: visible;
+            }
+        </style>
         <link href="/public/css/tailwind.css" rel="stylesheet" />
         <!-- Favicon -->
         <link
@@ -31,6 +57,12 @@
             type="module"
             src="/public/pages/index/modules/main.js"
         ></script>
+        <script>
+            // Mark theme as loaded after brief delay to ensure styles are applied
+            requestAnimationFrame(() => {
+                document.documentElement.classList.add("theme-loaded");
+            });
+        </script>
     </head>
     <body
         class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-full flex flex-col overflow-hidden"
