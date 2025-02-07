@@ -107,7 +107,7 @@ export class UIManager {
             <div class="flex justify-between items-start">
                 <span class="font-medium text-blue-600 dark:text-blue-400">${msg.username}</span>
                 <span class="text-xs text-gray-500 dark:text-gray-400">${new Date(
-                  msg.timestamp || new Date(),
+                  msg.created_at || new Date(),
                 ).toLocaleTimeString()}</span>
             </div>
             <div class="mt-2 text-gray-800 dark:text-gray-200 inline-block">${renderedContent}</div>
