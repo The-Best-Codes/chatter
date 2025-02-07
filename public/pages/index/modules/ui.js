@@ -54,16 +54,26 @@ export class UIManager {
     });
 
     this.setupTextareaAutoResize();
+
+    // Setup send button state handling
+    this.messageInput.addEventListener("input", () => {
+      this.updateSendButtonState();
+    });
+    this.updateSendButtonState(); // Initial state
   }
 
   updateConnectionStatus(status, message) {
     this.connectionText.textContent = message;
     this.reconnectButton.classList.toggle("hidden", status !== "disconnected");
 
-    // Disable/enable send button based on connection status
-    this.sendButton.disabled = status !== "connected";
-    this.sendButton.classList.toggle("opacity-50", status !== "connected");
+    // Update input state based on connection status
     this.messageInput.disabled = status !== "connected";
+    if (status === "connected") {
+      this.updateSendButtonState();
+    } else {
+      this.sendButton.disabled = true;
+      this.sendButton.classList.add("opacity-50");
+    }
 
     switch (status) {
       case "connected":
@@ -227,6 +237,7 @@ export class UIManager {
   clearMessageInput() {
     this.messageInput.value = "";
     this.messageInput.style.height = "auto";
+    this.updateSendButtonState();
   }
 
   showSending() {
@@ -235,8 +246,8 @@ export class UIManager {
   }
 
   hideSending() {
-    this.sendButton.disabled = false;
-    this.sendButton.classList.remove("opacity-50");
+    // Update send button state based on content after sending
+    this.updateSendButtonState();
   }
 
   disableInput() {
@@ -247,8 +258,14 @@ export class UIManager {
 
   enableInput() {
     this.messageInput.disabled = false;
-    this.sendButton.disabled = false;
-    this.sendButton.classList.remove("opacity-50");
+    // Update send button state based on content
+    this.updateSendButtonState();
+  }
+
+  updateSendButtonState() {
+    const isEmpty = !this.getMessageContent();
+    this.sendButton.disabled = isEmpty;
+    this.sendButton.classList.toggle("opacity-50", isEmpty);
   }
 
   showError(message) {
