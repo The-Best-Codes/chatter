@@ -3,7 +3,7 @@
   "version": "0.1.0-beta.0",
   "module": "index.ts",
   "type": "module",
-  "packageManager": "bun@1.1.43",
+  "packageManager": "bun@1.2.2",
   "scripts": {
     "dev": "bun run --watch index.ts",
     "css:watch": "bunx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
@@ -33,7 +33,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.0.3",
+    "@tailwindcss/postcss": "^4.0.4",
     "@tailwindcss/typography": "^0.5.16",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^2.4.3",
@@ -42,6 +42,6 @@
     "node-html-parser": "^7.0.1",
     "postcss": "^8.5.1",
     "sharp": "^0.33.5",
-    "tailwindcss": "^4.0.3"
+    "tailwindcss": "^4.0.4"
   }
 }
