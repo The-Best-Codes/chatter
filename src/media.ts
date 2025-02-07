@@ -65,13 +65,15 @@ export class MediaManager {
     try {
       // Process image with sharp
       const processed = await sharp(imageBuffer)
-        .resize(480, 1200, {
+        .resize(1200, 2400, {
           fit: "inside",
           withoutEnlargement: true,
         })
         .webp({
-          quality: 70,
+          quality: 50,
+          effort: 6,
         })
+        .withMetadata()
         .toBuffer();
 
       // Calculate hash of processed image
