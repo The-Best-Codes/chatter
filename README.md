@@ -1,5 +1,7 @@
 # Chatter
 
+<img src="./public/favicon/apple-touch-icon.png" alt="chatter icon" for="cover" width="100" />
+
 [![License](https://img.shields.io/github/license/The-Best-Codes/chatter)](https://github.com/The-Best-Codes/chatter/blob/main/LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/The-Best-Codes/chatter?style=social)](https://github.com/The-Best-Codes/chatter/stargazers)
 [![GitHub Issues](https://img.shields.io/github/issues/The-Best-Codes/chatter)](https://github.com/The-Best-Codes/chatter/issues)
