@@ -59,24 +59,33 @@ graph LR
 
     M --> X[Media Directory]
 
-    style A fill:#B2DFDB,stroke:#DDD,stroke-width:2px,color:#DDD
-    style F fill:#81D4FA,stroke:#DDD,stroke-width:2px,color:#DDD
-    style L fill:#81D4FA,stroke:#DDD,stroke-width:2px,color:#DDD
+    style A fill:#B2DFDB,stroke:#000000,stroke-width:2px,color:#000000
+    style B fill:#E0F7FA,stroke:#000000,stroke-width:1px,color:#000000
+    style C fill:#64B5F6,stroke:#000000,stroke-width:1px,color:#000000
+    style D fill:#E1F5FE,stroke:#000000,stroke-width:1px,color:#000000
+    style E fill:#E1F5FE,stroke:#000000,stroke-width:1px,color:#000000
 
-    classDef datafill fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
-    class T,U,V,W datafill
+    style F fill:#81D4FA,stroke:#000000,stroke-width:2px,color:#000000
+    style G fill:#64B5F6,stroke:#000000,stroke-width:1px,color:#000000
+    style H fill:#64B5F6,stroke:#000000,stroke-width:1px,color:#000000
+    style I fill:#E1F5FE,stroke:#000000,stroke-width:1px,color:#000000
+    style J fill:#64B5F6,stroke:#000000,stroke-width:1px,color:#000000
+    style K fill:#64B5F6,stroke:#000000,stroke-width:1px,color:#000000
+    style L fill:#81D4FA,stroke:#000000,stroke-width:2px,color:#000000
+    style M fill:#E1F5FE,stroke:#000000,stroke-width:1px,color:#000000
+    style N fill:#64B5F6,stroke:#000000,stroke-width:1px,color:#000000
+    style O fill:#64B5F6,stroke:#000000,stroke-width:1px,color:#000000
+    style P fill:#64B5F6,stroke:#000000,stroke-width:1px,color:#000000
 
-    classDef processfill fill:#64B5F6,stroke:#DDD,stroke-width:1px,color:#DDD
-    class G,H,J,K,N,O,P processfill
-    class Q,R,S processfill
+    style Q fill:#64B5F6,stroke:#000000,stroke-width:1px,color:#000000
+    style R fill:#64B5F6,stroke:#000000,stroke-width:1px,color:#000000
+    style S fill:#64B5F6,stroke:#000000,stroke-width:1px,color:#000000
 
-    style B fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
-    style C fill:#64B5F6,stroke:#DDD,stroke-width:1px,color:#DDD
-    style D fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
-    style E fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
-    style I fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
-    style M fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
-    style X fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
+    style T fill:#BBDEFB,stroke:#000000,stroke-width:1px,color:#000000
+    style U fill:#BBDEFB,stroke:#000000,stroke-width:1px,color:#000000
+    style V fill:#BBDEFB,stroke:#000000,stroke-width:1px,color:#000000
+    style W fill:#BBDEFB,stroke:#000000,stroke-width:1px,color:#000000
+    style X fill:#E1F5FE,stroke:#000000,stroke-width:1px,color:#000000
 ```
 
 ## Table of Contents
