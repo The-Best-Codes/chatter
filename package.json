@@ -26,22 +26,22 @@
     "deps:update": "bun update --latest"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.2",
-    "bun-types": "^1.2.2"
+    "@types/bun": "^1.2.4",
+    "bun-types": "^1.2.4"
   },
   "peerDependencies": {
-    "typescript": "^5.7.3"
+    "typescript": "^5.8.2"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.0.6",
+    "@tailwindcss/postcss": "^4.0.9",
     "@tailwindcss/typography": "^0.5.16",
     "@types/bcryptjs": "^2.4.6",
-    "bcryptjs": "^2.4.3",
+    "bcryptjs": "^3.0.2",
     "dotenv": "^16.4.7",
     "node-fetch": "^3.3.2",
     "node-html-parser": "^7.0.1",
-    "postcss": "^8.5.1",
+    "postcss": "^8.5.3",
     "sharp": "^0.33.5",
-    "tailwindcss": "^4.0.6"
+    "tailwindcss": "^4.0.9"
   }
 }

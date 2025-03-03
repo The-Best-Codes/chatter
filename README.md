@@ -24,6 +24,7 @@ A real-time chat application built with **Bun**, **WebSocket**, **SQLite**, and 
 7.  [Technologies](#technologies)
 8.  [Environment Variables](#environment-variables)
 9.  [Attributions](#attributions)
+10. [Mermaid Diagrams](#mermaid-diagrams)
 
 ## Features
 
@@ -189,3 +190,66 @@ bun run pm2-startup  # Configure PM2 startup on boot
 - [TailwindCSS](https://tailwindcss.com/)
 - [Markdown Renderer](https://marked.js.org/)
 - [Chat Sound Effect by Universfield | 'New Notification #7'](https://pixabay.com/collections/interface-sounds-23710620/)
+
+## Mermaid Diagrams
+
+```mermaid
+graph LR
+    subgraph Client
+        A[User Interaction] --> B(UI Components)
+        B --> C{Event Handlers}
+        C --> D[Fetch API]
+        C --> E[WebSocket]
+    end
+
+    subgraph Server
+        F((Bun Server)) --> G{Route Handler}
+        G --> H{Authentication}
+        H -- Session ID --> I[Session Store (SQLite)]
+        H --> J{Request Type}
+
+        J -- HTTP Request --> K{Route Logic}
+        K --> L[Database (SQLite)]
+        K --> M[Media Manager]
+
+        J -- WebSocket Upgrade --> N[WebSocket Handler]
+        N --> O[Message Handling]
+        O --> L
+        O --> P[Bot Handling]
+        P --> N
+        N -- Status Updates --> L
+
+        subgraph Bots
+            Q[EchoBot]
+            R[TimeBot]
+            S[GreetBot]
+            P --> Q
+            P --> R
+            P --> S
+        end
+    end
+
+    subgraph Database
+        L --> T(Users Table)
+        L --> U(Messages Table)
+        L --> V(Sessions Table)
+        L --> W(User Status Table)
+        I --> V
+    end
+
+    D -- HTTP Requests --> G
+    E -- WebSocket Connection --> N
+
+    M --> X[Media Directory]
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style F fill:#ccf,stroke:#333,stroke-width:2px
+    style L fill:#ccf,stroke:#333,stroke-width:2px
+
+    classDef datafill fill:#fff,stroke:#333,stroke-width:1px
+    class T,U,V,W datafill
+
+    classDef processfill fill:#eef,stroke:#333,stroke-width:1px
+    class G,H,J,K,N,O,P processfill
+    class Q,R,S processfill
+```
