@@ -59,16 +59,24 @@ graph LR
 
     M --> X[Media Directory]
 
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style F fill:#ccf,stroke:#333,stroke-width:2px
-    style L fill:#ccf,stroke:#333,stroke-width:2px
+    style A fill:#B2DFDB,stroke:#DDD,stroke-width:2px,color:#DDD
+    style F fill:#81D4FA,stroke:#DDD,stroke-width:2px,color:#DDD
+    style L fill:#81D4FA,stroke:#DDD,stroke-width:2px,color:#DDD
 
-    classDef datafill fill:#fff,stroke:#333,stroke-width:1px
+    classDef datafill fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
     class T,U,V,W datafill
 
-    classDef processfill fill:#eef,stroke:#333,stroke-width:1px
+    classDef processfill fill:#64B5F6,stroke:#DDD,stroke-width:1px,color:#DDD
     class G,H,J,K,N,O,P processfill
     class Q,R,S processfill
+
+    style B fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
+    style C fill:#64B5F6,stroke:#DDD,stroke-width:1px,color:#DDD
+    style D fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
+    style E fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
+    style I fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
+    style M fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
+    style X fill:#424242,stroke:#DDD,stroke-width:1px,color:#DDD
 ```
 
 ## Table of Contents
