@@ -205,11 +205,11 @@ graph LR
     subgraph Server
         F((Bun Server)) --> G{Route Handler}
         G --> H{Authentication}
-        H -- Session ID --> I[Session Store (SQLite)]
+        H -- Session ID --> I[Session Store, SQLite]
         H --> J{Request Type}
 
         J -- HTTP Request --> K{Route Logic}
-        K --> L[Database (SQLite)]
+        K --> L[Database, SQLite]
         K --> M[Media Manager]
 
         J -- WebSocket Upgrade --> N[WebSocket Handler]
