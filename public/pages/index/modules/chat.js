@@ -21,14 +21,15 @@ export class ChatManager {
 
   setupEventListeners() {
     // Handle form submission
-    this.uiManager.messageForm.addEventListener("submit", (e) =>
-      this.handleSubmit(e),
-    );
+    this.uiManager.messageForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      this.handleSubmit(e);
+    });
 
     // Handle keydown for Enter key
-    this.uiManager.messageInput.addEventListener("keydown", (e) =>
-      this.handleKeydown(e),
-    );
+    this.uiManager.messageInput.addEventListener("keydown", (e) => {
+      this.handleKeydown(e);
+    });
 
     // Handle typing status
     this.uiManager.messageInput.addEventListener("input", () =>
@@ -42,8 +43,6 @@ export class ChatManager {
   }
 
   handleSubmit(e) {
-    e.preventDefault();
-
     // Prevent sending if not connected
     if (!this.websocketManager.isConnectedStatus()) {
       return;
@@ -68,7 +67,7 @@ export class ChatManager {
 
   handleKeydown(e) {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // Prevent the default form submit action first
+      e.preventDefault();
 
       // Prevent sending if not connected
       if (!this.websocketManager.isConnectedStatus()) {
@@ -77,7 +76,7 @@ export class ChatManager {
 
       const content = this.uiManager.getMessageContent();
       if (content) {
-        this.uiManager.messageForm.dispatchEvent(new Event("submit"));
+        this.handleSubmit(e);
       }
     }
   }
