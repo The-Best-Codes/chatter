@@ -1,6 +1,7 @@
 import { createUser, getRecentMessages, verifyUser } from "../db/database";
 import { MediaManager } from "../media";
 import { createSession, deleteSession } from "./session";
+import { handleSearchRequest } from "./search-api";
 
 function serveFile(filePath: string, type: string): Response {
   const file = Bun.file(`${process.cwd()}/src/views/${filePath}`);
@@ -71,9 +72,9 @@ export async function handleRequest(
       return new Response("Unauthorized", { status: 401 });
     }
     const upgraded = server.upgrade(req, { data: { user } });
-    // @ts-expect-error ts(2322): Type 'undefined' is not assignable to type 'Response'.
     return upgraded
-      ? undefined
+      ? // @ts-expect-error ts(2322): Type 'undefined' is not assignable to type 'Response'.
+        undefined
       : addCorsHeaders(
           new Response("WebSocket upgrade failed", { status: 400 }),
         );
@@ -268,6 +269,9 @@ export async function handleRequest(
           headers: { "Content-Type": "application/json" },
         }),
       );
+
+    case "/search":
+      return addCorsHeaders(await handleSearchRequest(req, user));
 
     case "/upload":
       if (!user) {
