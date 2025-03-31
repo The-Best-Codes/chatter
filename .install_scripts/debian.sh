@@ -44,16 +44,15 @@ remove_archive() {
   fi
 }
 
-# Trap errors but DO NOT exit after cleanup for non-fatal errors
-trap "error_handler ERR INT TERM"
+# Trap errors and signals
+trap error_handler ERR
+trap cleanup INT TERM
 
 error_handler() {
   local exit_code=$?
-  if [ "$exit_code" -ne 0 ]; then
-    msg "red" "Error: Script terminated unexpectedly (exit code: $exit_code)."
-    cleanup
-    exit 1
-  fi
+  msg "red" "Error: Script terminated unexpectedly (exit code: $exit_code)."
+  cleanup
+  exit 1
 }
 
 # Dependency Check Function
