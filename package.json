@@ -1,9 +1,9 @@
 {
   "name": "chatter",
-  "version": "0.0.11-beta.0",
+  "version": "0.0.11",
   "module": "index.ts",
   "type": "module",
-  "packageManager": "bun@1.2.6",
+  "packageManager": "bun@1.2.7",
   "scripts": {
     "dev": "bun run --watch index.ts",
     "css:watch": "bunx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
