@@ -97,6 +97,7 @@ graph LR
       - [macOS (Darwin)](#macos-darwin)
       - [Linux](#linux)
     - [Development Setup](#development-setup)
+    - [Linux Automatic Installation](#linux-automatic-installation)
 3.  [Daytona - Recommended Development](#daytona---recommended-development)
 4.  [Development Server](#development-server)
 5.  [Production Build and Deployment](#production-build-and-deployment)
@@ -121,8 +122,11 @@ graph LR
 
 If you just want to use Chatter without setting up a development environment, you can download pre-built executables from the [Releases](https://github.com/The-Best-Codes/chatter/releases/latest) page.
 
-> [!IMPORTANT]
+> [!NOTE]
 > Choose the correct executable for your operating system and CPU architecture (`modern` for newer CPUs, `base` for older ones).
+
+> [!IMPORTANT]
+> If you see issues with `sharp` when you run the executable, navigate to the directory containing the `chatter` executable and run `npm install sharp`.
 
 #### Windows
 
@@ -168,6 +172,14 @@ If you want to contribute or modify the application, follow these steps:
     ```bash
     bun install
     ```
+
+### Linux Automatic Installation
+
+If you are using a debian-based system, you can automate the installation process by running this command in your terminal:
+
+```bash
+curl -s https://raw.githubusercontent.com/The-Best-Codes/chatter/refs/heads/master/.install_scripts/debian.sh -o install_chatter.sh && chmod +x install_chatter.sh && ./install_chatter.sh
+```
 
 ## Daytona - Recommended Development
 
