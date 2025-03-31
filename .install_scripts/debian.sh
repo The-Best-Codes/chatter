@@ -56,8 +56,32 @@ error_handler() {
   fi
 }
 
+# Dependency Check Function
+check_dependencies() {
+  local missing=()
+  for dep in curl jq wget tar xargs npm; do
+    if ! command -v "$dep" &> /dev/null; then
+      missing+=("$dep")
+    fi
+  done
+
+  if [ ${#missing[@]} -gt 0 ]; then
+    msg "red" "Missing required dependencies:"
+    for dep in "${missing[@]}"; do
+      msg "red" "- $dep"
+    done
+    msg "yellow" "Please install the missing dependencies before running this script."
+    msg "yellow" "For Debian/Ubuntu, you can usually use: sudo apt-get update && sudo apt-get install ${missing[*]}"
+    exit 1
+  fi
+}
+
+
 # Main script
 msg "green" "Welcome to the Chatter Installation Script!"
+
+# 0. Check for dependencies
+check_dependencies
 
 # 1. Fetch the latest release information
 msg "blue" "Fetching latest release from GitHub..."
@@ -143,10 +167,20 @@ if [ $? -ne 0 ]; then
   error_exit "Failed to move extracted files to '$INSTALL_DIR'."
 fi
 
+# 9. Install npm packages
+msg "blue" "Installing npm packages..."
+cd "$INSTALL_DIR/linux-modern" || error_exit "Failed to change directory to '$INSTALL_DIR/linux-modern'."
+npm install sharp
+
+if [ $? -ne 0 ]; then
+  error_exit "Failed to install npm packages."
+fi
+
+# 10. Remove archive
 remove_archive
 
-# 10. Completion message
+# 11. Completion message
 msg "green" "Chatter installation complete! To start Chatter, navigate to $INSTALL_DIR/linux-modern and run './chatter'"
 
-cleanup #remove temp dir
+cleanup # remove temp dir
 exit 0
