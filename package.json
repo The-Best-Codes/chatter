@@ -41,7 +41,7 @@
     "node-fetch": "^3.3.2",
     "node-html-parser": "^7.0.1",
     "postcss": "^8.5.3",
-    "sharp": "^0.33.5",
+    "sharp": "^0.34.1",
     "tailwindcss": "^4.0.17"
   }
 }
