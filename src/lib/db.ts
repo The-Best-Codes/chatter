@@ -169,7 +169,7 @@ function initializeDatabase() {
   }
 
   // Create admin user if no users exist
-  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
+  const userCount = (db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number }).count;
   if (userCount === 0) {
     const adminId = uuidv4();
     const passwordHash = bcrypt.hashSync('admin', 10);

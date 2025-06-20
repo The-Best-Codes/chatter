@@ -98,7 +98,13 @@ export async function loginUser(usernameOrEmail: string, password: string): Prom
       SELECT id, username, email, password_hash, is_admin
       FROM users
       WHERE username = ? OR email = ?
-    `).get(usernameOrEmail, usernameOrEmail);
+    `).get(usernameOrEmail, usernameOrEmail) as { 
+      id: string; 
+      username: string; 
+      email: string; 
+      password_hash: string; 
+      is_admin: number;
+    } | undefined;
     
     if (!user) {
       return null;
@@ -188,7 +194,14 @@ export function getUserPermissions(userId: string): UserPermissions {
            can_create_private_room, can_dm, can_create_invites
     FROM user_permissions
     WHERE user_id = ?
-  `).get(userId);
+  `).get(userId) as {
+    can_send_attachments: number;
+    max_message_length: number;
+    can_create_public_room: number;
+    can_create_private_room: number;
+    can_dm: number;
+    can_create_invites: number;
+  } | undefined;
   
   if (!permissions) {
     // Return default permissions if user permissions not found
@@ -215,7 +228,15 @@ export function getUserPermissions(userId: string): UserPermissions {
 
 // Get default permissions
 export function getDefaultPermissions(): DefaultPermissions {
-  const defaults = db.prepare('SELECT * FROM default_permissions WHERE id = 1').get();
+  const defaults = db.prepare('SELECT * FROM default_permissions WHERE id = 1').get() as {
+    can_send_attachments: number;
+    max_message_length: number;
+    can_create_public_room: number;
+    can_create_private_room: number;
+    can_dm: number;
+    can_create_invites: number;
+    allow_signups: number;
+  } | undefined;
   
   if (!defaults) {
     // This should never happen as we initialize the defaults in db.ts

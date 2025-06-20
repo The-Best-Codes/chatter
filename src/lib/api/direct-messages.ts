@@ -116,7 +116,7 @@ export function getDMConversationsForUser(userId: string): DirectMessageConversa
 }
 
 // Get a direct message conversation by ID
-export function getDMConversationById(dmId: string): DirectMessageConversation | null {
+export function getDMConversation(dmId: string): DirectMessageConversation | null {
   try {
     const conversation = db.prepare(`
       SELECT 
