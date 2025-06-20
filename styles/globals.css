@@ -2,7 +2,10 @@
 
 @plugin "tailwindcss-animate";
 
-@custom-variant dark (&:is(.dark *));
+/* Dark mode variant */
+.dark * { /* This replaces the custom variant */
+  /* Dark mode styles will be applied via Tailwind classes */
+}
 
 :root {
   --background: hsl(0 0% 100%);
@@ -140,5 +143,39 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Chat app specific styles */
+  .message-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
   }
 }
