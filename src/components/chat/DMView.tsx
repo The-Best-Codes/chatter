@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChatArea } from './ChatArea';
-import { Message } from '@/lib/api/room-messages';
-import { DirectMessageConversation } from '@/lib/api/direct-messages';
+import type { Message } from '@/lib/api/room-messages';
+import type { DirectMessageConversation } from '@/lib/api/direct-messages';
 import { useAuth } from '@/components/auth';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
@@ -183,15 +183,15 @@ export function DMView({ dmId }: DMViewProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Conversation header */}
-      {conversation && (
+      {conversation && user && (
         <div className="p-4 border-b flex items-center">
           <Avatar className="h-10 w-10 mr-3">
             <AvatarFallback>
-              {conversation.otherUsername?.substring(0, 2).toUpperCase()}
+              {(user.id === conversation.user1Id ? conversation.user2Username : conversation.user1Username)?.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h2 className="text-xl font-semibold">{conversation.otherUsername}</h2>
+            <h2 className="text-xl font-semibold">{user.id === conversation.user1Id ? conversation.user2Username : conversation.user1Username}</h2>
           </div>
         </div>
       )}

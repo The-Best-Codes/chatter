@@ -1,4 +1,5 @@
-import { useState, useRef, FormEvent } from 'react';
+import { useState, useRef } from 'react';
+import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Paperclip, Send } from 'lucide-react';

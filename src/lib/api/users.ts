@@ -1,5 +1,6 @@
 import { db } from '../db';
-import { User, UserPermissions, updateUserPermissions } from '../auth';
+import { updateUserPermissions } from '../auth';
+import type { User, UserPermissions } from '../auth';
 
 // User profile type
 export interface UserProfile {

@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserManagement, DefaultPermissions } from '@/components/admin';
 import { useAuth } from '@/components/auth';
-import { UserProfile } from '@/lib/api/users';
-import { DefaultPermissions as DefaultPermissionsType } from '@/lib/auth';
+import type { UserProfile } from '@/lib/api/users';
+import type { DefaultPermissions as DefaultPermissionsType } from '@/lib/auth';
 import { ArrowLeft } from 'lucide-react';
 
 export function AdminPage() {

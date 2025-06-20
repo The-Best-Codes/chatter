@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserProfile } from '@/lib/api/users';
-import { UserPermissions as UserPermissionsType } from '@/lib/auth';
+import type { UserProfile } from '@/lib/api/users';
+import type { UserPermissions as UserPermissionsType } from '@/lib/auth';
 import { Check, X } from 'lucide-react';
 
 interface UserPermissionsProps {

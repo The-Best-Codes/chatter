@@ -3,12 +3,14 @@ import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 import {
   Controller,
-  ControllerProps,
-  FieldPath,
-  FieldValues,
   FormProvider,
   useFormContext,
   useFormState,
+} from "react-hook-form";
+import type {
+  ControllerProps,
+  FieldPath,
+  FieldValues,
 } from "react-hook-form";
 
 import { Label } from "@/components/ui/label";

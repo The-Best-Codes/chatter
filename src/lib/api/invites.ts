@@ -1,7 +1,7 @@
 import { db } from '../db';
 import { v4 as uuidv4 } from 'uuid';
-import { User } from '../auth';
-import { Room } from './rooms';
+import type { User } from '../auth';
+import type { Room } from './rooms';
 
 // Invite type definition
 export interface Invite {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MessageItem } from './MessageItem';
 import { MessageInput } from './MessageInput';
-import { Message } from '@/lib/api/room-messages';
+import type { Message } from '@/lib/api/room-messages';
 import { Button } from '@/components/ui/button';
 import { ArrowDown } from 'lucide-react';
 

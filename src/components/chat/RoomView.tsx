@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChatArea } from './ChatArea';
-import { Message } from '@/lib/api/room-messages';
-import { Room } from '@/lib/api/rooms';
+import type { Message } from '@/lib/api/room-messages';
+import type { Room } from '@/lib/api/rooms';
 import { useAuth } from '@/components/auth';
 
 interface RoomViewProps {

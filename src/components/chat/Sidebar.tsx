@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Room } from '@/lib/api/rooms';
-import { DirectMessageConversation } from '@/lib/api/direct-messages';
+import type { Room } from '@/lib/api/rooms';
+import type { DirectMessageConversation } from '@/lib/api/direct-messages';
 import { useAuth } from '@/components/auth';
 import { PlusCircle, Hash, MessageSquare, Settings, Users, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -107,10 +107,10 @@ export function Sidebar({
               >
                 <Avatar className="h-6 w-6 mr-2">
                   <AvatarFallback className="text-xs">
-                    {dm.otherUsername?.substring(0, 2).toUpperCase()}
+                    {(user?.id === dm.user1Id ? dm.user2Username : dm.user1Username)?.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="truncate">{dm.otherUsername}</span>
+                <span className="truncate">{user?.id === dm.user1Id ? dm.user2Username : dm.user1Username}</span>
               </Button>
             ))}
             {dmConversations.length === 0 && (

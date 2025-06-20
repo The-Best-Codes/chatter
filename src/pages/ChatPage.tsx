@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar, Onboarding, RoomView, DMView, PublicRooms } from '@/components/chat';
-import { Room } from '@/lib/api/rooms';
-import { DirectMessageConversation } from '@/lib/api/direct-messages';
+import type { Room } from '@/lib/api/rooms';
+import type { DirectMessageConversation } from '@/lib/api/direct-messages';
 import { useAuth } from '@/components/auth';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 

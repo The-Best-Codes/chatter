@@ -2,8 +2,8 @@ import { db } from '../db';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
-import { User } from '../auth';
-import { Message } from './room-messages';
+import type { User } from '../auth';
+import type { Message } from './room-messages';
 
 // Attachment type definition
 export interface Attachment {

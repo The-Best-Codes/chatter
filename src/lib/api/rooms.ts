@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { v4 as uuidv4 } from 'uuid';
-import { User } from '../auth';
+import type { User } from '../auth';
 
 // Room type definition
 export interface Room {

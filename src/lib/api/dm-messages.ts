@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { v4 as uuidv4 } from 'uuid';
-import { Message } from './room-messages';
+import type { Message } from './room-messages';
 
 // Send a direct message
 export function sendDirectMessage(

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Message } from '@/lib/api/room-messages';
+import type { Message } from '@/lib/api/room-messages';
 import { formatDistanceToNow } from 'date-fns';
 import { Edit2, Trash2, Check, X } from 'lucide-react';
 import { useAuth } from '@/components/auth';

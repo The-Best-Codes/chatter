@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import { Database } from 'bun:sqlite';
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -14,7 +14,7 @@ if (!fs.existsSync(dataDir)) {
 const db = new Database(path.join(dataDir, 'chatter.db'));
 
 // Enable foreign keys
-db.pragma('foreign_keys = ON');
+db.exec('PRAGMA foreign_keys = ON');
 
 // Create tables if they don't exist
 function initializeDatabase() {
