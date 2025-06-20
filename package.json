@@ -1,47 +1,35 @@
 {
-  "name": "chatter",
-  "version": "0.0.11",
-  "module": "index.ts",
+  "name": "bun-react-template",
+  "version": "0.1.0",
+  "private": true,
   "type": "module",
-  "packageManager": "bun@1.2.7",
+  "main": "src/index.tsx",
+  "module": "src/index.tsx",
   "scripts": {
-    "dev": "bun run --watch index.ts",
-    "css:watch": "bunx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
-    "css:build": "bunx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/tailwind.css --minify",
-    "build": "bun build --minify --target=bun ./index.ts --outfile ./build.index.js && bun run css:build",
-    "b.linux-base": "bun build --compile --minify --target=bun-linux-x64-baseline ./index.ts --outfile ./exec/linux-x64-baseline",
-    "b.linux-modern": "bun build --compile --minify --target=bun-linux-x64-modern ./index.ts --outfile ./exec/linux-x64-modern",
-    "b.windows-base": "bun build --compile --minify --target=bun-windows-x64-baseline ./index.ts --outfile ./exec/windows-x64-baseline",
-    "b.windows-modern": "bun build --compile --minify --target=bun-windows-x64-modern ./index.ts --outfile ./exec/windows-x64-modern",
-    "b.darwin-base": "bun build --compile --minify --target=bun-darwin-x64-baseline ./index.ts --outfile ./exec/darwin-x64-baseline",
-    "b.darwin-modern": "bun build --compile --minify --target=bun-darwin-x64-modern ./index.ts --outfile ./exec/darwin-x64-modern",
-    "b.all": "bun run b.linux-base && bun run b.linux-modern && bun run b.windows-base && bun run b.windows-modern && bun run b.darwin-base && bun run b.darwin-modern",
-    "start": "SCHEMA_PATH=./src/db/schema.sql bun run ./build.index.js",
-    "pm2-start": "pm2 start --name chatter --interpreter ~/.bun/bin/bun ./build.index.js",
-    "pm2-stop": "pm2 stop chatter",
-    "pm2-restart": "pm2 restart chatter --update-env",
-    "pm2-startup": "pm2 save && pm2 startup",
-    "binary": "bun exec",
-    "build-dist": "bun run build && rm -rf dist && bun run ./scripts/compile.ts",
-    "deps:update": "bun update --latest"
-  },
-  "devDependencies": {
-    "@types/bun": "^1.2.8",
-    "bun-types": "^1.2.7"
-  },
-  "peerDependencies": {
-    "typescript": "^5.8.2"
+    "dev": "bun --hot src/index.tsx",
+    "start": "NODE_ENV=production bun src/index.tsx",
+    "build": "bun run build.ts"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.0.17",
-    "@tailwindcss/typography": "^0.5.16",
-    "@types/bcryptjs": "^3.0.0",
-    "bcryptjs": "^3.0.2",
-    "dotenv": "^16.4.7",
-    "node-fetch": "^3.3.2",
-    "node-html-parser": "^7.0.1",
-    "postcss": "^8.5.3",
-    "sharp": "^0.34.1",
-    "tailwindcss": "^4.0.17"
+    "@hookform/resolvers": "^4.1.0",
+    "@radix-ui/react-label": "^2.1.2",
+    "@radix-ui/react-select": "^2.1.6",
+    "@radix-ui/react-slot": "^1.1.2",
+    "bun-plugin-tailwind": "^0.0.14",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.475.0",
+    "react": "^19",
+    "react-dom": "^19",
+    "react-hook-form": "^7.54.2",
+    "tailwind-merge": "^3.0.1",
+    "tailwindcss": "^4.0.6",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/bun": "latest"
   }
 }
