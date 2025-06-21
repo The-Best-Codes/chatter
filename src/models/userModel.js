@@ -50,4 +50,16 @@ User.findById = async (id) => {
     return rows[0];
 };
 
+User.searchByUsername = async (searchTerm, excludeUserId) => {
+    const query = `
+        SELECT id, username, display_name, avatar_url
+        FROM users
+        WHERE username ILIKE $1 AND id != $2 AND status = 'active'
+        LIMIT 10;
+    `;
+    // ILIKE is a case-insensitive search
+    const { rows } = await db.query(query, [`%${searchTerm}%`, excludeUserId]);
+    return rows;
+};
+
 module.exports = User;

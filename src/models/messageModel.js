@@ -54,4 +54,27 @@ Message.create = async (messageData) => {
     }
 };
 
+Message.getMessagesByRoomId = async (roomId, limit = 50, beforeId = null) => {
+    let query = `
+        SELECT m.id, m.room_id, m.sender_id, m.encrypted_content, m.reply_to_message_id, m.created_at, u.username, u.display_name, u.avatar_url
+        FROM messages m
+        JOIN users u ON m.sender_id = u.id
+        WHERE m.room_id = $1 AND m.deleted_at IS NULL
+    `;
+    const params = [roomId];
+
+    if (beforeId) {
+        query += ` AND m.id < $${params.length + 1}`;
+        params.push(beforeId);
+    }
+
+    query += ` ORDER BY m.created_at DESC LIMIT $${params.length + 1}`;
+    params.push(limit);
+
+    const { rows } = await db.query(query, params);
+
+    // We reverse the result so they are in chronological order for the client
+    return rows.reverse();
+};
+
 module.exports = Message;

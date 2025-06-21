@@ -5,10 +5,12 @@ const http = require('http');
 const express = require('express');
 const { WebSocketServer } = require('ws');
 const db = require('./config/db');
-const websocketService = require('./services/websocketService'); // Import the service
+const websocketService = require('./services/websocketService');
 
 // --- Import Routes ---
 const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const roomRoutes = require('./routes/roomRoutes');
 
 // --- Basic Setup ---
 const app = express();
@@ -21,6 +23,8 @@ app.use(express.json());
 
 // --- API Routes ---
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/rooms', roomRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'API is running' });
