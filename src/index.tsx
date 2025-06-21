@@ -93,7 +93,15 @@ const server = serve({
     }
   },
   fetch(req, server) {
-    return server.fetch(req);
+    // Try to upgrade the request to a WebSocket connection
+    if (server.upgrade(req)) {
+      return; // Return nothing if upgrade successful
+    }
+    
+    // If not a WebSocket upgrade, continue with normal HTTP handling
+    return new Response(index, {
+      headers: { "Content-Type": "text/html" },
+    });
   },
   routes: {
     // Serve index.html for all unmatched routes.

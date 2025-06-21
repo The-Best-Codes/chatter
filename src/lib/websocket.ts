@@ -33,10 +33,12 @@ interface ClientConnection {
 // WebSocket server class
 export class ChatWebSocketServer {
   private clients: Map<string, ClientConnection> = new Map();
+  public server: any;
 
   constructor(server: any) {
     // With Bun, we don't need to initialize a WebSocketServer
     // The server handles WebSocket connections directly
+    this.server = server;
     console.log("WebSocket server initialized");
   }
 
@@ -257,6 +259,9 @@ let wsServer: ChatWebSocketServer | null = null;
 export function initWebSocketServer(server: any) {
   if (!wsServer) {
     wsServer = new ChatWebSocketServer(server);
+  } else if (server && !wsServer.server) {
+    // Update the server reference if it was initialized with null
+    wsServer.server = server;
   }
   return wsServer;
 }
@@ -264,7 +269,9 @@ export function initWebSocketServer(server: any) {
 // Get WebSocket server instance
 export function getWebSocketServer() {
   if (!wsServer) {
-    throw new Error("WebSocket server not initialized");
+    // Initialize with a default instance if not already initialized
+    wsServer = new ChatWebSocketServer(null);
+    console.warn("WebSocket server was auto-initialized with null server");
   }
   return wsServer;
 }
