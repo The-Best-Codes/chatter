@@ -5,6 +5,7 @@ const http = require('http');
 const express = require('express');
 const { WebSocketServer } = require('ws');
 const db = require('./config/db');
+const websocketService = require('./services/websocketService'); // Import the service
 
 // --- Import Routes ---
 const authRoutes = require('./routes/authRoutes');
@@ -19,29 +20,15 @@ const PORT = process.env.PORT || 8080;
 app.use(express.json());
 
 // --- API Routes ---
-app.use('/api/auth', authRoutes); // Use the auth routes
+app.use('/api/auth', authRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'API is running' });
 });
 
 // --- WebSocket Server Logic ---
-wss.on('connection', (ws) => {
-  console.log('✅ Client connected to WebSocket');
-
-  ws.on('message', (message) => {
-    console.log('received: %s', message);
-    ws.send(`Echo: ${message}`);
-  });
-
-  ws.on('close', () => {
-    console.log('❌ Client disconnected');
-  });
-
-  ws.on('error', (error) => {
-    console.error('WebSocket Error:', error);
-  });
-});
+// Initialize our WebSocket service and pass it the server instance
+websocketService.init(wss);
 
 // --- Start Server ---
 async function startServer() {
@@ -51,7 +38,6 @@ async function startServer() {
 
     server.listen(PORT, () => {
       console.log(`🚀 Server is listening on http://localhost:${PORT}`);
-      console.log('📡 WebSocket server is running.');
     });
   } catch (error) {
     console.error('💀 Failed to start server:');

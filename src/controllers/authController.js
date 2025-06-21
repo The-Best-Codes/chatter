@@ -1,9 +1,12 @@
 const User = require('../models/userModel');
+const Room = require('../models/roomModel'); // Import Room model
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 
+// ... (signup function remains the same)
 exports.signup = async (req, res) => {
+  // ... (no changes here)
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -37,6 +40,7 @@ exports.signup = async (req, res) => {
   }
 };
 
+
 exports.login = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -51,7 +55,6 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: "Authentication failed. User not found." });
         }
 
-        // Don't allow frozen/deleted users to log in
         if (user.status !== 'active') {
             return res.status(403).json({ message: `Authentication failed. Account is ${user.status}.`})
         }
@@ -67,13 +70,16 @@ exports.login = async (req, res) => {
             { expiresIn: process.env.JWT_EXPIRES_IN }
         );
 
-        // Don't send the hashed password back to the client
+        // *** NEW: Fetch user's rooms ***
+        const rooms = await Room.getRoomsForUser(user.id);
+
         const { hashed_password, ...userWithoutPassword } = user;
 
         res.status(200).json({
             message: "Login successful!",
             token,
-            user: userWithoutPassword
+            user: userWithoutPassword,
+            rooms // *** NEW: Include rooms in the login response ***
         });
 
     } catch (error) {
