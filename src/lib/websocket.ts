@@ -1,17 +1,16 @@
-import { WebSocketServer, WebSocket } from 'ws';
-import { Message } from './api/room-messages';
-import { decryptMessage } from './encryption';
+import type { Message } from "./api/room-messages";
+import { decryptMessage } from "./encryption-simplified";
 
 // Define message types for WebSocket communication
 export enum WebSocketMessageType {
-  ROOM_MESSAGE = 'ROOM_MESSAGE',
-  DM_MESSAGE = 'DM_MESSAGE',
-  MESSAGE_EDITED = 'MESSAGE_EDITED',
-  MESSAGE_DELETED = 'MESSAGE_DELETED',
-  USER_TYPING = 'USER_TYPING',
-  USER_JOINED = 'USER_JOINED',
-  USER_LEFT = 'USER_LEFT',
-  ERROR = 'ERROR',
+  ROOM_MESSAGE = "ROOM_MESSAGE",
+  DM_MESSAGE = "DM_MESSAGE",
+  MESSAGE_EDITED = "MESSAGE_EDITED",
+  MESSAGE_DELETED = "MESSAGE_DELETED",
+  USER_TYPING = "USER_TYPING",
+  USER_JOINED = "USER_JOINED",
+  USER_LEFT = "USER_LEFT",
+  ERROR = "ERROR",
 }
 
 // Define WebSocket message interface
@@ -25,7 +24,7 @@ export interface WebSocketMessage {
 
 // Define client connection interface
 interface ClientConnection {
-  ws: WebSocket;
+  ws: any; // Using any for compatibility with both WebSocket and ServerWebSocket
   userId: string;
   rooms: Set<string>;
   dms: Set<string>;
@@ -33,72 +32,82 @@ interface ClientConnection {
 
 // WebSocket server class
 export class ChatWebSocketServer {
-  private wss: WebSocketServer;
   private clients: Map<string, ClientConnection> = new Map();
 
   constructor(server: any) {
-    this.wss = new WebSocketServer({ server });
-    this.setupWebSocketServer();
+    // With Bun, we don't need to initialize a WebSocketServer
+    // The server handles WebSocket connections directly
+    console.log("WebSocket server initialized");
   }
 
-  private setupWebSocketServer() {
-    this.wss.on('connection', (ws: WebSocket, request: any) => {
-      // Extract user ID and token from request
-      const url = new URL(request.url, 'http://localhost');
-      const userId = url.searchParams.get('userId');
-      const token = url.searchParams.get('token');
+  // Add a new client connection
+  public addClient(ws: any, userId: string) {
+    console.log(`WebSocket client connected: ${userId}`);
 
-      // Validate user (in a real app, you'd verify the token)
-      if (!userId) {
-        ws.send(JSON.stringify({
-          type: WebSocketMessageType.ERROR,
-          payload: { message: 'Authentication required' }
-        }));
-        ws.close();
-        return;
-      }
+    const client: ClientConnection = {
+      ws,
+      userId,
+      rooms: new Set(),
+      dms: new Set(),
+    };
 
-      // Store client connection
-      const client: ClientConnection = {
-        ws,
-        userId,
-        rooms: new Set(),
-        dms: new Set()
-      };
-      this.clients.set(userId, client);
+    this.clients.set(userId, client);
 
-      // Handle messages from client
-      ws.on('message', (data: string) => {
+    // Handle messages from client - support both browser WebSocket and Bun's ServerWebSocket
+    if (typeof ws.addEventListener === 'function') {
+      // Browser WebSocket
+      ws.addEventListener("message", (event) => {
         try {
-          const message: WebSocketMessage = JSON.parse(data);
+          const message: WebSocketMessage = JSON.parse(event.data as string);
           this.handleClientMessage(userId, message);
         } catch (error) {
-          console.error('Error handling WebSocket message:', error);
-          ws.send(JSON.stringify({
-            type: WebSocketMessageType.ERROR,
-            payload: { message: 'Invalid message format' }
-          }));
+          console.error("Error handling WebSocket message:", error);
+          ws.send(
+            JSON.stringify({
+              type: WebSocketMessageType.ERROR,
+              payload: { message: "Invalid message format" },
+            }),
+          );
         }
       });
+      
+      ws.addEventListener("close", () => {
+        this.handleClientDisconnect(userId);
+      });
+    } else {
+      // Bun's ServerWebSocket - message handling is done through the message event in server config
+      // We'll handle the message event in the server config
+      // The close event is also handled in the server config
+    }
+    
+    return client;
+  }
+  
+  // Handle client disconnect
+  public handleClientDisconnect(userId: string) {
+    console.log(`WebSocket client disconnected: ${userId}`);
+    const client = this.clients.get(userId);
 
-      // Handle client disconnect
-      ws.on('close', () => {
-        // Notify rooms that user has left
-        client.rooms.forEach(roomId => {
-          this.broadcastToRoom(roomId, {
+    if (client) {
+      // Notify rooms that user has left
+      client.rooms.forEach((roomId) => {
+        this.broadcastToRoom(
+          roomId,
+          {
             type: WebSocketMessageType.USER_LEFT,
             payload: { userId },
-            roomId
-          }, userId);
-        });
-        
-        // Remove client
-        this.clients.delete(userId);
+            roomId,
+          },
+          userId,
+        );
       });
-    });
+
+      // Remove client
+      this.clients.delete(userId);
+    }
   }
 
-  private handleClientMessage(userId: string, message: WebSocketMessage) {
+  public handleClientMessage(userId: string, message: WebSocketMessage) {
     const client = this.clients.get(userId);
     if (!client) return;
 
@@ -111,7 +120,7 @@ export class ChatWebSocketServer {
           this.broadcastToRoom(message.roomId, message);
         }
         break;
-        
+
       case WebSocketMessageType.DM_MESSAGE:
         if (message.dmId) {
           // Join DM if not already joined
@@ -120,7 +129,7 @@ export class ChatWebSocketServer {
           this.sendToDM(message.dmId, message);
         }
         break;
-        
+
       case WebSocketMessageType.USER_TYPING:
         if (message.roomId) {
           this.broadcastToRoom(message.roomId, message, userId);
@@ -128,21 +137,21 @@ export class ChatWebSocketServer {
           this.sendToDM(message.dmId, message);
         }
         break;
-        
+
       case WebSocketMessageType.USER_JOINED:
         if (message.roomId) {
           client.rooms.add(message.roomId);
           this.broadcastToRoom(message.roomId, message);
         }
         break;
-        
+
       case WebSocketMessageType.USER_LEFT:
         if (message.roomId) {
           client.rooms.delete(message.roomId);
           this.broadcastToRoom(message.roomId, message);
         }
         break;
-        
+
       case WebSocketMessageType.MESSAGE_EDITED:
       case WebSocketMessageType.MESSAGE_DELETED:
         if (message.roomId) {
@@ -155,7 +164,11 @@ export class ChatWebSocketServer {
   }
 
   // Broadcast message to all clients in a room
-  public broadcastToRoom(roomId: string, message: WebSocketMessage, excludeUserId?: string) {
+  public broadcastToRoom(
+    roomId: string,
+    message: WebSocketMessage,
+    excludeUserId?: string,
+  ) {
     this.clients.forEach((client, userId) => {
       if (excludeUserId && userId === excludeUserId) return;
       if (client.rooms.has(roomId)) {
@@ -179,7 +192,7 @@ export class ChatWebSocketServer {
       type: WebSocketMessageType.ROOM_MESSAGE,
       payload: message,
       roomId,
-      userId: senderId
+      userId: senderId,
     });
   }
 
@@ -189,7 +202,7 @@ export class ChatWebSocketServer {
       type: WebSocketMessageType.DM_MESSAGE,
       payload: message,
       dmId,
-      userId: senderId
+      userId: senderId,
     });
   }
 
@@ -200,33 +213,38 @@ export class ChatWebSocketServer {
         type: WebSocketMessageType.MESSAGE_EDITED,
         payload: message,
         roomId: message.roomId,
-        userId: message.senderId
+        userId: message.senderId,
       });
     } else if (message.dmId) {
       this.sendToDM(message.dmId, {
         type: WebSocketMessageType.MESSAGE_EDITED,
         payload: message,
         dmId: message.dmId,
-        userId: message.senderId
+        userId: message.senderId,
       });
     }
   }
 
   // Notify about message deletion
-  public notifyMessageDeleted(messageId: string, roomId?: string, dmId?: string, senderId?: string) {
+  public notifyMessageDeleted(
+    messageId: string,
+    roomId?: string,
+    dmId?: string,
+    senderId?: string,
+  ) {
     if (roomId) {
       this.broadcastToRoom(roomId, {
         type: WebSocketMessageType.MESSAGE_DELETED,
         payload: { messageId },
         roomId,
-        userId: senderId
+        userId: senderId,
       });
     } else if (dmId) {
       this.sendToDM(dmId, {
         type: WebSocketMessageType.MESSAGE_DELETED,
         payload: { messageId },
         dmId,
-        userId: senderId
+        userId: senderId,
       });
     }
   }
@@ -246,7 +264,7 @@ export function initWebSocketServer(server: any) {
 // Get WebSocket server instance
 export function getWebSocketServer() {
   if (!wsServer) {
-    throw new Error('WebSocket server not initialized');
+    throw new Error("WebSocket server not initialized");
   }
   return wsServer;
 }

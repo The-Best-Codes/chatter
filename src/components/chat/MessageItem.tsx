@@ -8,7 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Edit2, Trash2, Check, X, Download, FileText, Image as ImageIcon, Lock } from 'lucide-react';
 import { useAuth } from '@/components/auth';
 import { toast } from 'sonner';
-import { decryptMessage } from '@/lib/encryption';
+import { decryptMessage } from '@/lib/encryption-simplified';
 
 interface MessageItemProps {
   message: Message;

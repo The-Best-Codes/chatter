@@ -1,7 +1,7 @@
 import { db } from '../db';
 import { v4 as uuidv4 } from 'uuid';
 import { getWebSocketServer } from '../websocket';
-import { encryptMessage } from '../encryption';
+import { encryptMessage } from '../encryption-simplified';
 
 // Message type definition
 export interface Message {
@@ -15,6 +15,26 @@ export interface Message {
   updatedAt?: number;
   hasAttachment: boolean;
   encryptedContent?: string;
+}
+
+// Get a message by ID
+export function getMessage(messageId: string): Message | null {
+  try {
+    const message = db.prepare(`
+      SELECT m.id, m.content, m.sender_id as senderId, u.username as senderUsername,
+             m.room_id as roomId, m.dm_id as dmId, m.created_at as createdAt, 
+             m.updated_at as updatedAt, m.has_attachment as hasAttachment,
+             m.encrypted_content as encryptedContent
+      FROM messages m
+      JOIN users u ON m.sender_id = u.id
+      WHERE m.id = ?
+    `).get(messageId) as Message | undefined;
+    
+    return message || null;
+  } catch (error) {
+    console.error('Error getting message:', error);
+    return null;
+  }
 }
 
 // Send a message to a room
@@ -77,11 +97,7 @@ export function sendRoomMessage(
 }
 
 // Get messages for a room
-export function getRoomMessages(
-  roomId: string,
-  limit: number = 50,
-  before?: number
-): Message[] {
+export function getRoomMessages(roomId: string, before?: number, limit: number = 50): Message[] {
   try {
     let query = `
       SELECT m.id, m.content, m.sender_id as senderId, u.username as senderUsername,
@@ -104,7 +120,7 @@ export function getRoomMessages(
     
     const messages = db.prepare(query).all(...params) as Message[];
     
-    return messages.reverse(); // Return in chronological order
+    return messages;
   } catch (error) {
     console.error('Error getting room messages:', error);
     return [];
@@ -196,25 +212,5 @@ export function deleteRoomMessage(messageId: string, senderId: string, isAdmin: 
   } catch (error) {
     console.error('Error deleting room message:', error);
     return false;
-  }
-}
-
-// Get a specific message
-export function getMessage(messageId: string): Message | null {
-  try {
-    const message = db.prepare(`
-      SELECT m.id, m.content, m.sender_id as senderId, u.username as senderUsername,
-             m.room_id as roomId, m.dm_id as dmId, m.created_at as createdAt, 
-             m.updated_at as updatedAt, m.has_attachment as hasAttachment,
-             m.encrypted_content as encryptedContent
-      FROM messages m
-      JOIN users u ON m.sender_id = u.id
-      WHERE m.id = ?
-    `).get(messageId);
-    
-    return (message as Message | undefined) || null;
-  } catch (error) {
-    console.error('Error getting message:', error);
-    return null;
   }
 }

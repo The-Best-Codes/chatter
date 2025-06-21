@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ChatArea } from './ChatArea';
+import { MessageInput } from './MessageInput';
 import type { Message } from '@/lib/api/room-messages';
 import type { Room } from '@/lib/api/rooms';
 import { useAuth } from '@/components/auth';

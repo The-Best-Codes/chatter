@@ -2,7 +2,7 @@ import { db } from '../db';
 import { v4 as uuidv4 } from 'uuid';
 import type { Message } from './room-messages';
 import { getWebSocketServer } from '../websocket';
-import { encryptMessage } from '../encryption';
+import { encryptMessage } from '../encryption-simplified';
 
 // Send a direct message
 export function sendDirectMessage(
@@ -63,12 +63,8 @@ export function sendDirectMessage(
   }
 }
 
-// Get messages for a DM conversation
-export function getDirectMessages(
-  dmId: string,
-  limit: number = 50,
-  before?: number
-): Message[] {
+// Get direct messages
+export function getDirectMessages(dmId: string, before?: number, limit: number = 50): Message[] {
   try {
     let query = `
       SELECT m.id, m.content, m.sender_id as senderId, u.username as senderUsername,
@@ -91,7 +87,7 @@ export function getDirectMessages(
     
     const messages = db.prepare(query).all(...params) as Message[];
     
-    return messages.reverse(); // Return in chronological order
+    return messages;
   } catch (error) {
     console.error('Error getting direct messages:', error);
     return [];

@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { WebSocketMessageType, WebSocketMessage } from './websocket';
 import { useAuth } from '@/components/auth';
 import { toast } from 'sonner';
-import { decryptMessage } from './encryption';
+import { decryptMessage } from './encryption-simplified';
+import type { WebSocketMessage } from './websocket';
+import { WebSocketMessageType } from './websocket';
 
 interface UseWebSocketOptions {
   roomId?: string;
@@ -82,12 +83,7 @@ export function useWebSocket({
               if (onMessage && message.payload) {
                 // If the message is encrypted, decrypt it
                 if (message.payload.encryptedContent) {
-                  try {
-                    const decrypted = decryptMessage(message.payload.encryptedContent);
-                    message.payload.content = decrypted;
-                  } catch (error) {
-                    console.error('Failed to decrypt message:', error);
-                  }
+                  message.payload.content = decryptMessage(message.payload.encryptedContent);
                 }
                 onMessage(message.payload);
               }
@@ -97,12 +93,7 @@ export function useWebSocket({
               if (onMessageEdited && message.payload) {
                 // If the message is encrypted, decrypt it
                 if (message.payload.encryptedContent) {
-                  try {
-                    const decrypted = decryptMessage(message.payload.encryptedContent);
-                    message.payload.content = decrypted;
-                  } catch (error) {
-                    console.error('Failed to decrypt message:', error);
-                  }
+                  message.payload.content = decryptMessage(message.payload.encryptedContent);
                 }
                 onMessageEdited(message.payload);
               }
