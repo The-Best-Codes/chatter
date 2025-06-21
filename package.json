@@ -1,47 +1,32 @@
 {
-  "name": "chatter",
-  "version": "0.0.11",
-  "module": "index.ts",
-  "type": "module",
-  "packageManager": "bun@1.2.7",
+  "name": "secure-chat-app-backend",
+  "version": "1.0.0",
+  "description": "Backend for a secure, scalable chat application.",
+  "main": "src/server.js",
   "scripts": {
-    "dev": "bun run --watch index.ts",
-    "css:watch": "bunx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
-    "css:build": "bunx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/tailwind.css --minify",
-    "build": "bun build --minify --target=bun ./index.ts --outfile ./build.index.js && bun run css:build",
-    "b.linux-base": "bun build --compile --minify --target=bun-linux-x64-baseline ./index.ts --outfile ./exec/linux-x64-baseline",
-    "b.linux-modern": "bun build --compile --minify --target=bun-linux-x64-modern ./index.ts --outfile ./exec/linux-x64-modern",
-    "b.windows-base": "bun build --compile --minify --target=bun-windows-x64-baseline ./index.ts --outfile ./exec/windows-x64-baseline",
-    "b.windows-modern": "bun build --compile --minify --target=bun-windows-x64-modern ./index.ts --outfile ./exec/windows-x64-modern",
-    "b.darwin-base": "bun build --compile --minify --target=bun-darwin-x64-baseline ./index.ts --outfile ./exec/darwin-x64-baseline",
-    "b.darwin-modern": "bun build --compile --minify --target=bun-darwin-x64-modern ./index.ts --outfile ./exec/darwin-x64-modern",
-    "b.all": "bun run b.linux-base && bun run b.linux-modern && bun run b.windows-base && bun run b.windows-modern && bun run b.darwin-base && bun run b.darwin-modern",
-    "start": "SCHEMA_PATH=./src/db/schema.sql bun run ./build.index.js",
-    "pm2-start": "pm2 start --name chatter --interpreter ~/.bun/bin/bun ./build.index.js",
-    "pm2-stop": "pm2 stop chatter",
-    "pm2-restart": "pm2 restart chatter --update-env",
-    "pm2-startup": "pm2 save && pm2 startup",
-    "binary": "bun exec",
-    "build-dist": "bun run build && rm -rf dist && bun run ./scripts/compile.ts",
-    "deps:update": "bun update --latest"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "db:init": "node src/scripts/init-db.js"
+  },
+  "keywords": [
+    "chat",
+    "websocket",
+    "e2ee",
+    "express"
+  ],
+  "author": "AI Assistant & You",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.3",
+    "uuid": "^9.0.0",
+    "ws": "^8.13.0"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.8",
-    "bun-types": "^1.2.7"
-  },
-  "peerDependencies": {
-    "typescript": "^5.8.2"
-  },
-  "dependencies": {
-    "@tailwindcss/postcss": "^4.0.17",
-    "@tailwindcss/typography": "^0.5.16",
-    "@types/bcryptjs": "^3.0.0",
-    "bcryptjs": "^3.0.2",
-    "dotenv": "^16.4.7",
-    "node-fetch": "^3.3.2",
-    "node-html-parser": "^7.0.1",
-    "postcss": "^8.5.3",
-    "sharp": "^0.34.1",
-    "tailwindcss": "^4.0.17"
+    "nodemon": "^3.0.1"
   }
 }
