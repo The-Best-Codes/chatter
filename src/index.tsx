@@ -12,6 +12,10 @@ import {
 } from "./lib/auth";
 import { cookies } from "./lib/cookies";
 import * as api from "./lib/api";
+import { runDatabaseMigrations } from "./lib/run-migrations";
+
+// Run database migrations
+runDatabaseMigrations();
 
 const server = serve({
   routes: {

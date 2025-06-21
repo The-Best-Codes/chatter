@@ -1,20 +1,20 @@
-import { Database } from 'bun:sqlite';
-import fs from 'fs';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import bcrypt from 'bcrypt';
+import { Database } from "bun:sqlite";
+import fs from "fs";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
+import bcrypt from "bcrypt";
 
 // Ensure the data directory exists
-const dataDir = path.join(process.cwd(), 'data');
+const dataDir = path.join(process.cwd(), "data");
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir);
 }
 
 // Initialize the database
-const db = new Database(path.join(dataDir, 'chatter.db'));
+const db = new Database(path.join(dataDir, "chatter.db"));
 
 // Enable foreign keys
-db.exec('PRAGMA foreign_keys = ON');
+db.exec("PRAGMA foreign_keys = ON");
 
 // Create tables if they don't exist
 function initializeDatabase() {
@@ -158,41 +158,48 @@ function initializeDatabase() {
   `);
 
   // Insert default settings if they don't exist
-  const defaultPermissionsExist = db.prepare('SELECT 1 FROM default_permissions WHERE id = 1').get();
+  const defaultPermissionsExist = db
+    .prepare("SELECT 1 FROM default_permissions WHERE id = 1")
+    .get();
   if (!defaultPermissionsExist) {
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO default_permissions (
-        id, can_send_attachments, max_message_length, can_create_public_room, 
+        id, can_send_attachments, max_message_length, can_create_public_room,
         can_create_private_room, can_dm, can_create_invites, allow_signups
       ) VALUES (1, 1, 2000, 1, 1, 1, 1, 1)
-    `).run();
+    `,
+    ).run();
   }
 
   // Create admin user if no users exist
-  const userCount = (db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number }).count;
+  const userCount = (
+    db.prepare("SELECT COUNT(*) as count FROM users").get() as { count: number }
+  ).count;
   if (userCount === 0) {
     const adminId = uuidv4();
-    const passwordHash = bcrypt.hashSync('admin', 10);
+    const passwordHash = bcrypt.hashSync("admin", 10);
     const now = Date.now();
-    
-    db.prepare(`
+
+    db.prepare(
+      `
       INSERT INTO users (id, username, email, password_hash, created_at, is_admin)
       VALUES (?, ?, ?, ?, ?, 1)
-    `).run(adminId, 'admin', 'admin@chatter.local', passwordHash, now);
-    
-    db.prepare(`
+    `,
+    ).run(adminId, "admin", "admin@chatter.local", passwordHash, now);
+
+    db.prepare(
+      `
       INSERT INTO user_permissions (
         user_id, can_send_attachments, max_message_length, can_create_public_room,
         can_create_private_room, can_dm, can_create_invites
       ) VALUES (?, 1, 5000, 1, 1, 1, 1)
-    `).run(adminId);
+    `,
+    ).run(adminId);
   }
 }
 
 // Initialize the database
 initializeDatabase();
-
-// Import and run migrations
-import './db-migration';
 
 export { db };
