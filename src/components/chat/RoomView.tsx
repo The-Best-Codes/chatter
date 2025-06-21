@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ChatArea } from './ChatArea';
 import type { Message } from '@/lib/api/room-messages';
 import type { Room } from '@/lib/api/rooms';
 import { useAuth } from '@/components/auth';
+import { useWebSocket } from '@/lib/useWebSocket';
+import { toast } from 'sonner';
 
 interface RoomViewProps {
   roomId: string;
@@ -15,6 +17,59 @@ export function RoomView({ roomId }: RoomViewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
   const [oldestMessageTime, setOldestMessageTime] = useState<number | null>(null);
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+  
+  // Handle new messages from WebSocket
+  const handleNewMessage = useCallback((message: Message) => {
+    if (message.roomId === roomId) {
+      setMessages(prev => [...prev, message]);
+    }
+  }, [roomId]);
+  
+  // Handle edited messages from WebSocket
+  const handleEditedMessage = useCallback((message: Message) => {
+    if (message.roomId === roomId) {
+      setMessages(prev => prev.map(m => 
+        m.id === message.id ? message : m
+      ));
+    }
+  }, [roomId]);
+  
+  // Handle deleted messages from WebSocket
+  const handleDeletedMessage = useCallback((messageId: string) => {
+    setMessages(prev => prev.filter(m => m.id !== messageId));
+  }, []);
+  
+  // Handle user typing from WebSocket
+  const handleUserTyping = useCallback((userId: string) => {
+    if (userId === user?.id) return; // Ignore own typing events
+    
+    setTypingUsers(prev => {
+      const newSet = new Set(prev);
+      newSet.add(userId);
+      
+      // Clear typing indicator after 3 seconds
+      setTimeout(() => {
+        setTypingUsers(current => {
+          const updatedSet = new Set(current);
+          updatedSet.delete(userId);
+          return updatedSet;
+        });
+      }, 3000);
+      
+      return newSet;
+    });
+  }, [user?.id]);
+  
+  // Initialize WebSocket connection
+  const { sendTyping } = useWebSocket({
+    roomId,
+    onMessage: handleNewMessage,
+    onMessageEdited: handleEditedMessage,
+    onMessageDeleted: handleDeletedMessage,
+    onUserTyping: handleUserTyping,
+    onError: (error) => toast.error(`WebSocket error: ${error.message || 'Unknown error'}`)
+  });
   
   // Fetch room details
   useEffect(() => {
@@ -27,6 +82,7 @@ export function RoomView({ roomId }: RoomViewProps) {
         }
       } catch (error) {
         console.error('Error fetching room:', error);
+        toast.error('Failed to load room details');
       }
     };
     
@@ -50,163 +106,173 @@ export function RoomView({ roomId }: RoomViewProps) {
         }
       } catch (error) {
         console.error('Error fetching messages:', error);
+        toast.error('Failed to load messages');
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchMessages();
-    
-    // Set up real-time updates (this would be replaced with WebSockets in a real implementation)
-    const intervalId = setInterval(() => {
-      fetchNewMessages();
-    }, 5000);
-    
-    return () => clearInterval(intervalId);
   }, [roomId]);
   
-  // Fetch new messages
-  const fetchNewMessages = async () => {
-    if (messages.length === 0) return;
+  // Load more messages
+  const loadMoreMessages = async () => {
+    if (!oldestMessageTime || !hasMore) return;
     
-    const latestMessageTime = messages[messages.length - 1].createdAt;
-    
-    try {
-      const response = await fetch(`/api/rooms/${roomId}/messages?after=${latestMessageTime}`);
-      if (response.ok) {
-        const newMessages = await response.json();
-        if (newMessages.length > 0) {
-          setMessages(prev => [...prev, ...newMessages]);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching new messages:', error);
-    }
-  };
-  
-  // Load more (older) messages
-  const handleLoadMore = async () => {
-    if (!oldestMessageTime) return;
-    
-    setIsLoading(true);
     try {
       const response = await fetch(`/api/rooms/${roomId}/messages?before=${oldestMessageTime}`);
+      
       if (response.ok) {
         const olderMessages = await response.json();
+        
         if (olderMessages.length > 0) {
           setMessages(prev => [...olderMessages, ...prev]);
           setOldestMessageTime(olderMessages[0].createdAt);
-          setHasMore(olderMessages.length >= 50); // Assuming 50 is the page size
+          setHasMore(olderMessages.length >= 50);
         } else {
           setHasMore(false);
         }
       }
     } catch (error) {
       console.error('Error loading more messages:', error);
-    } finally {
-      setIsLoading(false);
+      toast.error('Failed to load more messages');
     }
   };
   
-  // Send a message
-  const handleSendMessage = async (content: string, attachment?: File): Promise<boolean> => {
+  // Send a new message
+  const handleSendMessage = async (content: string, attachment?: File) => {
+    if (!user) return false;
+    
     try {
-      const formData = new FormData();
-      formData.append('content', content);
+      // Send typing indicator
+      sendTyping();
+      
+      let url = `/api/rooms/${roomId}/messages`;
+      let body: any = { content };
       
       if (attachment) {
-        formData.append('attachment', attachment);
-      }
-      
-      const response = await fetch(`/api/rooms/${roomId}/messages`, {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (response.ok) {
-        const newMessage = await response.json();
-        setMessages(prev => [...prev, newMessage]);
+        // Create FormData for file upload
+        const formData = new FormData();
+        formData.append('file', attachment);
+        formData.append('content', content);
+        
+        const response = await fetch(url, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to send message with attachment');
+        }
+        
+        return true;
+      } else {
+        // Regular text message
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to send message');
+        }
+        
         return true;
       }
-      return false;
     } catch (error) {
       console.error('Error sending message:', error);
+      toast.error('Failed to send message');
       return false;
     }
   };
   
   // Edit a message
-  const handleEditMessage = async (messageId: string, newContent: string): Promise<boolean> => {
+  const handleEditMessage = async (messageId: string, newContent: string) => {
+    if (!user) return false;
+    
     try {
-      const response = await fetch(`/api/messages/${messageId}`, {
+      const response = await fetch(`/api/rooms/${roomId}/messages/${messageId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ content: newContent }),
+        body: JSON.stringify({ content: newContent })
       });
       
-      if (response.ok) {
-        setMessages(prev =>
-          prev.map(msg =>
-            msg.id === messageId ? { ...msg, content: newContent, updatedAt: Date.now() } : msg
-          )
-        );
-        return true;
+      if (!response.ok) {
+        throw new Error('Failed to edit message');
       }
-      return false;
+      
+      return true;
     } catch (error) {
       console.error('Error editing message:', error);
+      toast.error('Failed to edit message');
       return false;
     }
   };
   
   // Delete a message
-  const handleDeleteMessage = async (messageId: string): Promise<boolean> => {
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!user) return false;
+    
     try {
-      const response = await fetch(`/api/messages/${messageId}`, {
-        method: 'DELETE',
+      const response = await fetch(`/api/rooms/${roomId}/messages/${messageId}`, {
+        method: 'DELETE'
       });
       
-      if (response.ok) {
-        setMessages(prev => prev.filter(msg => msg.id !== messageId));
-        return true;
+      if (!response.ok) {
+        throw new Error('Failed to delete message');
       }
-      return false;
+      
+      return true;
     } catch (error) {
       console.error('Error deleting message:', error);
+      toast.error('Failed to delete message');
       return false;
+    }
+  };
+  
+  if (!room) {
+    return <div className="p-4">Loading room...</div>;
+  }
+  
+  // Get typing users display
+  const typingUsersText = () => {
+    if (typingUsers.size === 0) return null;
+    
+    const typingUsersList = Array.from(typingUsers);
+    if (typingUsersList.length === 1) {
+      return <div className="text-sm text-muted-foreground italic px-4 py-1">Someone is typing...</div>;
+    } else {
+      return <div className="text-sm text-muted-foreground italic px-4 py-1">Several people are typing...</div>;
     }
   };
   
   return (
     <div className="flex flex-col h-full">
-      {/* Room header */}
-      {room && (
-        <div className="p-4 border-b flex items-center">
-          <div>
-            <h2 className="text-xl font-semibold">{room.name}</h2>
-            {room.description && (
-              <p className="text-sm text-muted-foreground">{room.description}</p>
-            )}
-          </div>
-        </div>
-      )}
-      
-      {/* Chat area */}
-      <div className="flex-1 overflow-hidden">
-        <ChatArea
-          messages={messages}
-          isLoading={isLoading}
-          hasMore={hasMore}
-          onLoadMore={handleLoadMore}
-          onSendMessage={handleSendMessage}
-          onEditMessage={handleEditMessage}
-          onDeleteMessage={handleDeleteMessage}
-          maxMessageLength={user?.permissions?.maxMessageLength}
-          canSendAttachments={user?.permissions?.canSendAttachments}
-        />
+      <div className="border-b p-4">
+        <h2 className="text-xl font-bold">{room.name}</h2>
+        <p className="text-sm text-muted-foreground">{room.description || 'No description'}</p>
       </div>
+      
+      <ChatArea
+        messages={messages}
+        isLoading={isLoading}
+        hasMore={hasMore}
+        onLoadMore={loadMoreMessages}
+        onSendMessage={handleSendMessage}
+        onEditMessage={handleEditMessage}
+        onDeleteMessage={handleDeleteMessage}
+        typingIndicator={typingUsersText()}
+      >
+        <MessageInput
+          onSendMessage={handleSendMessage}
+          onTyping={sendTyping}
+        />
+      </ChatArea>
     </div>
   );
 }

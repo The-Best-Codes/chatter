@@ -5,9 +5,10 @@ import { Textarea } from '@/components/ui/textarea';
 import type { Message } from '@/lib/api/room-messages';
 import type { Attachment } from '@/lib/api/attachments';
 import { formatDistanceToNow } from 'date-fns';
-import { Edit2, Trash2, Check, X, Download, FileText, Image as ImageIcon } from 'lucide-react';
+import { Edit2, Trash2, Check, X, Download, FileText, Image as ImageIcon, Lock } from 'lucide-react';
 import { useAuth } from '@/components/auth';
 import { toast } from 'sonner';
+import { decryptMessage } from '@/lib/encryption';
 
 interface MessageItemProps {
   message: Message;
@@ -22,10 +23,36 @@ export function MessageItem({ message, onEdit, onDelete }: MessageItemProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isLoadingAttachments, setIsLoadingAttachments] = useState(false);
+  const [decryptedContent, setDecryptedContent] = useState<string | null>(null);
+  const [decryptError, setDecryptError] = useState<boolean>(false);
   
   const isOwnMessage = user?.id === message.senderId;
   const canEdit = isOwnMessage && !message.hasAttachment;
   const canDelete = isOwnMessage || user?.isAdmin;
+  
+  // Try to decrypt the message if it has encrypted content
+  useEffect(() => {
+    if (message.encryptedContent) {
+      try {
+        const decrypted = decryptMessage(message.encryptedContent);
+        setDecryptedContent(decrypted);
+        setDecryptError(false);
+      } catch (error) {
+        console.error('Failed to decrypt message:', error);
+        setDecryptError(true);
+      }
+    }
+  }, [message.encryptedContent]);
+  
+  // Set initial edited content when message or decrypted content changes
+  useEffect(() => {
+    // If the message is encrypted, use the decrypted content
+    if (message.encryptedContent && !decryptError && decryptedContent) {
+      setEditedContent(decryptedContent);
+    } else {
+      setEditedContent(message.content);
+    }
+  }, [message.content, message.encryptedContent, decryptedContent, decryptError]);
   
   // Fetch attachments if message has them
   useEffect(() => {
@@ -50,14 +77,29 @@ export function MessageItem({ message, onEdit, onDelete }: MessageItemProps) {
   };
   
   const handleEdit = async () => {
-    if (editedContent.trim() === message.content) {
+    if (!editedContent.trim()) return;
+    
+    // If the message was encrypted, we should use the decrypted content as the base
+    const contentToCompare = message.encryptedContent && !decryptError && decryptedContent
+      ? decryptedContent
+      : message.content;
+    
+    if (editedContent.trim() === contentToCompare) {
       setIsEditing(false);
       return;
     }
     
-    const success = await onEdit(message.id, editedContent);
-    if (success) {
-      setIsEditing(false);
+    try {
+      const success = await onEdit(message.id, editedContent);
+      
+      if (success) {
+        setIsEditing(false);
+      } else {
+        toast.error('Failed to edit message');
+      }
+    } catch (error) {
+      console.error('Error editing message:', error);
+      toast.error('An error occurred while editing the message');
     }
   };
   
@@ -70,7 +112,12 @@ export function MessageItem({ message, onEdit, onDelete }: MessageItemProps) {
   };
   
   const cancelEdit = () => {
-    setEditedContent(message.content);
+    // If the message was encrypted, use the decrypted content
+    if (message.encryptedContent && !decryptError && decryptedContent) {
+      setEditedContent(decryptedContent);
+    } else {
+      setEditedContent(message.content);
+    }
     setIsEditing(false);
   };
   
@@ -131,7 +178,24 @@ export function MessageItem({ message, onEdit, onDelete }: MessageItemProps) {
             </div>
           ) : (
             <div className="mt-1 text-sm whitespace-pre-wrap break-words">
-              {message.content}
+              {message.encryptedContent ? (
+                decryptError ? (
+                  <div className="flex items-center text-destructive">
+                    <Lock className="h-4 w-4 mr-1" />
+                    <span>Encrypted message (unable to decrypt)</span>
+                  </div>
+                ) : (
+                  <>
+                    <span className="inline-flex items-center text-xs text-muted-foreground mb-1">
+                      <Lock className="h-3 w-3 mr-1" />
+                      <span>Encrypted</span>
+                    </span>
+                    <div>{decryptedContent || message.content}</div>
+                  </>
+                )
+              ) : (
+                message.content
+              )}
             </div>
           )}
           

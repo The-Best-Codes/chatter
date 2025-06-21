@@ -1,28 +1,41 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Paperclip, Send } from 'lucide-react';
 import { useAuth } from '@/components/auth';
+import { debounce } from '@/lib/utils';
 
 interface MessageInputProps {
   onSendMessage: (content: string, attachment?: File) => Promise<boolean>;
   placeholder?: string;
   maxLength?: number;
   canSendAttachments?: boolean;
+  onTyping?: () => void;
 }
 
 export function MessageInput({
   onSendMessage,
   placeholder = 'Type a message...',
   maxLength = 2000,
-  canSendAttachments = true
+  canSendAttachments = true,
+  onTyping
 }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [attachment, setAttachment] = useState<File | null>(null);
   const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
+  
+  // Create a debounced version of the typing indicator
+  const debouncedTyping = useCallback(
+    debounce(() => {
+      if (onTyping) {
+        onTyping();
+      }
+    }, 500),
+    [onTyping]
+  );
   
   // Use user's permission for max message length if available
   const effectiveMaxLength = user?.permissions?.maxMessageLength || maxLength;
@@ -99,7 +112,13 @@ export function MessageInput({
         <div className="flex-1">
           <Textarea
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              // Trigger typing indicator when user types
+              if (e.target.value.trim() && onTyping) {
+                debouncedTyping();
+              }
+            }}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             className="min-h-[80px] resize-none"

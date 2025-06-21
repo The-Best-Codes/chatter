@@ -1,5 +1,7 @@
 import { db } from '../db';
 import { v4 as uuidv4 } from 'uuid';
+import { getWebSocketServer } from '../websocket';
+import { encryptMessage } from '../encryption';
 
 // Message type definition
 export interface Message {
@@ -36,20 +38,38 @@ export function sendRoomMessage(
     const messageId = uuidv4();
     const now = Date.now();
     
+    // Encrypt the message content if not already encrypted
+    const actualEncryptedContent = encryptedContent || encryptMessage(content);
+    
     db.prepare(`
       INSERT INTO messages (id, content, sender_id, room_id, created_at, has_attachment, encrypted_content)
       VALUES (?, ?, ?, ?, ?, 0, ?)
-    `).run(messageId, content, senderId, roomId, now, encryptedContent || null);
+    `).run(messageId, content, senderId, roomId, now, actualEncryptedContent);
     
-    return {
+    // Get the sender's username
+    const user = db.prepare('SELECT username FROM users WHERE id = ?').get(senderId) as { username: string } | undefined;
+    
+    const message: Message = {
       id: messageId,
       content,
       senderId,
+      senderUsername: user?.username,
       roomId,
       createdAt: now,
       hasAttachment: false,
-      encryptedContent
+      encryptedContent: actualEncryptedContent
     };
+    
+    // Notify clients via WebSocket
+    try {
+      const wsServer = getWebSocketServer();
+      wsServer.sendRoomMessage(roomId, message, senderId);
+    } catch (wsError) {
+      console.error('WebSocket notification error:', wsError);
+      // Continue even if WebSocket notification fails
+    }
+    
+    return message;
   } catch (error) {
     console.error('Error sending room message:', error);
     return null;
@@ -100,22 +120,40 @@ export function editRoomMessage(
 ): boolean {
   try {
     // Check if user is the sender of the message
-    const message = db.prepare(`
-      SELECT sender_id FROM messages
-      WHERE id = ? AND room_id IS NOT NULL
-    `).get(messageId) as { sender_id: string } | undefined;
+    const messageData = db.prepare(`
+      SELECT m.sender_id, m.room_id
+      FROM messages m
+      WHERE m.id = ? AND m.room_id IS NOT NULL
+    `).get(messageId) as { sender_id: string, room_id: string } | undefined;
     
-    if (!message || message.sender_id !== senderId) {
+    if (!messageData || messageData.sender_id !== senderId) {
       return false;
     }
     
     const now = Date.now();
     
+    // Encrypt the message content if not already encrypted
+    const actualEncryptedContent = encryptedContent || encryptMessage(newContent);
+    
     db.prepare(`
       UPDATE messages
       SET content = ?, updated_at = ?, encrypted_content = ?
       WHERE id = ?
-    `).run(newContent, now, encryptedContent || null, messageId);
+    `).run(newContent, now, actualEncryptedContent, messageId);
+    
+    // Get the updated message for WebSocket notification
+    const updatedMessage = getMessage(messageId);
+    
+    // Notify clients via WebSocket
+    if (updatedMessage) {
+      try {
+        const wsServer = getWebSocketServer();
+        wsServer.notifyMessageEdited(updatedMessage);
+      } catch (wsError) {
+        console.error('WebSocket notification error:', wsError);
+        // Continue even if WebSocket notification fails
+      }
+    }
     
     return true;
   } catch (error) {
@@ -127,19 +165,32 @@ export function editRoomMessage(
 // Delete a room message
 export function deleteRoomMessage(messageId: string, senderId: string, isAdmin: boolean = false): boolean {
   try {
-    // Check if user is the sender of the message or an admin
-    if (!isAdmin) {
-      const message = db.prepare(`
-        SELECT sender_id FROM messages
-        WHERE id = ? AND room_id IS NOT NULL
-      `).get(messageId) as { sender_id: string } | undefined;
-      
-      if (!message || message.sender_id !== senderId) {
-        return false;
-      }
+    // Get message data before deletion for WebSocket notification
+    const messageData = db.prepare(`
+      SELECT sender_id, room_id FROM messages
+      WHERE id = ? AND room_id IS NOT NULL
+    `).get(messageId) as { sender_id: string, room_id: string } | undefined;
+    
+    if (!messageData) {
+      return false;
     }
     
+    // Check if user is the sender of the message or an admin
+    if (!isAdmin && messageData.sender_id !== senderId) {
+      return false;
+    }
+    
+    // Delete the message
     db.prepare(`DELETE FROM messages WHERE id = ?`).run(messageId);
+    
+    // Notify clients via WebSocket
+    try {
+      const wsServer = getWebSocketServer();
+      wsServer.notifyMessageDeleted(messageId, messageData.room_id, undefined, senderId);
+    } catch (wsError) {
+      console.error('WebSocket notification error:', wsError);
+      // Continue even if WebSocket notification fails
+    }
     
     return true;
   } catch (error) {

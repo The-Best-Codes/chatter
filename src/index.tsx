@@ -13,11 +13,19 @@ import {
 import { cookies } from "./lib/cookies";
 import * as api from "./lib/api";
 import { runDatabaseMigrations } from "./lib/run-migrations";
+import { initWebSocketServer } from "./lib/websocket";
 
 // Run database migrations
 runDatabaseMigrations();
 
 const server = serve({
+  fetch(req, server) {
+    // Handle WebSocket upgrade requests
+    if (req.headers.get("upgrade") === "websocket") {
+      return server.upgrade(req);
+    }
+    return server.fetch(req);
+  },
   routes: {
     // Serve index.html for all unmatched routes.
     "/*": index,
@@ -725,5 +733,8 @@ const server = serve({
     console: true,
   },
 });
+
+// Initialize WebSocket server
+initWebSocketServer(server);
 
 console.log(`🚀 Server running at ${server.url}`);

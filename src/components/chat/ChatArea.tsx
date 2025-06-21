@@ -15,6 +15,8 @@ interface ChatAreaProps {
   onDeleteMessage: (messageId: string) => Promise<boolean>;
   maxMessageLength?: number;
   canSendAttachments?: boolean;
+  typingIndicator?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export function ChatArea({
@@ -26,7 +28,9 @@ export function ChatArea({
   onEditMessage,
   onDeleteMessage,
   maxMessageLength,
-  canSendAttachments
+  canSendAttachments,
+  typingIndicator,
+  children
 }: ChatAreaProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -96,6 +100,7 @@ export function ChatArea({
               onDelete={onDeleteMessage}
             />
           ))}
+          {typingIndicator}
           <div ref={messagesEndRef} />
         </div>
         
@@ -120,11 +125,13 @@ export function ChatArea({
       )}
       
       {/* Message input */}
-      <MessageInput
-        onSendMessage={onSendMessage}
-        maxLength={maxMessageLength}
-        canSendAttachments={canSendAttachments}
-      />
+      {children || (
+        <MessageInput
+          onSendMessage={onSendMessage}
+          maxLength={maxMessageLength}
+          canSendAttachments={canSendAttachments}
+        />
+      )}
     </div>
   );
 }
