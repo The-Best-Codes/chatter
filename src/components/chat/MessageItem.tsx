@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import type { Message } from '@/lib/api/room-messages';
+import type { Attachment } from '@/lib/api/attachments';
 import { formatDistanceToNow } from 'date-fns';
-import { Edit2, Trash2, Check, X } from 'lucide-react';
+import { Edit2, Trash2, Check, X, Download, FileText, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '@/components/auth';
+import { toast } from 'sonner';
 
 interface MessageItemProps {
   message: Message;
@@ -18,10 +20,34 @@ export function MessageItem({ message, onEdit, onDelete }: MessageItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [isLoadingAttachments, setIsLoadingAttachments] = useState(false);
   
   const isOwnMessage = user?.id === message.senderId;
   const canEdit = isOwnMessage && !message.hasAttachment;
   const canDelete = isOwnMessage || user?.isAdmin;
+  
+  // Fetch attachments if message has them
+  useEffect(() => {
+    if (message.hasAttachment) {
+      fetchAttachments();
+    }
+  }, [message.id, message.hasAttachment]);
+  
+  const fetchAttachments = async () => {
+    setIsLoadingAttachments(true);
+    try {
+      const response = await fetch(`/api/attachments/message/${message.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setAttachments(data);
+      }
+    } catch (error) {
+      console.error('Error fetching attachments:', error);
+    } finally {
+      setIsLoadingAttachments(false);
+    }
+  };
   
   const handleEdit = async () => {
     if (editedContent.trim() === message.content) {
@@ -109,10 +135,75 @@ export function MessageItem({ message, onEdit, onDelete }: MessageItemProps) {
             </div>
           )}
           
-          {/* Attachments would go here */}
+          {/* Attachments */}
           {message.hasAttachment && (
-            <div className="mt-2 text-sm text-blue-600">
-              [Attachment]
+            <div className="mt-2">
+              {isLoadingAttachments ? (
+                <div className="text-sm text-muted-foreground">Loading attachments...</div>
+              ) : attachments.length > 0 ? (
+                <div className="space-y-2">
+                  {attachments.map(attachment => {
+                    // Skip attachments with size "0"
+                    if (attachment.size === 0) return null;
+                    
+                    const isImage = attachment.mimeType?.startsWith('image/');
+                    
+                    return (
+                      <div key={attachment.id} className="border rounded-md p-2 flex items-center">
+                        {isImage ? (
+                          <ImageIcon className="h-5 w-5 mr-2 text-blue-500" />
+                        ) : (
+                          <FileText className="h-5 w-5 mr-2 text-blue-500" />
+                        )}
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate">{attachment.filename}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {(attachment.size / 1024).toFixed(1)} KB
+                          </div>
+                        </div>
+                        
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="ml-2"
+                          onClick={async () => {
+                            try {
+                              const response = await fetch(`/api/attachments/${attachment.id}/download`);
+                              if (response.ok) {
+                                const blob = await response.blob();
+                                const url = URL.createObjectURL(blob);
+                                
+                                if (isImage) {
+                                  // For images, open in a new tab
+                                  window.open(url, '_blank');
+                                } else {
+                                  // For other files, download
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = attachment.filename;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  document.body.removeChild(a);
+                                }
+                              } else {
+                                toast.error('Failed to download attachment');
+                              }
+                            } catch (error) {
+                              console.error('Error downloading attachment:', error);
+                              toast.error('Error downloading attachment');
+                            }
+                          }}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">No attachments found</div>
+              )}
             </div>
           )}
         </div>

@@ -24,7 +24,12 @@ export function getOrCreateDMConversation(user1Id: string, user2Id: string): Dir
       SELECT id, user1_id as user1Id, user2_id as user2Id, created_at as createdAt
       FROM direct_messages
       WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)
-    `).get(sortedUser1, sortedUser2, sortedUser2, sortedUser1);
+    `).get(sortedUser1, sortedUser2, sortedUser2, sortedUser1) as {
+      id: string;
+      user1Id: string;
+      user2Id: string;
+      createdAt: number;
+    } | undefined;
     
     if (!conversation) {
       // Create new conversation
@@ -45,8 +50,8 @@ export function getOrCreateDMConversation(user1Id: string, user2Id: string): Dir
     }
     
     // Get usernames
-    const user1 = db.prepare('SELECT username FROM users WHERE id = ?').get(conversation.user1Id);
-    const user2 = db.prepare('SELECT username FROM users WHERE id = ?').get(conversation.user2Id);
+    const user1 = db.prepare('SELECT username FROM users WHERE id = ?').get(conversation.user1Id) as { username: string } | undefined;
+    const user2 = db.prepare('SELECT username FROM users WHERE id = ?').get(conversation.user2Id) as { username: string } | undefined;
     
     if (!user1 || !user2) {
       return null;
@@ -59,7 +64,10 @@ export function getOrCreateDMConversation(user1Id: string, user2Id: string): Dir
       WHERE dm_id = ?
       ORDER BY created_at DESC
       LIMIT 1
-    `).get(conversation.id);
+    `).get(conversation.id) as {
+      createdAt: number;
+      content: string;
+    } | undefined;
     
     return {
       ...conversation,
@@ -106,7 +114,7 @@ export function getDMConversationsForUser(userId: string): DirectMessageConversa
       JOIN users u2 ON dm.user2_id = u2.id
       WHERE dm.user1_id = ? OR dm.user2_id = ?
       ORDER BY lastMessageAt DESC NULLS LAST, dm.created_at DESC
-    `).all(userId, userId);
+    `).all(userId, userId) as DirectMessageConversation[];
     
     return conversations;
   } catch (error) {
@@ -130,7 +138,7 @@ export function getDMConversation(dmId: string): DirectMessageConversation | nul
       JOIN users u1 ON dm.user1_id = u1.id
       JOIN users u2 ON dm.user2_id = u2.id
       WHERE dm.id = ?
-    `).get(dmId);
+    `).get(dmId) as DirectMessageConversation | undefined;
     
     if (!conversation) {
       return null;

@@ -91,7 +91,7 @@ export function getAttachmentsForMessage(messageId: string): Attachment[] {
       FROM attachments
       WHERE message_id = ?
       ORDER BY created_at ASC
-    `).all(messageId);
+    `).all(messageId) as Attachment[];
     
     return attachments;
   } catch (error) {
@@ -108,7 +108,7 @@ export function getAttachmentById(attachmentId: string): Attachment | null {
              size, path, created_at as createdAt
       FROM attachments
       WHERE id = ?
-    `).get(attachmentId);
+    `).get(attachmentId) as Attachment | undefined;
     
     return attachment || null;
   } catch (error) {
@@ -131,7 +131,7 @@ export function deleteAttachment(attachmentId: string, userId: string, isAdmin: 
       const message = db.prepare(`
         SELECT sender_id FROM messages
         WHERE id = ?
-      `).get(attachment.messageId);
+      `).get(attachment.messageId) as { sender_id: string } | undefined;
       
       if (!message || message.sender_id !== userId) {
         return false;
@@ -152,9 +152,9 @@ export function deleteAttachment(attachmentId: string, userId: string, isAdmin: 
       SELECT COUNT(*) as count
       FROM attachments
       WHERE message_id = ?
-    `).get(attachment.messageId).count;
+    `).get(attachment.messageId) as { count: number };
     
-    if (remainingAttachments === 0) {
+    if (remainingAttachments.count === 0) {
       // Update message to indicate it no longer has attachments
       db.prepare(`
         UPDATE messages

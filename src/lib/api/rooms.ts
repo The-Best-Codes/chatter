@@ -73,7 +73,7 @@ export function getRoomById(roomId: string): Room | null {
       SELECT id, name, description, is_public as isPublic, created_at as createdAt, created_by as createdBy
       FROM rooms
       WHERE id = ?
-    `).get(roomId);
+    `).get(roomId) as Room | undefined;
     
     if (!room) {
       return null;
@@ -84,12 +84,18 @@ export function getRoomById(roomId: string): Room | null {
       SELECT COUNT(*) as count
       FROM room_members
       WHERE room_id = ?
-    `).get(roomId).count;
+    `).get(roomId) as { count: number };
     
-    return {
-      ...room,
-      memberCount
+    const result: Room = {
+      id: room.id,
+      name: room.name,
+      description: room.description,
+      isPublic: Boolean(room.isPublic),
+      createdAt: room.createdAt,
+      createdBy: room.createdBy,
+      memberCount: memberCount.count
     };
+    return result;
   } catch (error) {
     console.error('Error getting room:', error);
     return null;
@@ -108,7 +114,7 @@ export function getPublicRooms(): Room[] {
       WHERE r.is_public = 1
       GROUP BY r.id
       ORDER BY memberCount DESC, r.created_at DESC
-    `).all();
+    `).all() as Room[];
     
     return rooms;
   } catch (error) {
@@ -129,7 +135,7 @@ export function getRoomsForUser(userId: string): Room[] {
       LEFT JOIN room_members rm2 ON r.id = rm2.room_id
       GROUP BY r.id
       ORDER BY r.created_at DESC
-    `).all(userId);
+    `).all(userId) as Room[];
     
     return rooms;
   } catch (error) {
@@ -170,23 +176,28 @@ export function joinRoom(roomId: string, userId: string): boolean {
 export function leaveRoom(roomId: string, userId: string): boolean {
   try {
     // Check if user is the last admin
-    const isLastAdmin = db.prepare(`
+    const adminCountResult = db.prepare(`
       SELECT COUNT(*) as adminCount
       FROM room_members
       WHERE room_id = ? AND is_admin = 1
-    `).get(roomId).adminCount === 1 && 
-    db.prepare(`
+    `).get(roomId) as { adminCount: number };
+    
+    const userAdminStatus = db.prepare(`
       SELECT is_admin FROM room_members
       WHERE room_id = ? AND user_id = ?
-    `).get(roomId, userId)?.is_admin === 1;
+    `).get(roomId, userId) as { is_admin: number } | undefined;
+    
+    const isLastAdmin = adminCountResult.adminCount === 1 && userAdminStatus?.is_admin === 1;
     
     if (isLastAdmin) {
       // If last admin, check if there are other members
-      const memberCount = db.prepare(`
+      const memberCountResult = db.prepare(`
         SELECT COUNT(*) as count
         FROM room_members
         WHERE room_id = ?
-      `).get(roomId).count;
+      `).get(roomId) as { count: number };
+      
+      const memberCount = memberCountResult.count;
       
       if (memberCount > 1) {
         // Cannot leave as last admin if there are other members
@@ -223,7 +234,7 @@ export function getRoomMembers(roomId: string): RoomMember[] {
       ORDER BY rm.is_admin DESC, u.username ASC
     `).all(roomId);
     
-    return members;
+    return members as RoomMember[];
   } catch (error) {
     console.error('Error getting room members:', error);
     return [];
@@ -250,13 +261,13 @@ export function makeRoomAdmin(roomId: string, userId: string): boolean {
 export function removeRoomAdmin(roomId: string, userId: string): boolean {
   try {
     // Check if this is the last admin
-    const adminCount = db.prepare(`
+    const adminCountResult = db.prepare(`
       SELECT COUNT(*) as count
       FROM room_members
       WHERE room_id = ? AND is_admin = 1
-    `).get(roomId).count;
+    `).get(roomId) as { count: number };
     
-    if (adminCount <= 1) {
+    if (adminCountResult.count <= 1) {
       return false; // Cannot remove last admin
     }
     

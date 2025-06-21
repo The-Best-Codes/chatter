@@ -6,3 +6,6 @@ export * from './Onboarding';
 export * from './RoomView';
 export * from './DMView';
 export * from './PublicRooms';
+export * from './CreateRoomModal';
+export * from './CreateDMModal';
+export * from './PublicRoomsModal';

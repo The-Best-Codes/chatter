@@ -173,12 +173,12 @@ const server = serve({
               ...user,
               isAdmin: Boolean(user.isAdmin),
               permissions: {
-                canSendAttachments: Boolean(permissions.canSendAttachments),
-                maxMessageLength: permissions.maxMessageLength || 2000,
-                canCreatePublicRoom: Boolean(permissions.canCreatePublicRoom),
-                canCreatePrivateRoom: Boolean(permissions.canCreatePrivateRoom),
-                canDM: Boolean(permissions.canDM),
-                canCreateInvites: Boolean(permissions.canCreateInvites)
+                canSendAttachments: Boolean((permissions as any).canSendAttachments),
+                maxMessageLength: (permissions as any).maxMessageLength || 2000,
+                canCreatePublicRoom: Boolean((permissions as any).canCreatePublicRoom),
+                canCreatePrivateRoom: Boolean((permissions as any).canCreatePrivateRoom),
+                canDM: Boolean((permissions as any).canDM),
+                canCreateInvites: Boolean((permissions as any).canCreateInvites)
               }
             };
           });
@@ -611,7 +611,7 @@ const server = serve({
           
           return Response.json({
             ...conversation,
-            otherUsername: otherUser?.username
+            otherUsername: (otherUser as any)?.username
           });
         } catch (error) {
           console.error("DM creation error:", error);
@@ -652,7 +652,7 @@ const server = serve({
           
           return Response.json({
             ...conversation,
-            otherUsername: otherUser?.username
+            otherUsername: (otherUser as any)?.username
           });
         } catch (error) {
           console.error("DM details error:", error);

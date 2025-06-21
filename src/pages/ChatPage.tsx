@@ -6,6 +6,9 @@ import {
   RoomView,
   DMView,
   PublicRooms,
+  CreateRoomModal,
+  CreateDMModal,
+  PublicRoomsModal,
 } from "@/components/chat";
 import type { Room } from "@/lib/api/rooms";
 import type { DirectMessageConversation } from "@/lib/api/direct-messages";
@@ -32,9 +35,9 @@ export function ChatPage() {
   }>({ type: "onboarding" });
 
   // Dialog state
-  const [dialogContent, setDialogContent] = useState<
-    "createRoom" | "createDM" | "discover" | null
-  >(null);
+  const [showCreateRoomModal, setShowCreateRoomModal] = useState(false);
+  const [showCreateDMModal, setShowCreateDMModal] = useState(false);
+  const [showDiscoverRoomsModal, setShowDiscoverRoomsModal] = useState(false);
 
   // Parse hash from URL
   useEffect(() => {
@@ -135,7 +138,6 @@ export function ChatPage() {
       if (response.ok) {
         const newRoom = await response.json();
         setRooms((prev) => [...prev, newRoom]);
-        setDialogContent(null);
         navigate(`/#room-${newRoom.id}`);
         return true;
       }
@@ -193,7 +195,7 @@ export function ChatPage() {
       if (response.ok) {
         const newDM = await response.json();
         setDmConversations((prev) => [...prev, newDM]);
-        setDialogContent(null);
+        setShowCreateDMModal(false);
         navigate(`/#dm-${newDM.id}`);
         return true;
       }
@@ -223,9 +225,9 @@ export function ChatPage() {
         <Sidebar
           rooms={rooms}
           dmConversations={dmConversations}
-          onCreateRoom={() => setDialogContent("createRoom")}
-          onCreateDM={() => setDialogContent("createDM")}
-          onDiscoverRooms={() => navigate("/#discover")}
+          onCreateRoom={() => setShowCreateRoomModal(true)}
+          onCreateDM={() => setShowCreateDMModal(true)}
+          onDiscoverRooms={() => setShowDiscoverRoomsModal(true)}
         />
       </div>
 
@@ -236,9 +238,9 @@ export function ChatPage() {
           <Sidebar
             rooms={rooms}
             dmConversations={dmConversations}
-            onCreateRoom={() => setDialogContent("createRoom")}
-            onCreateDM={() => setDialogContent("createDM")}
-            onDiscoverRooms={() => navigate("/#discover")}
+            onCreateRoom={() => setShowCreateRoomModal(true)}
+            onCreateDM={() => setShowCreateDMModal(true)}
+            onDiscoverRooms={() => setShowDiscoverRoomsModal(true)}
             isMobile={true}
           />
           <h1 className="text-xl font-bold mx-auto">Chatter</h1>
@@ -268,33 +270,30 @@ export function ChatPage() {
             <Onboarding
               onCreateRoom={handleCreateRoom}
               onJoinRoom={handleJoinRoom}
-              onDiscoverRooms={() => navigate("/#discover")}
+              onDiscoverRooms={() => setShowDiscoverRoomsModal(true)}
             />
           )}
         </div>
       </div>
 
-      {/* Dialogs */}
-      <Dialog
-        open={dialogContent !== null}
-        onOpenChange={(open) => !open && setDialogContent(null)}
-      >
-        <DialogContent>
-          {dialogContent === "createRoom" && (
-            <div>
-              <h2 className="text-xl font-bold mb-4">Create a New Room</h2>
-              {/* Room creation form would go here */}
-            </div>
-          )}
+      {/* Modals */}
+      <CreateRoomModal
+        open={showCreateRoomModal}
+        onOpenChange={setShowCreateRoomModal}
+        onCreateRoom={handleCreateRoom}
+      />
 
-          {dialogContent === "createDM" && (
-            <div>
-              <h2 className="text-xl font-bold mb-4">Start a Direct Message</h2>
-              {/* User search and selection would go here */}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <CreateDMModal
+        open={showCreateDMModal}
+        onOpenChange={setShowCreateDMModal}
+        onCreateDM={handleCreateDM}
+      />
+
+      <PublicRoomsModal
+        open={showDiscoverRoomsModal}
+        onOpenChange={setShowDiscoverRoomsModal}
+        onJoinRoom={handleJoinRoom}
+      />
     </div>
   );
 }

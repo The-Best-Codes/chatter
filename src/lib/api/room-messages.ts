@@ -82,7 +82,7 @@ export function getRoomMessages(
     query += ' ORDER BY m.created_at DESC LIMIT ?';
     params.push(limit);
     
-    const messages = db.prepare(query).all(...params);
+    const messages = db.prepare(query).all(...params) as Message[];
     
     return messages.reverse(); // Return in chronological order
   } catch (error) {
@@ -103,7 +103,7 @@ export function editRoomMessage(
     const message = db.prepare(`
       SELECT sender_id FROM messages
       WHERE id = ? AND room_id IS NOT NULL
-    `).get(messageId);
+    `).get(messageId) as { sender_id: string } | undefined;
     
     if (!message || message.sender_id !== senderId) {
       return false;
@@ -132,7 +132,7 @@ export function deleteRoomMessage(messageId: string, senderId: string, isAdmin: 
       const message = db.prepare(`
         SELECT sender_id FROM messages
         WHERE id = ? AND room_id IS NOT NULL
-      `).get(messageId);
+      `).get(messageId) as { sender_id: string } | undefined;
       
       if (!message || message.sender_id !== senderId) {
         return false;
@@ -161,7 +161,7 @@ export function getMessage(messageId: string): Message | null {
       WHERE m.id = ?
     `).get(messageId);
     
-    return message || null;
+    return (message as Message | undefined) || null;
   } catch (error) {
     console.error('Error getting message:', error);
     return null;

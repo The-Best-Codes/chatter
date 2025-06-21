@@ -50,7 +50,7 @@ export function createRoomInvite(
     `).run(inviteId, roomId, createdBy.id, now, expiresAt, maxUses);
     
     // Get room name for convenience
-    const room = db.prepare('SELECT name FROM rooms WHERE id = ?').get(roomId);
+    const room = db.prepare('SELECT name FROM rooms WHERE id = ?').get(roomId) as { name: string } | undefined;
     
     return {
       id: inviteId,
@@ -123,17 +123,20 @@ export function getInviteById(inviteId: string): Invite | null {
       return null;
     }
     
+    // Cast invite to proper type
+    const typedInvite = invite as unknown as Invite;
+    
     // Check if invite is expired
-    if (invite.expiresAt && invite.expiresAt < Date.now()) {
+    if (typedInvite.expiresAt && typedInvite.expiresAt < Date.now()) {
       return null;
     }
     
     // Check if invite has reached max uses
-    if (invite.uses >= invite.maxUses) {
+    if (typedInvite.uses >= typedInvite.maxUses) {
       return null;
     }
     
-    return invite;
+    return typedInvite;
   } catch (error) {
     console.error('Error getting invite:', error);
     return null;
@@ -205,7 +208,7 @@ export function getInvitesCreatedByUser(userId: string): Invite[] {
       ORDER BY i.created_at DESC
     `).all(userId);
     
-    return invites;
+    return invites as Invite[];
   } catch (error) {
     console.error('Error getting invites created by user:', error);
     return [];
@@ -220,7 +223,7 @@ export function deleteInvite(inviteId: string, userId: string, isAdmin: boolean 
       const invite = db.prepare(`
         SELECT created_by FROM invites
         WHERE id = ?
-      `).get(inviteId);
+      `).get(inviteId) as { created_by: string } | undefined;
       
       if (!invite || invite.created_by !== userId) {
         return false;

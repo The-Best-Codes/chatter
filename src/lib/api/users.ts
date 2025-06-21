@@ -28,7 +28,20 @@ export function getUserById(userId: string): UserProfile | null {
       FROM users u
       LEFT JOIN user_permissions p ON u.id = p.user_id
       WHERE u.id = ?
-    `).get(userId);
+    `).get(userId) as {
+      id: string;
+      username: string;
+      email: string;
+      createdAt: number;
+      lastLogin?: number;
+      isAdmin: number;
+      canSendAttachments: number;
+      maxMessageLength: number;
+      canCreatePublicRoom: number;
+      canCreatePrivateRoom: number;
+      canDM: number;
+      canCreateInvites: number;
+    } | undefined;
     
     if (!user) {
       return null;
@@ -71,7 +84,20 @@ export function getUserByUsername(username: string): UserProfile | null {
       FROM users u
       LEFT JOIN user_permissions p ON u.id = p.user_id
       WHERE u.username = ?
-    `).get(username);
+    `).get(username) as {
+      id: string;
+      username: string;
+      email: string;
+      createdAt: number;
+      lastLogin?: number;
+      isAdmin: number;
+      canSendAttachments: number;
+      maxMessageLength: number;
+      canCreatePublicRoom: number;
+      canCreatePrivateRoom: number;
+      canDM: number;
+      canCreateInvites: number;
+    } | undefined;
     
     if (!user) {
       return null;
@@ -109,7 +135,7 @@ export function searchUsers(query: string, limit: number = 10): Pick<UserProfile
       LIMIT ?
     `).all(`%${query}%`, limit);
     
-    return users;
+    return users as Pick<UserProfile, 'id' | 'username'>[];
   } catch (error) {
     console.error('Error searching users:', error);
     return [];
@@ -134,7 +160,7 @@ export function getAllUsers(limit: number = 50, offset: number = 0): UserProfile
       LIMIT ? OFFSET ?
     `).all(limit, offset);
     
-    return users.map(user => ({
+    return users.map((user: any) => ({
       id: user.id,
       username: user.username,
       email: user.email,
@@ -229,7 +255,7 @@ export function setAdminStatus(userId: string, isAdmin: boolean): boolean {
 // Count total users
 export function countUsers(): number {
   try {
-    return db.prepare('SELECT COUNT(*) as count FROM users').get().count;
+    return (db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number }).count;
   } catch (error) {
     console.error('Error counting users:', error);
     return 0;

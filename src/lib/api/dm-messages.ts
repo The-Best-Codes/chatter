@@ -69,7 +69,7 @@ export function getDirectMessages(
     query += ' ORDER BY m.created_at DESC LIMIT ?';
     params.push(limit);
     
-    const messages = db.prepare(query).all(...params);
+    const messages = db.prepare(query).all(...params) as Message[];
     
     return messages.reverse(); // Return in chronological order
   } catch (error) {
@@ -90,7 +90,7 @@ export function editDirectMessage(
     const message = db.prepare(`
       SELECT sender_id FROM messages
       WHERE id = ? AND dm_id IS NOT NULL
-    `).get(messageId);
+    `).get(messageId) as { sender_id: string } | undefined;
     
     if (!message || message.sender_id !== senderId) {
       return false;
@@ -118,7 +118,7 @@ export function deleteDirectMessage(messageId: string, senderId: string): boolea
     const message = db.prepare(`
       SELECT sender_id FROM messages
       WHERE id = ? AND dm_id IS NOT NULL
-    `).get(messageId);
+    `).get(messageId) as { sender_id: string } | undefined;
     
     if (!message || message.sender_id !== senderId) {
       return false;

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import type { UserProfile } from '@/lib/api/users';
 import type { UserPermissions as UserPermissionsType } from '@/lib/auth';
 import { Check, X } from 'lucide-react';
@@ -16,6 +17,7 @@ export function UserPermissions({ user, onUpdatePermissions }: UserPermissionsPr
   const [permissions, setPermissions] = useState<UserPermissionsType>({
     canSendAttachments: user.permissions.canSendAttachments,
     maxMessageLength: user.permissions.maxMessageLength,
+    maxAttachmentSize: user.permissions.maxAttachmentSize || 5 * 1024 * 1024, // Default 5MB if not set
     canCreatePublicRoom: user.permissions.canCreatePublicRoom,
     canCreatePrivateRoom: user.permissions.canCreatePrivateRoom,
     canDM: user.permissions.canDM,
@@ -59,75 +61,78 @@ export function UserPermissions({ user, onUpdatePermissions }: UserPermissionsPr
               <Label htmlFor="canSendAttachments" className="cursor-pointer">
                 Can send attachments
               </Label>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="canSendAttachments"
-                  checked={permissions.canSendAttachments}
-                  onChange={(e) => handleChange('canSendAttachments', e.target.checked)}
-                  className="mr-2"
-                />
-              </div>
+              <Switch
+                id="canSendAttachments"
+                checked={permissions.canSendAttachments}
+                onCheckedChange={(checked) => handleChange('canSendAttachments', checked)}
+              />
             </div>
+            
+            {permissions.canSendAttachments && (
+              <div className="space-y-2 pl-4 border-l-2 border-muted">
+                <Label htmlFor="maxAttachmentSize">Max attachment size (MB)</Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    id="maxAttachmentSize"
+                    type="number"
+                    min={0.1}
+                    max={100}
+                    step={0.1}
+                    value={(permissions.maxAttachmentSize / (1024 * 1024)).toFixed(1)}
+                    onChange={(e) => {
+                      const mbValue = parseFloat(e.target.value) || 0;
+                      const bytesValue = Math.round(mbValue * 1024 * 1024);
+                      handleChange('maxAttachmentSize', bytesValue);
+                    }}
+                    className="w-24"
+                  />
+                  <span className="text-sm text-muted-foreground">MB</span>
+                </div>
+              </div>
+            )}
             
             <div className="flex items-center justify-between">
               <Label htmlFor="canCreatePublicRoom" className="cursor-pointer">
                 Can create public rooms
               </Label>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="canCreatePublicRoom"
-                  checked={permissions.canCreatePublicRoom}
-                  onChange={(e) => handleChange('canCreatePublicRoom', e.target.checked)}
-                  className="mr-2"
-                />
-              </div>
+              <Switch
+                id="canCreatePublicRoom"
+                checked={permissions.canCreatePublicRoom}
+                onCheckedChange={(checked) => handleChange('canCreatePublicRoom', checked)}
+              />
             </div>
             
             <div className="flex items-center justify-between">
               <Label htmlFor="canCreatePrivateRoom" className="cursor-pointer">
                 Can create private rooms
               </Label>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="canCreatePrivateRoom"
-                  checked={permissions.canCreatePrivateRoom}
-                  onChange={(e) => handleChange('canCreatePrivateRoom', e.target.checked)}
-                  className="mr-2"
-                />
-              </div>
+              <Switch
+                id="canCreatePrivateRoom"
+                checked={permissions.canCreatePrivateRoom}
+                onCheckedChange={(checked) => handleChange('canCreatePrivateRoom', checked)}
+              />
             </div>
             
             <div className="flex items-center justify-between">
               <Label htmlFor="canDM" className="cursor-pointer">
                 Can send direct messages
               </Label>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="canDM"
-                  checked={permissions.canDM}
-                  onChange={(e) => handleChange('canDM', e.target.checked)}
-                  className="mr-2"
-                />
-              </div>
+              <Switch
+                id="canDM"
+                checked={permissions.canDM}
+                onCheckedChange={(checked) => handleChange('canDM', checked)}
+              />
             </div>
             
             <div className="flex items-center justify-between">
               <Label htmlFor="canCreateInvites" className="cursor-pointer">
                 Can create invites
               </Label>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="canCreateInvites"
-                  checked={permissions.canCreateInvites}
-                  onChange={(e) => handleChange('canCreateInvites', e.target.checked)}
-                  className="mr-2"
-                />
-              </div>
+              <Switch
+                id="canCreateInvites"
+                checked={permissions.canCreateInvites}
+                onCheckedChange={(checked) => handleChange('canCreateInvites', checked)}
+              />
             </div>
           </div>
           

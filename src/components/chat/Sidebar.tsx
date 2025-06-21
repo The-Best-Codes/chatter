@@ -7,6 +7,7 @@ import { useAuth } from '@/components/auth';
 import { PlusCircle, Hash, MessageSquare, Settings, Users, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
@@ -135,6 +136,7 @@ export function Sidebar({
           </div>
         </div>
         <div className="flex">
+          <ThemeToggle />
           {user?.isAdmin && (
             <Button variant="ghost" size="icon" onClick={() => navigate('/admin')} title="Admin Settings">
               <Settings className="h-4 w-4" />

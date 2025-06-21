@@ -192,4 +192,7 @@ function initializeDatabase() {
 // Initialize the database
 initializeDatabase();
 
+// Import and run migrations
+import './db-migration';
+
 export { db };

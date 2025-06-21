@@ -25,6 +25,7 @@ export interface User {
 export interface UserPermissions {
   canSendAttachments: boolean;
   maxMessageLength: number;
+  maxAttachmentSize?: number; // In bytes
   canCreatePublicRoom: boolean;
   canCreatePrivateRoom: boolean;
   canDM: boolean;
@@ -190,13 +191,14 @@ export async function getCurrentUser(req: Request): Promise<User | null> {
 // Get user permissions
 export function getUserPermissions(userId: string): UserPermissions {
   const permissions = db.prepare(`
-    SELECT can_send_attachments, max_message_length, can_create_public_room,
+    SELECT can_send_attachments, max_message_length, max_attachment_size, can_create_public_room,
            can_create_private_room, can_dm, can_create_invites
     FROM user_permissions
     WHERE user_id = ?
   `).get(userId) as {
     can_send_attachments: number;
     max_message_length: number;
+    max_attachment_size?: number;
     can_create_public_room: number;
     can_create_private_room: number;
     can_dm: number;
@@ -219,6 +221,7 @@ export function getUserPermissions(userId: string): UserPermissions {
   return {
     canSendAttachments: Boolean(permissions.can_send_attachments),
     maxMessageLength: permissions.max_message_length,
+    maxAttachmentSize: permissions.max_attachment_size || 5 * 1024 * 1024, // Default 5MB if not set
     canCreatePublicRoom: Boolean(permissions.can_create_public_room),
     canCreatePrivateRoom: Boolean(permissions.can_create_private_room),
     canDM: Boolean(permissions.can_dm),
