@@ -6,8 +6,8 @@ import {
   updatePermissionsForUser,
   updateSetting,
   updateUserStatus,
-} from "../models/adminModel";
-import { logAction } from "../services/auditLogService";
+} from "../models/adminModel.js";
+import { logAction } from "../services/auditLogService.js";
 
 // GET /api/admin/settings
 export async function getAppSettings(req, res) {

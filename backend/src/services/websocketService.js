@@ -1,12 +1,12 @@
 import { verify } from "jsonwebtoken";
 import { WebSocket } from "ws";
-import { create, edit, softDelete } from "../models/messageModel";
+import { create, edit, softDelete } from "../models/messageModel.js";
 import {
   getRoomMemberIds,
   getRoomsForUser,
   isUserInRoom,
-} from "../models/roomModel";
-import { findById } from "../models/userModel";
+} from "../models/roomModel.js";
+import { findById } from "../models/userModel.js";
 
 // This will store all active client connections
 // Map<userId, { ws: WebSocket, rooms: Set<string> }>

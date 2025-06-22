@@ -1,9 +1,9 @@
 import { compare } from "bcrypt";
 import { validationResult } from "express-validator";
 import { sign } from "jsonwebtoken";
-import { getRoomsForUser } from "../models/roomModel";
-import { create as _create } from "../models/sessionModel";
-import { create, findByUsername } from "../models/userModel";
+import { getRoomsForUser } from "../models/roomModel.js";
+import { create as _create } from "../models/sessionModel.js";
+import { create, findByUsername } from "../models/userModel.js";
 
 export async function signup(req, res) {
   const errors = validationResult(req);

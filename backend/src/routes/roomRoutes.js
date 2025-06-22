@@ -3,8 +3,8 @@ import {
   createOrGetDmRoom,
   getMessagesForRoom,
   pinMessage,
-} from "../controllers/roomController";
-import { protect } from "../middleware/authMiddleware";
+} from "../controllers/roomController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = Router();
 

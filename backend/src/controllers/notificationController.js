@@ -2,7 +2,7 @@ import {
   clearByIds,
   getUnreadCountForUser,
   getUnreadForUser,
-} from "../models/notificationModel";
+} from "../models/notificationModel.js";
 
 // GET /api/notifications
 export async function getNotifications(req, res) {

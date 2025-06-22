@@ -2,7 +2,7 @@
 import { configDotenv } from "dotenv";
 configDotenv();
 
-import { getPool } from "../config/db";
+import { getPool } from "../config/db.js";
 
 const promoteUser = async () => {
   const username = process.argv[2];

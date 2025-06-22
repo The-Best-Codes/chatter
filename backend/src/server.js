@@ -4,17 +4,17 @@ configDotenv();
 import { createServer } from "http";
 import express, { json } from "express";
 import { WebSocketServer } from "ws";
-import { query } from "./config/db";
-import { init } from "./services/websocketService";
+import { query } from "./config/db.js";
+import { init } from "./services/websocketService.js";
 
 // Routes
-import authRoutes from "./routes/authRoutes";
-import userRoutes from "./routes/userRoutes";
-import roomRoutes from "./routes/roomRoutes";
-import adminRoutes from "./routes/adminRoutes";
-import notificationRoutes from "./routes/notificationRoutes";
-import messageRoutes from "./routes/messageRoutes";
-import sessionRoutes from "./routes/sessionRoutes";
+import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import roomRoutes from "./routes/roomRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
+import sessionRoutes from "./routes/sessionRoutes.js";
 
 const app = express();
 const server = createServer(app);

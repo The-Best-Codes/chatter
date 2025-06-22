@@ -7,9 +7,9 @@ import {
   updateAppSettings,
   updateUserPermissions,
   updateUserStatus,
-} from "../controllers/adminController";
-import { isAdmin } from "../middleware/adminMiddleware";
-import { protect } from "../middleware/authMiddleware";
+} from "../controllers/adminController.js";
+import { isAdmin } from "../middleware/adminMiddleware.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = Router();
 

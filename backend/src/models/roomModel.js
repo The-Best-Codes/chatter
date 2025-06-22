@@ -1,4 +1,4 @@
-import { query as _query, getPool } from "../config/db";
+import { query as _query, getPool } from "../config/db.js";
 
 const Room = {};
 

@@ -1,5 +1,5 @@
 import { verify } from "jsonwebtoken";
-import { findById } from "../models/userModel";
+import { findById } from "../models/userModel.js";
 
 export async function protect(req, res, next) {
   let token;

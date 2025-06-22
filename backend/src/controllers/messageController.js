@@ -3,9 +3,9 @@ import {
   findRoomForMessage,
   getReactionsForMessage,
   removeReaction,
-} from "../models/messageModel";
-import { isUserInRoom } from "../models/roomModel";
-import { broadcastToRoom } from "../services/websocketService";
+} from "../models/messageModel.js";
+import { isUserInRoom } from "../models/roomModel.js";
+import { broadcastToRoom } from "../services/websocketService.js";
 
 // POST /api/messages/:messageId/reactions
 export async function addReaction(req, res) {

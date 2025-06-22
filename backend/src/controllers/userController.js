@@ -1,4 +1,4 @@
-import { blockUser, searchByUsername, unblockUser } from "../models/userModel";
+import { blockUser, searchByUsername, unblockUser } from "../models/userModel.js";
 
 // GET /api/users?search=...
 export async function searchUsers(req, res) {

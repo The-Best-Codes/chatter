@@ -1,4 +1,4 @@
-import { findByUserId, delete as deleteSession } from "../models/sessionModel";
+import { findByUserId, delete as deleteSession } from "../models/sessionModel.js";
 
 // GET /api/sessions
 export async function getActiveSessions(req, res) {

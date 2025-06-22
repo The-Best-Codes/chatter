@@ -1,9 +1,9 @@
-import { getMessagesByRoomId, pin } from "../models/messageModel";
+import { getMessagesByRoomId, pin } from "../models/messageModel.js";
 import {
   isBlocked as _isBlocked,
   findOrCreateDmRoom,
   isUserInRoom,
-} from "../models/roomModel";
+} from "../models/roomModel.js";
 
 // GET /api/rooms/:roomId/messages
 export async function getMessagesForRoom(req, res) {

@@ -2,7 +2,7 @@
 import { configDotenv } from "dotenv";
 configDotenv();
 
-import { getPool, query } from "../config/db";
+import { getPool, query } from "../config/db.js";
 
 const createTablesQueries = `
   -- Enable UUID generation

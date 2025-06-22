@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { query as _query } from "../config/db";
+import { query as _query } from "../config/db.js";
 
 const Session = {};
 
