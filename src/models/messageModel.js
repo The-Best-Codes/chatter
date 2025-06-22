@@ -77,4 +77,69 @@ Message.getMessagesByRoomId = async (roomId, limit = 50, beforeId = null) => {
     return rows.reverse();
 };
 
+Message.findRoomForMessage = async (messageId) => {
+    const query = 'SELECT room_id FROM messages WHERE id = $1;';
+    const { rows } = await db.query(query, [messageId]);
+    return rows[0];
+};
+
+Message.edit = async (messageId, userId, newEncryptedContent) => {
+    // We only allow a user to edit their own message.
+    const query = `
+        UPDATE messages
+        SET encrypted_content = $1, updated_at = NOW()
+        WHERE id = $2 AND sender_id = $3 AND deleted_at IS NULL
+        RETURNING id, room_id, encrypted_content, updated_at;
+    `;
+    const { rows } = await db.query(query, [newEncryptedContent, messageId, userId]);
+    return rows[0]; // Will be undefined if no row was updated (wrong user or message deleted)
+};
+
+Message.softDelete = async (messageId, userId) => {
+    // Only the sender can delete their own message. (Admin logic would be separate)
+    const query = `
+        UPDATE messages
+        SET deleted_at = NOW()
+        WHERE id = $1 AND sender_id = $2 AND deleted_at IS NULL
+        RETURNING id, room_id;
+    `;
+    const { rows } = await db.query(query, [messageId, userId]);
+    return rows[0];
+};
+
+Message.addReaction = async (messageId, userId, emojiCode) => {
+    const query = `
+        INSERT INTO message_reactions (message_id, user_id, emoji_code)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (message_id, user_id, emoji_code) DO NOTHING;
+    `;
+    await db.query(query, [messageId, userId, emojiCode]);
+    return { success: true };
+};
+
+Message.removeReaction = async (messageId, userId, emojiCode) => {
+    const query = `
+        DELETE FROM message_reactions
+        WHERE message_id = $1 AND user_id = $2 AND emoji_code = $3;
+    `;
+    await db.query(query, [messageId, userId, emojiCode]);
+    return { success: true };
+};
+
+Message.getReactionsForMessage = async (messageId) => {
+    // This query aggregates reactions by emoji, counting them and listing who reacted.
+    const query = `
+        SELECT
+            emoji_code,
+            COUNT(*) as count,
+            JSON_AGG(json_build_object('userId', user_id, 'username', u.username)) as users
+        FROM message_reactions mr
+        JOIN users u on mr.user_id = u.id
+        WHERE message_id = $1
+        GROUP BY emoji_code;
+    `;
+    const { rows } = await db.query(query, [messageId]);
+    return rows;
+};
+
 module.exports = Message;
