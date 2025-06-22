@@ -1,4 +1,8 @@
-import { blockUser, searchByUsername, unblockUser } from "../models/userModel.js";
+import {
+  blockUser as blockUserFromModel,
+  searchByUsername as searchByUsernameFromModel,
+  unblockUser as unblockUserFromModel,
+} from "../models/userModel.js";
 
 // GET /api/users?search=...
 export async function searchUsers(req, res) {
@@ -12,7 +16,7 @@ export async function searchUsers(req, res) {
   }
 
   try {
-    const users = await searchByUsername(searchTerm, currentUserId);
+    const users = await searchByUsernameFromModel(searchTerm, currentUserId);
     res.status(200).json(users);
   } catch (error) {
     console.error("User search error:", error);
@@ -30,7 +34,7 @@ export async function blockUser(req, res) {
   }
 
   try {
-    await blockUser(blockerUserId, blockedUserId);
+    await blockUserFromModel(blockerUserId, blockedUserId);
     res.status(201).json({ message: "User blocked successfully." });
   } catch (error) {
     console.error("Block user error:", error);
@@ -44,7 +48,7 @@ export async function unblockUser(req, res) {
   const blockerUserId = req.user.id;
 
   try {
-    await unblockUser(blockerUserId, blockedUserId);
+    await unblockUserFromModel(blockerUserId, blockedUserId);
     res.status(204).send();
   } catch (error) {
     console.error("Unblock user error:", error);

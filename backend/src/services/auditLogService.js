@@ -1,7 +1,5 @@
 import { query as _query } from "../config/db.js";
 
-const AuditLog = {};
-
 /**
  * Logs an action performed by an administrator.
  * @param {object} logData - The data for the log entry.
@@ -11,7 +9,7 @@ const AuditLog = {};
  * @param {object} [logData.details] - A JSON object with before/after values or other context.
  * @param {string} logData.ipAddress - The IP address of the admin.
  */
-AuditLog.logAction = async (logData) => {
+export const logAction = async (logData) => {
   const {
     adminUserId,
     action,
@@ -37,5 +35,3 @@ AuditLog.logAction = async (logData) => {
     console.error("Failed to write to audit log:", error);
   }
 };
-
-export default AuditLog;

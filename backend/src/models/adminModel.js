@@ -1,8 +1,6 @@
 import { query as _query } from "../config/db.js";
 
-const Admin = {};
-
-Admin.getSettings = async () => {
+export const getSettings = async () => {
   const { rows } = await _query(
     "SELECT setting_key, setting_value FROM app_settings",
   );
@@ -14,7 +12,7 @@ Admin.getSettings = async () => {
   return settings;
 };
 
-Admin.updateSetting = async (key, value) => {
+export const updateSetting = async (key, value) => {
   const query = `
         INSERT INTO app_settings (setting_key, setting_value, updated_at)
         VALUES ($1, $2, NOW())
@@ -26,7 +24,7 @@ Admin.updateSetting = async (key, value) => {
   return rows[0];
 };
 
-Admin.getAllUsers = async ({ page = 1, limit = 20 }) => {
+export const getAllUsers = async ({ page = 1, limit = 20 }) => {
   const offset = (page - 1) * limit;
   const query = `
         SELECT id, username, display_name, role, status, created_at
@@ -49,7 +47,7 @@ Admin.getAllUsers = async ({ page = 1, limit = 20 }) => {
   };
 };
 
-Admin.updateUserStatus = async (userId, status) => {
+export const updateUserStatus = async (userId, status) => {
   const query = `
         UPDATE users SET status = $1, updated_at = NOW()
         WHERE id = $2 RETURNING id, status;
@@ -58,7 +56,7 @@ Admin.updateUserStatus = async (userId, status) => {
   return rows[0];
 };
 
-Admin.softDeleteUser = async (userId) => {
+export const softDeleteUser = async (userId) => {
   // A soft delete sets the status to 'deleted' and anonymizes some data.
   const query = `
         UPDATE users
@@ -74,7 +72,7 @@ Admin.softDeleteUser = async (userId) => {
   return rows[0];
 };
 
-Admin.updatePermissionsForUser = async (userId, perms) => {
+export const updatePermissionsForUser = async (userId, perms) => {
   // This is a complex dynamic query. Be careful.
   const fields = Object.keys(perms);
   const values = Object.values(perms);
@@ -96,5 +94,3 @@ Admin.updatePermissionsForUser = async (userId, perms) => {
   const { rows } = await _query(query, [userId, ...values]);
   return rows[0];
 };
-
-export default Admin;

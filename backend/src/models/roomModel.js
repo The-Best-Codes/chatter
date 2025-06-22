@@ -1,15 +1,13 @@
 import { query as _query, getPool } from "../config/db.js";
 
-const Room = {};
-
-Room.isUserInRoom = async (userId, roomId) => {
+export const isUserInRoom = async (userId, roomId) => {
   const query =
     "SELECT 1 FROM room_members WHERE user_id = $1 AND room_id = $2";
   const { rows } = await _query(query, [userId, roomId]);
   return rows.length > 0;
 };
 
-Room.getRoomsForUser = async (userId) => {
+export const getRoomsForUser = async (userId) => {
   const query = `
         SELECT r.id, r.type, r.name FROM rooms r
         JOIN room_members rm ON r.id = rm.room_id
@@ -19,13 +17,13 @@ Room.getRoomsForUser = async (userId) => {
   return rows;
 };
 
-Room.getRoomMemberIds = async (roomId) => {
+export const getRoomMemberIds = async (roomId) => {
   const query = "SELECT user_id FROM room_members WHERE room_id = $1";
   const { rows } = await _query(query, [roomId]);
   return rows.map((r) => r.user_id);
 };
 
-Room.findOrCreateDmRoom = async (userId1, userId2) => {
+export const findOrCreateDmRoom = async (userId1, userId2) => {
   // To keep it consistent, always store the smaller ID first
   const [u1, u2] = [userId1, userId2].sort();
 
@@ -68,7 +66,7 @@ Room.findOrCreateDmRoom = async (userId1, userId2) => {
   }
 };
 
-Room.isBlocked = async (userId1, userId2) => {
+export const isBlocked = async (userId1, userId2) => {
   // Check if either user has blocked the other
   const query = `
         SELECT 1 FROM blocked_users
@@ -78,5 +76,3 @@ Room.isBlocked = async (userId1, userId2) => {
   const { rows } = await _query(query, [userId1, userId2]);
   return rows.length > 0;
 };
-
-export default Room;

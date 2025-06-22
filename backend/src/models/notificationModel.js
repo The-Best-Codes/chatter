@@ -1,8 +1,6 @@
 import { query as _query } from "../config/db.js";
 
-const Notification = {};
-
-Notification.getUnreadForUser = async (userId) => {
+export const getUnreadForUser = async (userId) => {
   const query = `
         SELECT
             n.id,
@@ -23,14 +21,14 @@ Notification.getUnreadForUser = async (userId) => {
   return rows;
 };
 
-Notification.getUnreadCountForUser = async (userId) => {
+export const getUnreadCountForUser = async (userId) => {
   const query =
     "SELECT COUNT(*) FROM notifications WHERE recipient_user_id = $1 AND is_cleared = false;";
   const { rows } = await _query(query, [userId]);
   return parseInt(rows[0].count, 10);
 };
 
-Notification.clearByIds = async (notificationIds, userId) => {
+export const clearByIds = async (notificationIds, userId) => {
   if (!notificationIds || notificationIds.length === 0) {
     return { clearedCount: 0 };
   }
@@ -43,5 +41,3 @@ Notification.clearByIds = async (notificationIds, userId) => {
   const { rowCount } = await _query(query, [notificationIds, userId]);
   return { clearedCount: rowCount };
 };
-
-export default Notification;

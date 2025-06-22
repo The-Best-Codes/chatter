@@ -1,18 +1,18 @@
 import { randomBytes } from "crypto";
 import {
-  getAllUsers,
-  getSettings,
-  softDeleteUser,
-  updatePermissionsForUser,
-  updateSetting,
-  updateUserStatus,
+  getAllUsers as getAllUsersFromModel,
+  getSettings as getSettingsFromModel,
+  softDeleteUser as softDeleteUserFromModel,
+  updatePermissionsForUser as updatePermissionsForUserFromModel,
+  updateSetting as updateSettingFromModel,
+  updateUserStatus as updateUserStatusFromModel,
 } from "../models/adminModel.js";
 import { logAction } from "../services/auditLogService.js";
 
 // GET /api/admin/settings
 export async function getAppSettings(req, res) {
   try {
-    const settings = await getSettings();
+    const settings = await getSettingsFromModel();
     res.status(200).json(settings);
   } catch (error) {
     res.status(500).json({ message: "Failed to retrieve settings." });
@@ -29,8 +29,8 @@ export async function updateAppSettings(req, res) {
   }
 
   try {
-    const oldSettings = await getSettings();
-    const updatedSetting = await updateSetting(key, value);
+    const oldSettings = await getSettingsFromModel();
+    const updatedSetting = await updateSettingFromModel(key, value);
 
     await logAction({
       adminUserId: req.user.id,
@@ -49,7 +49,7 @@ export async function updateAppSettings(req, res) {
 export async function listUsers(req, res) {
   const { page, limit } = req.query;
   try {
-    const result = await getAllUsers({ page, limit });
+    const result = await getAllUsersFromModel({ page, limit });
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: "Failed to retrieve users." });
@@ -66,7 +66,7 @@ export async function updateUserStatus(req, res) {
   }
 
   try {
-    const updatedUser = await updateUserStatus(userId, status);
+    const updatedUser = await updateUserStatusFromModel(userId, status);
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found." });
     }
@@ -91,7 +91,7 @@ export async function updateUserStatus(req, res) {
 export async function deleteUser(req, res) {
   const { userId } = req.params;
   try {
-    const deletedUser = await softDeleteUser(userId);
+    const deletedUser = await softDeleteUserFromModel(userId);
     if (!deletedUser) {
       return res.status(404).json({ message: "User not found." });
     }
@@ -117,7 +117,10 @@ export async function updateUserPermissions(req, res) {
   const permissions = req.body; // Expects an object of permissions
 
   try {
-    const updatedPerms = await updatePermissionsForUser(userId, permissions);
+    const updatedPerms = await updatePermissionsForUserFromModel(
+      userId,
+      permissions,
+    );
     await logAction({
       adminUserId: req.user.id,
       action: "user.update.permissions",

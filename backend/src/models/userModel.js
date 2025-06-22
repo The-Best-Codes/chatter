@@ -1,9 +1,7 @@
 import { hash } from "bcrypt";
 import { query as _query, getPool } from "../config/db.js";
 
-const User = {};
-
-User.create = async (userData) => {
+export const create = async (userData) => {
   const {
     username,
     displayName,
@@ -50,20 +48,20 @@ User.create = async (userData) => {
   }
 };
 
-User.findByUsername = async (username) => {
+export const findByUsername = async (username) => {
   const query = "SELECT * FROM users WHERE username = $1";
   const { rows } = await _query(query, [username]);
   return rows[0];
 };
 
-User.findById = async (id) => {
+export const findById = async (id) => {
   const query =
     "SELECT id, username, display_name, avatar_url, status, created_at, role FROM users WHERE id = $1";
   const { rows } = await _query(query, [id]);
   return rows[0];
 };
 
-User.searchByUsername = async (searchTerm, excludeUserId) => {
+export const searchByUsername = async (searchTerm, excludeUserId) => {
   const query = `
         SELECT id, username, display_name, avatar_url
         FROM users
@@ -75,7 +73,7 @@ User.searchByUsername = async (searchTerm, excludeUserId) => {
   return rows;
 };
 
-User.blockUser = async (blockerUserId, blockedUserId) => {
+export const blockUser = async (blockerUserId, blockedUserId) => {
   const query = `
         INSERT INTO blocked_users (blocker_user_id, blocked_user_id)
         VALUES ($1, $2) ON CONFLICT DO NOTHING;
@@ -84,10 +82,8 @@ User.blockUser = async (blockerUserId, blockedUserId) => {
   return { success: true };
 };
 
-User.unblockUser = async (blockerUserId, blockedUserId) => {
+export const unblockUser = async (blockerUserId, blockedUserId) => {
   const query = `DELETE FROM blocked_users WHERE blocker_user_id = $1 AND blocked_user_id = $2;`;
   await _query(query, [blockerUserId, blockedUserId]);
   return { success: true };
 };
-
-export default User;

@@ -1,4 +1,4 @@
-import { verify } from "jsonwebtoken";
+import jsonWebToken from "jsonwebtoken";
 import { WebSocket } from "ws";
 import { create, edit, softDelete } from "../models/messageModel.js";
 import {
@@ -8,6 +8,8 @@ import {
 } from "../models/roomModel.js";
 import { findById } from "../models/userModel.js";
 
+const { verify } = jsonWebToken;
+
 // This will store all active client connections
 // Map<userId, { ws: WebSocket, rooms: Set<string> }>
 const clients = new Map();
@@ -16,7 +18,12 @@ function sendToClient(ws, event, payload) {
   ws.send(JSON.stringify({ event, payload }));
 }
 
-async function broadcastToRoom(roomId, event, payload, excludeUserId = null) {
+export async function broadcastToRoom(
+  roomId,
+  event,
+  payload,
+  excludeUserId = null,
+) {
   const roomMembers = await getRoomMemberIds(roomId);
   for (const memberId of roomMembers) {
     if (memberId === excludeUserId) continue;
@@ -174,7 +181,7 @@ async function handleMessage(ws, rawMessage, userId) {
   }
 }
 
-function init(wss) {
+export function init(wss) {
   wss.on("connection", (ws) => {
     // A client has a short grace period to authenticate
     const authTimeout = setTimeout(() => {
@@ -245,5 +252,3 @@ function init(wss) {
 
   console.log("🔌 WebSocket service initialized.");
 }
-
-export default { init, broadcastToRoom };

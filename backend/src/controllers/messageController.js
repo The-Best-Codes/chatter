@@ -1,8 +1,8 @@
 import {
-  addReaction,
-  findRoomForMessage,
-  getReactionsForMessage,
-  removeReaction,
+  addReaction as addReactionFromModel,
+  findRoomForMessage as findRoomForMessageFromModel,
+  getReactionsForMessage as getReactionsForMessageFromModel,
+  removeReaction as removeReactionFromModel,
 } from "../models/messageModel.js";
 import { isUserInRoom } from "../models/roomModel.js";
 import { broadcastToRoom } from "../services/websocketService.js";
@@ -19,7 +19,7 @@ export async function addReaction(req, res) {
 
   try {
     // Find which room the message is in to check membership and for broadcasting
-    const messageRoom = await findRoomForMessage(messageId);
+    const messageRoom = await findRoomForMessageFromModel(messageId);
     if (!messageRoom) {
       return res.status(404).json({ message: "Message not found." });
     }
@@ -31,10 +31,10 @@ export async function addReaction(req, res) {
         .json({ message: "You are not a member of this room." });
     }
 
-    await addReaction(messageId, userId, emojiCode);
+    await addReactionFromModel(messageId, userId, emojiCode);
 
     // Get the updated list of reactions to broadcast
-    const updatedReactions = await getReactionsForMessage(messageId);
+    const updatedReactions = await getReactionsForMessageFromModel(messageId);
 
     // Broadcast the change to the room
     await broadcastToRoom(messageRoom.room_id, "reaction_changed", {
@@ -60,7 +60,7 @@ export async function removeReaction(req, res) {
   }
 
   try {
-    const messageRoom = await findRoomForMessage(messageId);
+    const messageRoom = await findRoomForMessageFromModel(messageId);
     if (!messageRoom)
       return res.status(404).json({ message: "Message not found." });
 
@@ -70,9 +70,9 @@ export async function removeReaction(req, res) {
         .status(403)
         .json({ message: "You are not a member of this room." });
 
-    await removeReaction(messageId, userId, emojiCode);
+    await removeReactionFromModel(messageId, userId, emojiCode);
 
-    const updatedReactions = await getReactionsForMessage(messageId);
+    const updatedReactions = await getReactionsForMessageFromModel(messageId);
 
     await broadcastToRoom(messageRoom.room_id, "reaction_changed", {
       messageId,
