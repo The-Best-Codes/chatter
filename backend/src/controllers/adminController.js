@@ -1,4 +1,5 @@
 import { randomBytes } from "crypto";
+import { query as queryDatabase } from "../config/db.js";
 import {
   getAllUsers as getAllUsersFromModel,
   getSettings as getSettingsFromModel,
@@ -8,6 +9,8 @@ import {
   updateUserStatus as updateUserStatusFromModel,
 } from "../models/adminModel.js";
 import { logAction } from "../services/auditLogService.js";
+import { invalidateUserSessions } from "../services/sessionService.js";
+import { disconnectUser } from "../services/websocketService.js";
 
 // GET /api/admin/settings
 export async function getAppSettings(req, res) {
@@ -79,7 +82,9 @@ export async function updateUserStatus(req, res) {
       ipAddress: req.ip,
     });
 
-    // TODO: Invalidate user's sessions/websockets here
+    // Invalidate user's sessions and websocket connections
+    await invalidateUserSessions(userId);
+    disconnectUser(userId);
 
     res.status(200).json(updatedUser);
   } catch (error) {
@@ -103,7 +108,9 @@ export async function deleteUser(req, res) {
       ipAddress: req.ip,
     });
 
-    // TODO: Invalidate user's sessions/websockets here
+    // Invalidate user's sessions and websocket connections
+    await invalidateUserSessions(userId);
+    disconnectUser(userId);
 
     res.status(200).json({ message: "User successfully deleted." });
   } catch (error) {
@@ -144,8 +151,23 @@ export async function generatePasswordResetCode(req, res) {
   const saltRounds = 10;
   const hashedCode = await require("bcrypt").hash(resetCode, saltRounds);
 
-  // TODO: A real implementation would store this hashedCode in a separate
-  // password_resets table with an expiry. For simplicity, we skip that.
+  // Store the hashed reset code in a separate table with expiry
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
+
+  try {
+    const insertQuery = `
+      INSERT INTO password_resets (user_id, hashed_code, expires_at)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (user_id) DO UPDATE
+      SET hashed_code = EXCLUDED.hashed_code, expires_at = EXCLUDED.expires_at, created_at = NOW()
+    `;
+    await queryDatabase(insertQuery, [userId, hashedCode, expiresAt]);
+  } catch (error) {
+    console.error("Error storing password reset code:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to generate password reset code." });
+  }
 
   await logAction({
     adminUserId: req.user.id,

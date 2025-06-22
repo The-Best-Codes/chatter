@@ -154,6 +154,16 @@ const createTablesQueries = `
     is_cleared BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
+
+  -- Password reset codes table
+  CREATE TABLE password_resets (
+    id BIGSERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    hashed_code TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (user_id)
+  );
 `;
 
 const initDb = async () => {
@@ -161,6 +171,7 @@ const initDb = async () => {
     console.log("Dropping existing tables...");
     // A simple loop to drop tables in reverse order of creation to respect foreign keys
     const tables = [
+      "password_resets",
       "notifications",
       "admin_audit_logs",
       "invite_codes",

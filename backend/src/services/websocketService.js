@@ -7,6 +7,7 @@ import {
   isUserInRoom,
 } from "../models/roomModel.js";
 import { findById } from "../models/userModel.js";
+import { hasPermission } from "./permissionService.js";
 
 const { verify } = jsonWebToken;
 
@@ -36,6 +37,21 @@ export async function broadcastToRoom(
   }
 }
 
+/**
+ * Disconnect a specific user's websocket connection
+ * Used when user status is changed or user is deleted
+ */
+export function disconnectUser(userId) {
+  const client = clients.get(userId);
+  if (client && client.ws.readyState === WebSocket.OPEN) {
+    client.ws.close(1008, "User session invalidated");
+    clients.delete(userId);
+    console.log(`Disconnected websocket for user ${userId}`);
+    return true;
+  }
+  return false;
+}
+
 async function handleMessage(ws, rawMessage, userId) {
   let messageData;
   try {
@@ -57,7 +73,13 @@ async function handleMessage(ws, rawMessage, userId) {
         });
       }
 
-      // TODO: Add permission checks here later (rate limiting, can_send_messages)
+      // Check if user has permission to send messages
+      const canSend = await hasPermission(userId, "can_send_messages");
+      if (!canSend) {
+        return sendToClient(ws, "error", {
+          message: "You do not have permission to send messages.",
+        });
+      }
 
       try {
         const isMember = await isUserInRoom(userId, roomId);
@@ -93,7 +115,13 @@ async function handleMessage(ws, rawMessage, userId) {
         });
       }
 
-      // TODO: Add permission checks (can_edit_messages)
+      // Check if user has permission to edit messages
+      const canEdit = await hasPermission(userId, "can_edit_messages");
+      if (!canEdit) {
+        return sendToClient(ws, "error", {
+          message: "You do not have permission to edit messages.",
+        });
+      }
 
       try {
         const updatedMessage = await edit(
@@ -128,7 +156,13 @@ async function handleMessage(ws, rawMessage, userId) {
         });
       }
 
-      // TODO: Add permission checks (can_delete_messages)
+      // Check if user has permission to delete messages
+      const canDelete = await hasPermission(userId, "can_delete_messages");
+      if (!canDelete) {
+        return sendToClient(ws, "error", {
+          message: "You do not have permission to delete messages.",
+        });
+      }
 
       try {
         const deletedMessage = await softDelete(messageId, userId);

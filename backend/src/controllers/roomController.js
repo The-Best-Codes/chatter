@@ -4,6 +4,7 @@ import {
   findOrCreateDmRoom,
   isUserInRoom,
 } from "../models/roomModel.js";
+import { canPinMessage } from "../services/permissionService.js";
 
 // GET /api/rooms/:roomId/messages
 export async function getMessagesForRoom(req, res) {
@@ -59,11 +60,14 @@ export async function pinMessage(req, res) {
   const { roomId } = req.params;
   const { messageId } = req.body;
 
-  // TODO: Add permission checks here. For now, only allow in main room.
-  if (roomId !== "00000000-0000-0000-0000-000000000001") {
+  // Check if user has permission to pin messages in this room
+  const canPin = await canPinMessage(req.user.id, roomId);
+  if (!canPin) {
     return res
       .status(403)
-      .json({ message: "Message pinning is only allowed in the main room." });
+      .json({
+        message: "You do not have permission to pin messages in this room.",
+      });
   }
 
   try {

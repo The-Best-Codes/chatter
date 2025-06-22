@@ -46,7 +46,34 @@ export const create = async (messageData) => {
       }
     }
 
-    // TODO: Create notifications for replies
+    // Create notifications for replies
+    if (replyToMessageId) {
+      // Find the original message sender to notify them
+      const originalMessageQuery =
+        "SELECT sender_id FROM messages WHERE id = $1";
+      const { rows: originalMessageRows } = await client.query(
+        originalMessageQuery,
+        [replyToMessageId],
+      );
+
+      if (originalMessageRows.length > 0) {
+        const originalSenderId = originalMessageRows[0].sender_id;
+
+        // Don't notify someone for replying to their own message
+        if (originalSenderId !== senderId) {
+          const replyNotificationQuery = `
+            INSERT INTO notifications (recipient_user_id, type, source_message_id, source_user_id, room_id)
+            VALUES ($1, 'reply', $2, $3, $4);
+          `;
+          await client.query(replyNotificationQuery, [
+            originalSenderId,
+            newMessage.id,
+            senderId,
+            roomId,
+          ]);
+        }
+      }
+    }
 
     await client.query("COMMIT");
 
