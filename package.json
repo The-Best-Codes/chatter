@@ -1,7 +1,7 @@
 {
-  "name": "secure-chat-app-backend",
+  "name": "chatter-backend",
   "version": "1.0.0",
-  "description": "Backend for a secure, scalable chat application.",
+  "description": "Backend for Chatter",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -14,7 +14,7 @@
     "e2ee",
     "express"
   ],
-  "author": "AI Assistant & You",
+  "author": "The-Best-Codes",
   "license": "MIT",
   "dependencies": {
     "bcrypt": "^5.1.0",
