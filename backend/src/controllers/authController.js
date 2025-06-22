@@ -1,11 +1,11 @@
-const User = require("../models/userModel");
-const Room = require("../models/roomModel");
-const Session = require("../models/sessionModel");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const { validationResult } = require("express-validator");
+import { compare } from "bcrypt";
+import { validationResult } from "express-validator";
+import { sign } from "jsonwebtoken";
+import { getRoomsForUser } from "../models/roomModel";
+import { create as _create } from "../models/sessionModel";
+import { create, findByUsername } from "../models/userModel";
 
-exports.signup = async (req, res) => {
+export async function signup(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -20,12 +20,12 @@ exports.signup = async (req, res) => {
   } = req.body;
 
   try {
-    const existingUser = await User.findByUsername(username);
+    const existingUser = await findByUsername(username);
     if (existingUser) {
       return res.status(409).json({ message: "Username already exists." });
     }
 
-    const newUser = await User.create({
+    const newUser = await create({
       username,
       displayName,
       password,
@@ -33,7 +33,7 @@ exports.signup = async (req, res) => {
       publicKeyBundle,
     });
 
-    const token = jwt.sign(
+    const token = sign(
       { userId: newUser.id, username: newUser.username },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN },
@@ -48,9 +48,9 @@ exports.signup = async (req, res) => {
     console.error("Signup Error:", error);
     res.status(500).json({ message: "Internal server error during signup." });
   }
-};
+}
 
-exports.login = async (req, res) => {
+export async function login(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -59,7 +59,7 @@ exports.login = async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const user = await User.findByUsername(username);
+    const user = await findByUsername(username);
     if (!user) {
       return res
         .status(401)
@@ -72,25 +72,22 @@ exports.login = async (req, res) => {
         .json({ message: `Authentication failed. Account is ${user.status}.` });
     }
 
-    const isPasswordMatch = await bcrypt.compare(
-      password,
-      user.hashed_password,
-    );
+    const isPasswordMatch = await compare(password, user.hashed_password);
     if (!isPasswordMatch) {
       return res
         .status(401)
         .json({ message: "Authentication failed. Invalid credentials." });
     }
 
-    const token = jwt.sign(
+    const token = sign(
       { userId: user.id, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN },
     );
 
-    await Session.create(user.id, token, req.headers["user-agent"], req.ip);
+    await _create(user.id, token, req.headers["user-agent"], req.ip);
 
-    const rooms = await Room.getRoomsForUser(user.id);
+    const rooms = await getRoomsForUser(user.id);
 
     const { hashed_password, ...userWithoutPassword } = user;
 
@@ -104,4 +101,4 @@ exports.login = async (req, res) => {
     console.error("Login Error:", error);
     res.status(500).json({ message: "Internal server error during login." });
   }
-};
+}

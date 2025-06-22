@@ -1,11 +1,11 @@
-const db = require("../config/db");
+import { query as _query, getPool } from "../config/db";
 
 const Room = {};
 
 Room.isUserInRoom = async (userId, roomId) => {
   const query =
     "SELECT 1 FROM room_members WHERE user_id = $1 AND room_id = $2";
-  const { rows } = await db.query(query, [userId, roomId]);
+  const { rows } = await _query(query, [userId, roomId]);
   return rows.length > 0;
 };
 
@@ -15,13 +15,13 @@ Room.getRoomsForUser = async (userId) => {
         JOIN room_members rm ON r.id = rm.room_id
         WHERE rm.user_id = $1;
     `;
-  const { rows } = await db.query(query, [userId]);
+  const { rows } = await _query(query, [userId]);
   return rows;
 };
 
 Room.getRoomMemberIds = async (roomId) => {
   const query = "SELECT user_id FROM room_members WHERE room_id = $1";
-  const { rows } = await db.query(query, [roomId]);
+  const { rows } = await _query(query, [roomId]);
   return rows.map((r) => r.user_id);
 };
 
@@ -38,14 +38,14 @@ Room.findOrCreateDmRoom = async (userId1, userId2) => {
           AND rm1.user_id = $1
           AND rm2.user_id = $2;
     `;
-  const { rows } = await db.query(findQuery, [u1, u2]);
+  const { rows } = await _query(findQuery, [u1, u2]);
   if (rows.length > 0) {
     // We found an existing room, return it
     return rows[0];
   }
 
   // No existing room, so create a new one in a transaction
-  const client = await db.getPool().connect();
+  const client = await getPool().connect();
   try {
     await client.query("BEGIN");
 
@@ -75,8 +75,8 @@ Room.isBlocked = async (userId1, userId2) => {
         WHERE (blocker_user_id = $1 AND blocked_user_id = $2)
            OR (blocker_user_id = $2 AND blocked_user_id = $1);
     `;
-  const { rows } = await db.query(query, [userId1, userId2]);
+  const { rows } = await _query(query, [userId1, userId2]);
   return rows.length > 0;
 };
 
-module.exports = Room;
+export default Room;

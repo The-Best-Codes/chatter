@@ -1,26 +1,27 @@
-require("dotenv").config();
+import { configDotenv } from "dotenv";
+configDotenv();
 
-const http = require("http");
-const express = require("express");
-const { WebSocketServer } = require("ws");
-const db = require("./config/db");
-const websocketService = require("./services/websocketService");
+import { createServer } from "http";
+import express, { json } from "express";
+import { WebSocketServer } from "ws";
+import { query } from "./config/db";
+import { init } from "./services/websocketService";
 
 // Routes
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const roomRoutes = require("./routes/roomRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const notificationRoutes = require("./routes/notificationRoutes");
-const messageRoutes = require("./routes/messageRoutes");
-const sessionRoutes = require("./routes/sessionRoutes");
+import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
+import roomRoutes from "./routes/roomRoutes";
+import adminRoutes from "./routes/adminRoutes";
+import notificationRoutes from "./routes/notificationRoutes";
+import messageRoutes from "./routes/messageRoutes";
+import sessionRoutes from "./routes/sessionRoutes";
 
 const app = express();
-const server = http.createServer(app);
+const server = createServer(app);
 const wss = new WebSocketServer({ server });
 const PORT = process.env.PORT || 8080;
 
-app.use(express.json());
+app.use(json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -35,12 +36,12 @@ app.get("/api/health", (req, res) => {
 });
 
 // Initialize our WebSocket service and pass it the server instance
-websocketService.init(wss);
+init(wss);
 
 // Server
 async function startServer() {
   try {
-    await db.query("SELECT NOW()");
+    await query("SELECT NOW()");
     console.log("🐘 Database connected successfully.");
 
     server.listen(PORT, () => {

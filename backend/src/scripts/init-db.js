@@ -1,6 +1,8 @@
 // This script initializes the database by creating all necessary tables.
-require("dotenv").config();
-const db = require("../config/db");
+import { configDotenv } from "dotenv";
+configDotenv();
+
+import { getPool, query } from "../config/db";
 
 const createTablesQueries = `
   -- Enable UUID generation
@@ -175,15 +177,15 @@ const initDb = async () => {
       "users",
     ];
     for (const table of tables) {
-      await db.query(`DROP TABLE IF EXISTS ${table} CASCADE`);
+      await query(`DROP TABLE IF EXISTS ${table} CASCADE`);
     }
 
     console.log("Creating tables...");
-    await db.query(createTablesQueries);
+    await query(createTablesQueries);
     console.log("✅ Database tables created successfully.");
 
     // We need to close the pool to allow the script to exit
-    const pool = db.getPool();
+    const pool = getPool();
     await pool.end();
   } catch (error) {
     console.error("💀 Error initializing database:", error);

@@ -1,6 +1,8 @@
 // Usage: node src/scripts/promote-admin.js <username>
-require("dotenv").config();
-const db = require("../config/db");
+import { configDotenv } from "dotenv";
+configDotenv();
+
+import { getPool } from "../config/db";
 
 const promoteUser = async () => {
   const username = process.argv[2];
@@ -11,7 +13,7 @@ const promoteUser = async () => {
   }
 
   try {
-    const pool = db.getPool();
+    const pool = getPool();
     const query = `UPDATE users SET role = 'admin' WHERE username = $1 RETURNING id, username, role;`;
     const { rows } = await pool.query(query, [username]);
 

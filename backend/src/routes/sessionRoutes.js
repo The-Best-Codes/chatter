@@ -1,12 +1,15 @@
-const express = require("express");
-const sessionController = require("../controllers/sessionController");
-const { protect } = require("../middleware/authMiddleware");
+import { Router } from "express";
+import {
+  getActiveSessions,
+  logoutSession,
+} from "../controllers/sessionController";
+import { protect } from "../middleware/authMiddleware";
 
-const router = express.Router();
+const router = Router();
 
 router.use(protect);
 
-router.get("/", sessionController.getActiveSessions);
-router.delete("/:sessionId", sessionController.logoutSession);
+router.get("/", getActiveSessions);
+router.delete("/:sessionId", logoutSession);
 
-module.exports = router;
+export default router;

@@ -1,19 +1,26 @@
-const Admin = require("../models/adminModel");
-const AuditLog = require("../services/auditLogService");
-const crypto = require("crypto");
+import { randomBytes } from "crypto";
+import {
+  getAllUsers,
+  getSettings,
+  softDeleteUser,
+  updatePermissionsForUser,
+  updateSetting,
+  updateUserStatus,
+} from "../models/adminModel";
+import { logAction } from "../services/auditLogService";
 
 // GET /api/admin/settings
-exports.getAppSettings = async (req, res) => {
+export async function getAppSettings(req, res) {
   try {
-    const settings = await Admin.getSettings();
+    const settings = await getSettings();
     res.status(200).json(settings);
   } catch (error) {
     res.status(500).json({ message: "Failed to retrieve settings." });
   }
-};
+}
 
 // PUT /api/admin/settings
-exports.updateAppSettings = async (req, res) => {
+export async function updateAppSettings(req, res) {
   const { key, value } = req.body;
   if (!key || value === undefined) {
     return res
@@ -22,10 +29,10 @@ exports.updateAppSettings = async (req, res) => {
   }
 
   try {
-    const oldSettings = await Admin.getSettings();
-    const updatedSetting = await Admin.updateSetting(key, value);
+    const oldSettings = await getSettings();
+    const updatedSetting = await updateSetting(key, value);
 
-    await AuditLog.logAction({
+    await logAction({
       adminUserId: req.user.id,
       action: `setting.update.${key}`,
       details: { oldValue: oldSettings[key], newValue: value },
@@ -36,21 +43,21 @@ exports.updateAppSettings = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Failed to update setting." });
   }
-};
+}
 
 // GET /api/admin/users
-exports.listUsers = async (req, res) => {
+export async function listUsers(req, res) {
   const { page, limit } = req.query;
   try {
-    const result = await Admin.getAllUsers({ page, limit });
+    const result = await getAllUsers({ page, limit });
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: "Failed to retrieve users." });
   }
-};
+}
 
 // POST /api/admin/users/:userId/status
-exports.updateUserStatus = async (req, res) => {
+export async function updateUserStatus(req, res) {
   const { userId } = req.params;
   const { status } = req.body;
 
@@ -59,12 +66,12 @@ exports.updateUserStatus = async (req, res) => {
   }
 
   try {
-    const updatedUser = await Admin.updateUserStatus(userId, status);
+    const updatedUser = await updateUserStatus(userId, status);
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found." });
     }
 
-    await AuditLog.logAction({
+    await logAction({
       adminUserId: req.user.id,
       action: "user.update.status",
       targetUserId: userId,
@@ -78,18 +85,18 @@ exports.updateUserStatus = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Failed to update user status." });
   }
-};
+}
 
 // DELETE /api/admin/users/:userId
-exports.deleteUser = async (req, res) => {
+export async function deleteUser(req, res) {
   const { userId } = req.params;
   try {
-    const deletedUser = await Admin.softDeleteUser(userId);
+    const deletedUser = await softDeleteUser(userId);
     if (!deletedUser) {
       return res.status(404).json({ message: "User not found." });
     }
 
-    await AuditLog.logAction({
+    await logAction({
       adminUserId: req.user.id,
       action: "user.delete",
       targetUserId: userId,
@@ -102,19 +109,16 @@ exports.deleteUser = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Failed to delete user." });
   }
-};
+}
 
 // PUT /api/admin/users/:userId/permissions
-exports.updateUserPermissions = async (req, res) => {
+export async function updateUserPermissions(req, res) {
   const { userId } = req.params;
   const permissions = req.body; // Expects an object of permissions
 
   try {
-    const updatedPerms = await Admin.updatePermissionsForUser(
-      userId,
-      permissions,
-    );
-    await AuditLog.logAction({
+    const updatedPerms = await updatePermissionsForUser(userId, permissions);
+    await logAction({
       adminUserId: req.user.id,
       action: "user.update.permissions",
       targetUserId: userId,
@@ -126,21 +130,21 @@ exports.updateUserPermissions = async (req, res) => {
     console.error("Error updating permissions:", error);
     res.status(500).json({ message: "Failed to update user permissions." });
   }
-};
+}
 
 // POST /api/admin/users/:userId/password-reset
-exports.generatePasswordResetCode = async (req, res) => {
+export async function generatePasswordResetCode(req, res) {
   const { userId } = req.params;
   // In a real app, this code would be emailed or sent via another secure channel.
   // Here we will just return it to the admin.
-  const resetCode = crypto.randomBytes(8).toString("hex");
+  const resetCode = randomBytes(8).toString("hex");
   const saltRounds = 10;
   const hashedCode = await require("bcrypt").hash(resetCode, saltRounds);
 
   // TODO: A real implementation would store this hashedCode in a separate
   // password_resets table with an expiry. For simplicity, we skip that.
 
-  await AuditLog.logAction({
+  await logAction({
     adminUserId: req.user.id,
     action: "user.password_reset.generate",
     targetUserId: userId,
@@ -152,4 +156,4 @@ exports.generatePasswordResetCode = async (req, res) => {
       "Password reset code generated. Please securely transmit this to the user.",
     resetCode: resetCode,
   });
-};
+}

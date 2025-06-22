@@ -1,4 +1,4 @@
-const db = require("../config/db");
+import { query as _query, getPool } from "../config/db";
 
 const Message = {};
 
@@ -11,7 +11,7 @@ Message.create = async (messageData) => {
     mentionedUserIds = [],
   } = messageData;
 
-  const client = await db.getPool().connect();
+  const client = await getPool().connect();
   try {
     await client.query("BEGIN");
 
@@ -55,7 +55,7 @@ Message.create = async (messageData) => {
     // Fetch sender's info to attach to the message object for broadcasting
     const senderQuery =
       "SELECT username, display_name FROM users WHERE id = $1";
-    const { rows: senderRows } = await db.query(senderQuery, [
+    const { rows: senderRows } = await _query(senderQuery, [
       newMessage.sender_id,
     ]);
 
@@ -89,7 +89,7 @@ Message.getMessagesByRoomId = async (roomId, limit = 50, beforeId = null) => {
   query += ` ORDER BY m.created_at DESC LIMIT $${params.length + 1}`;
   params.push(limit);
 
-  const { rows } = await db.query(query, params);
+  const { rows } = await _query(query, params);
 
   // We reverse the result so they are in chronological order for the client
   // TODO: Check if this puts oldest or newest first?
@@ -98,7 +98,7 @@ Message.getMessagesByRoomId = async (roomId, limit = 50, beforeId = null) => {
 
 Message.findRoomForMessage = async (messageId) => {
   const query = "SELECT room_id FROM messages WHERE id = $1;";
-  const { rows } = await db.query(query, [messageId]);
+  const { rows } = await _query(query, [messageId]);
   return rows[0];
 };
 
@@ -110,7 +110,7 @@ Message.edit = async (messageId, userId, newEncryptedContent) => {
         WHERE id = $2 AND sender_id = $3 AND deleted_at IS NULL
         RETURNING id, room_id, encrypted_content, updated_at;
     `;
-  const { rows } = await db.query(query, [
+  const { rows } = await _query(query, [
     newEncryptedContent,
     messageId,
     userId,
@@ -126,7 +126,7 @@ Message.softDelete = async (messageId, userId) => {
         WHERE id = $1 AND sender_id = $2 AND deleted_at IS NULL
         RETURNING id, room_id;
     `;
-  const { rows } = await db.query(query, [messageId, userId]);
+  const { rows } = await _query(query, [messageId, userId]);
   return rows[0];
 };
 
@@ -136,7 +136,7 @@ Message.addReaction = async (messageId, userId, emojiCode) => {
         VALUES ($1, $2, $3)
         ON CONFLICT (message_id, user_id, emoji_code) DO NOTHING;
     `;
-  await db.query(query, [messageId, userId, emojiCode]);
+  await _query(query, [messageId, userId, emojiCode]);
   return { success: true };
 };
 
@@ -145,7 +145,7 @@ Message.removeReaction = async (messageId, userId, emojiCode) => {
         DELETE FROM message_reactions
         WHERE message_id = $1 AND user_id = $2 AND emoji_code = $3;
     `;
-  await db.query(query, [messageId, userId, emojiCode]);
+  await _query(query, [messageId, userId, emojiCode]);
   return { success: true };
 };
 
@@ -161,7 +161,7 @@ Message.getReactionsForMessage = async (messageId) => {
         WHERE message_id = $1
         GROUP BY emoji_code;
     `;
-  const { rows } = await db.query(query, [messageId]);
+  const { rows } = await _query(query, [messageId]);
   return rows;
 };
 
@@ -170,7 +170,7 @@ Message.pin = async (roomId, messageId, userId) => {
         INSERT INTO pinned_messages (room_id, message_id, pinned_by_user_id)
         VALUES ($1, $2, $3) ON CONFLICT (room_id, message_id) DO NOTHING;
     `;
-  await db.query(query, [roomId, messageId, userId]);
+  await _query(query, [roomId, messageId, userId]);
 };
 
-module.exports = Message;
+export default Message;

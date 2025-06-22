@@ -1,12 +1,15 @@
-const express = require("express");
-const notificationController = require("../controllers/notificationController");
-const { protect } = require("../middleware/authMiddleware");
+import { Router } from "express";
+import {
+  clearNotifications,
+  getNotifications,
+} from "../controllers/notificationController";
+import { protect } from "../middleware/authMiddleware";
 
-const router = express.Router();
+const router = Router();
 
 router.use(protect);
 
-router.get("/", notificationController.getNotifications);
-router.post("/clear", notificationController.clearNotifications);
+router.get("/", getNotifications);
+router.post("/clear", clearNotifications);
 
-module.exports = router;
+export default router;

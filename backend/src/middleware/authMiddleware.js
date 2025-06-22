@@ -1,7 +1,7 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/userModel");
+import { verify } from "jsonwebtoken";
+import { findById } from "../models/userModel";
 
-exports.protect = async (req, res, next) => {
+export async function protect(req, res, next) {
   let token;
 
   if (
@@ -13,10 +13,10 @@ exports.protect = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
 
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = verify(token, process.env.JWT_SECRET);
 
       // Attach user to the request object, but without the password
-      req.user = await User.findById(decoded.userId);
+      req.user = await findById(decoded.userId);
 
       if (!req.user || req.user.status !== "active") {
         return res
@@ -34,4 +34,4 @@ exports.protect = async (req, res, next) => {
   if (!token) {
     return res.status(401).json({ message: "Not authorized, no token" });
   }
-};
+}

@@ -1,8 +1,12 @@
-const jwt = require("jsonwebtoken");
-const { WebSocket } = require("ws");
-const Message = require("../models/messageModel");
-const Room = require("../models/roomModel");
-const User = require("../models/userModel");
+import { verify } from "jsonwebtoken";
+import { WebSocket } from "ws";
+import { create, edit, softDelete } from "../models/messageModel";
+import {
+  getRoomMemberIds,
+  getRoomsForUser,
+  isUserInRoom,
+} from "../models/roomModel";
+import { findById } from "../models/userModel";
 
 // This will store all active client connections
 // Map<userId, { ws: WebSocket, rooms: Set<string> }>
@@ -13,7 +17,7 @@ function sendToClient(ws, event, payload) {
 }
 
 async function broadcastToRoom(roomId, event, payload, excludeUserId = null) {
-  const roomMembers = await Room.getRoomMemberIds(roomId);
+  const roomMembers = await getRoomMemberIds(roomId);
   for (const memberId of roomMembers) {
     if (memberId === excludeUserId) continue;
 
@@ -34,7 +38,7 @@ async function handleMessage(ws, rawMessage, userId) {
   }
 
   const { event, payload } = messageData;
-  const user = await User.findById(userId); // Get full user object for permissions
+  const user = await findById(userId); // Get full user object for permissions
 
   switch (event) {
     case "send_message": {
@@ -49,14 +53,14 @@ async function handleMessage(ws, rawMessage, userId) {
       // TODO: Add permission checks here later (rate limiting, can_send_messages)
 
       try {
-        const isMember = await Room.isUserInRoom(userId, roomId);
+        const isMember = await isUserInRoom(userId, roomId);
         if (!isMember) {
           return sendToClient(ws, "error", {
             message: "You are not a member of this room.",
           });
         }
 
-        const message = await Message.create({
+        const message = await create({
           senderId: userId,
           roomId,
           encryptedContent,
@@ -85,7 +89,7 @@ async function handleMessage(ws, rawMessage, userId) {
       // TODO: Add permission checks (can_edit_messages)
 
       try {
-        const updatedMessage = await Message.edit(
+        const updatedMessage = await edit(
           messageId,
           userId,
           newEncryptedContent,
@@ -120,7 +124,7 @@ async function handleMessage(ws, rawMessage, userId) {
       // TODO: Add permission checks (can_delete_messages)
 
       try {
-        const deletedMessage = await Message.softDelete(messageId, userId);
+        const deletedMessage = await softDelete(messageId, userId);
         if (!deletedMessage) {
           return sendToClient(ws, "error", {
             message:
@@ -143,7 +147,7 @@ async function handleMessage(ws, rawMessage, userId) {
       const { roomId } = payload;
       if (!roomId) return;
       // Broadcast to the room, excluding the user who is typing
-      const { username, display_name } = await User.findById(userId);
+      const { username, display_name } = await findById(userId);
       await broadcastToRoom(
         roomId,
         "user_typing",
@@ -192,14 +196,14 @@ function init(wss) {
 
         if (messageData.event === "auth" && messageData.payload.token) {
           try {
-            const decoded = jwt.verify(
+            const decoded = verify(
               messageData.payload.token,
               process.env.JWT_SECRET,
             );
             ws.userId = decoded.userId;
 
             // Fetch the rooms this user is part of
-            const userRooms = await Room.getRoomsForUser(decoded.userId);
+            const userRooms = await getRoomsForUser(decoded.userId);
 
             clients.set(ws.userId, {
               ws,
@@ -242,4 +246,4 @@ function init(wss) {
   console.log("🔌 WebSocket service initialized.");
 }
 
-module.exports = { init, broadcastToRoom };
+export default { init, broadcastToRoom };

@@ -1,4 +1,4 @@
-const db = require("../config/db");
+import { query as _query } from "../config/db";
 
 const AuditLog = {};
 
@@ -24,7 +24,7 @@ AuditLog.logAction = async (logData) => {
         VALUES ($1, $2, $3, $4, $5);
     `;
   try {
-    await db.query(query, [
+    await _query(query, [
       adminUserId,
       action,
       targetUserId,
@@ -38,4 +38,4 @@ AuditLog.logAction = async (logData) => {
   }
 };
 
-module.exports = AuditLog;
+export default AuditLog;

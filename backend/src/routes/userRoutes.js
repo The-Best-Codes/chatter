@@ -1,15 +1,19 @@
-const express = require("express");
-const userController = require("../controllers/userController");
-const { protect } = require("../middleware/authMiddleware");
+import { Router } from "express";
+import {
+  blockUser,
+  searchUsers,
+  unblockUser,
+} from "../controllers/userController";
+import { protect } from "../middleware/authMiddleware";
 
-const router = express.Router();
+const router = Router();
 
 // All routes in this file will be protected by our auth middleware
 router.use(protect);
 
 // GET /api/users?search=...
-router.get("/", userController.searchUsers);
-router.post("/:userId/block", userController.blockUser);
-router.delete("/:userId/block", userController.unblockUser);
+router.get("/", searchUsers);
+router.post("/:userId/block", blockUser);
+router.delete("/:userId/block", unblockUser);
 
-module.exports = router;
+export default router;

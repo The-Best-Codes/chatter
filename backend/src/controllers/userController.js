@@ -1,7 +1,7 @@
-const User = require("../models/userModel");
+import { blockUser, searchByUsername, unblockUser } from "../models/userModel";
 
 // GET /api/users?search=...
-exports.searchUsers = async (req, res) => {
+export async function searchUsers(req, res) {
   const searchTerm = req.query.search || "";
   const currentUserId = req.user.id;
 
@@ -12,16 +12,16 @@ exports.searchUsers = async (req, res) => {
   }
 
   try {
-    const users = await User.searchByUsername(searchTerm, currentUserId);
+    const users = await searchByUsername(searchTerm, currentUserId);
     res.status(200).json(users);
   } catch (error) {
     console.error("User search error:", error);
     res.status(500).json({ message: "Error searching for users." });
   }
-};
+}
 
 // POST /api/users/:userId/block
-exports.blockUser = async (req, res) => {
+export async function blockUser(req, res) {
   const { userId: blockedUserId } = req.params;
   const blockerUserId = req.user.id;
 
@@ -30,24 +30,24 @@ exports.blockUser = async (req, res) => {
   }
 
   try {
-    await User.blockUser(blockerUserId, blockedUserId);
+    await blockUser(blockerUserId, blockedUserId);
     res.status(201).json({ message: "User blocked successfully." });
   } catch (error) {
     console.error("Block user error:", error);
     res.status(500).json({ message: "Failed to block user." });
   }
-};
+}
 
 // DELETE /api/users/:userId/block
-exports.unblockUser = async (req, res) => {
+export async function unblockUser(req, res) {
   const { userId: blockedUserId } = req.params;
   const blockerUserId = req.user.id;
 
   try {
-    await User.unblockUser(blockerUserId, blockedUserId);
+    await unblockUser(blockerUserId, blockedUserId);
     res.status(204).send();
   } catch (error) {
     console.error("Unblock user error:", error);
     res.status(500).json({ message: "Failed to unblock user." });
   }
-};
+}

@@ -1,9 +1,9 @@
-const db = require("../config/db");
+import { query as _query } from "../config/db";
 
 const Admin = {};
 
 Admin.getSettings = async () => {
-  const { rows } = await db.query(
+  const { rows } = await _query(
     "SELECT setting_key, setting_value FROM app_settings",
   );
   // Convert array of objects to a single key-value object
@@ -22,7 +22,7 @@ Admin.updateSetting = async (key, value) => {
         SET setting_value = EXCLUDED.setting_value, updated_at = NOW()
         RETURNING *;
     `;
-  const { rows } = await db.query(query, [key, value]);
+  const { rows } = await _query(query, [key, value]);
   return rows[0];
 };
 
@@ -37,8 +37,8 @@ Admin.getAllUsers = async ({ page = 1, limit = 20 }) => {
   const totalQuery = "SELECT COUNT(*) FROM users;";
 
   const [usersResult, totalResult] = await Promise.all([
-    db.query(query, [limit, offset]),
-    db.query(totalQuery),
+    _query(query, [limit, offset]),
+    _query(totalQuery),
   ]);
 
   return {
@@ -54,7 +54,7 @@ Admin.updateUserStatus = async (userId, status) => {
         UPDATE users SET status = $1, updated_at = NOW()
         WHERE id = $2 RETURNING id, status;
     `;
-  const { rows } = await db.query(query, [status, userId]);
+  const { rows } = await _query(query, [status, userId]);
   return rows[0];
 };
 
@@ -70,7 +70,7 @@ Admin.softDeleteUser = async (userId) => {
             updated_at = NOW()
         WHERE id = $1 RETURNING id, status;
     `;
-  const { rows } = await db.query(query, [userId]);
+  const { rows } = await _query(query, [userId]);
   return rows[0];
 };
 
@@ -93,8 +93,8 @@ Admin.updatePermissionsForUser = async (userId, perms) => {
         RETURNING *;
     `;
 
-  const { rows } = await db.query(query, [userId, ...values]);
+  const { rows } = await _query(query, [userId, ...values]);
   return rows[0];
 };
 
-module.exports = Admin;
+export default Admin;

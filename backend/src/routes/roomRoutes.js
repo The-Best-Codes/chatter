@@ -1,18 +1,22 @@
-const express = require("express");
-const roomController = require("../controllers/roomController");
-const { protect } = require("../middleware/authMiddleware");
+import { Router } from "express";
+import {
+  createOrGetDmRoom,
+  getMessagesForRoom,
+  pinMessage,
+} from "../controllers/roomController";
+import { protect } from "../middleware/authMiddleware";
 
-const router = express.Router();
+const router = Router();
 
 // Protect all routes in this file
 router.use(protect);
 
 // POST /api/rooms/dm - to create/get a DM room
-router.post("/dm", roomController.createOrGetDmRoom);
+router.post("/dm", createOrGetDmRoom);
 
 // GET /api/rooms/:roomId/messages - to get message history
-router.get("/:roomId/messages", roomController.getMessagesForRoom);
+router.get("/:roomId/messages", getMessagesForRoom);
 
-router.post("/:roomId/pins", roomController.pinMessage);
+router.post("/:roomId/pins", pinMessage);
 
-module.exports = router;
+export default router;

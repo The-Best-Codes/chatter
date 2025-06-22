@@ -1,5 +1,5 @@
-const db = require("../config/db");
-const bcrypt = require("bcrypt");
+import { hash } from "bcrypt";
+import { query as _query, getPool } from "../config/db";
 
 const User = {};
 
@@ -13,7 +13,7 @@ User.create = async (userData) => {
   } = userData;
 
   const saltRounds = 10;
-  const hashedPassword = await bcrypt.hash(password, saltRounds);
+  const hashedPassword = await hash(password, saltRounds);
 
   const query = `
     INSERT INTO users (username, display_name, hashed_password, public_key_identity, public_key_bundle)
@@ -22,7 +22,7 @@ User.create = async (userData) => {
   `;
 
   // After creating the user, also add them to the main chat room
-  const client = await db.getPool().connect();
+  const client = await getPool().connect();
   try {
     await client.query("BEGIN");
     const userRes = await client.query(query, [
@@ -52,14 +52,14 @@ User.create = async (userData) => {
 
 User.findByUsername = async (username) => {
   const query = "SELECT * FROM users WHERE username = $1";
-  const { rows } = await db.query(query, [username]);
+  const { rows } = await _query(query, [username]);
   return rows[0];
 };
 
 User.findById = async (id) => {
   const query =
     "SELECT id, username, display_name, avatar_url, status, created_at, role FROM users WHERE id = $1";
-  const { rows } = await db.query(query, [id]);
+  const { rows } = await _query(query, [id]);
   return rows[0];
 };
 
@@ -71,7 +71,7 @@ User.searchByUsername = async (searchTerm, excludeUserId) => {
         LIMIT 10;
     `;
   // ILIKE is a case-insensitive search
-  const { rows } = await db.query(query, [`%${searchTerm}%`, excludeUserId]);
+  const { rows } = await _query(query, [`%${searchTerm}%`, excludeUserId]);
   return rows;
 };
 
@@ -80,14 +80,14 @@ User.blockUser = async (blockerUserId, blockedUserId) => {
         INSERT INTO blocked_users (blocker_user_id, blocked_user_id)
         VALUES ($1, $2) ON CONFLICT DO NOTHING;
     `;
-  await db.query(query, [blockerUserId, blockedUserId]);
+  await _query(query, [blockerUserId, blockedUserId]);
   return { success: true };
 };
 
 User.unblockUser = async (blockerUserId, blockedUserId) => {
   const query = `DELETE FROM blocked_users WHERE blocker_user_id = $1 AND blocked_user_id = $2;`;
-  await db.query(query, [blockerUserId, blockedUserId]);
+  await _query(query, [blockerUserId, blockedUserId]);
   return { success: true };
 };
 
-module.exports = User;
+export default User;

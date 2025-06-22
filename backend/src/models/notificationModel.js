@@ -1,4 +1,4 @@
-const db = require("../config/db");
+import { query as _query } from "../config/db";
 
 const Notification = {};
 
@@ -19,14 +19,14 @@ Notification.getUnreadForUser = async (userId) => {
         WHERE n.recipient_user_id = $1 AND n.is_cleared = false
         ORDER BY n.created_at DESC;
     `;
-  const { rows } = await db.query(query, [userId]);
+  const { rows } = await _query(query, [userId]);
   return rows;
 };
 
 Notification.getUnreadCountForUser = async (userId) => {
   const query =
     "SELECT COUNT(*) FROM notifications WHERE recipient_user_id = $1 AND is_cleared = false;";
-  const { rows } = await db.query(query, [userId]);
+  const { rows } = await _query(query, [userId]);
   return parseInt(rows[0].count, 10);
 };
 
@@ -40,8 +40,8 @@ Notification.clearByIds = async (notificationIds, userId) => {
         WHERE id = ANY($1::bigint[]) AND recipient_user_id = $2;
     `;
   // We ensure the user can only clear their own notifications.
-  const { rowCount } = await db.query(query, [notificationIds, userId]);
+  const { rowCount } = await _query(query, [notificationIds, userId]);
   return { clearedCount: rowCount };
 };
 
-module.exports = Notification;
+export default Notification;

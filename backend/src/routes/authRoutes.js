@@ -1,8 +1,8 @@
-const express = require("express");
-const { body } = require("express-validator");
-const authController = require("../controllers/authController");
+import { Router } from "express";
+import { body } from "express-validator";
+import { login, signup } from "../controllers/authController";
 
-const router = express.Router();
+const router = Router();
 
 // POST /api/auth/signup
 router.post(
@@ -30,7 +30,7 @@ router.post(
       .isObject()
       .withMessage("Public key bundle must be a valid JSON object."),
   ],
-  authController.signup,
+  signup,
 );
 
 // POST /api/auth/login
@@ -40,7 +40,7 @@ router.post(
     body("username").notEmpty().withMessage("Username is required."),
     body("password").notEmpty().withMessage("Password is required."),
   ],
-  authController.login,
+  login,
 );
 
-module.exports = router;
+export default router;
