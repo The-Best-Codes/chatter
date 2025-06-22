@@ -1,0 +1,76 @@
+const db = require('../config/db');
+
+const Admin = {};
+
+Admin.getSettings = async () => {
+    const { rows } = await db.query('SELECT setting_key, setting_value FROM app_settings');
+    // Convert array of objects to a single key-value object
+    const settings = rows.reduce((acc, row) => {
+        acc[row.setting_key] = row.setting_value;
+        return acc;
+    }, {});
+    return settings;
+};
+
+Admin.updateSetting = async (key, value) => {
+    const query = `
+        INSERT INTO app_settings (setting_key, setting_value, updated_at)
+        VALUES ($1, $2, NOW())
+        ON CONFLICT (setting_key) DO UPDATE
+        SET setting_value = EXCLUDED.setting_value, updated_at = NOW()
+        RETURNING *;
+    `;
+    const { rows } = await db.query(query, [key, value]);
+    return rows[0];
+};
+
+Admin.getAllUsers = async ({ page = 1, limit = 20 }) => {
+    const offset = (page - 1) * limit;
+    const query = `
+        SELECT id, username, display_name, role, status, created_at
+        FROM users
+        ORDER BY created_at DESC
+        LIMIT $1 OFFSET $2;
+    `;
+    const totalQuery = 'SELECT COUNT(*) FROM users;';
+
+    const [usersResult, totalResult] = await Promise.all([
+        db.query(query, [limit, offset]),
+        db.query(totalQuery)
+    ]);
+
+    return {
+        users: usersResult.rows,
+        total: parseInt(totalResult.rows[0].count, 10),
+        page,
+        limit
+    };
+};
+
+Admin.updateUserStatus = async (userId, status) => {
+    const query = `
+        UPDATE users SET status = $1, updated_at = NOW()
+        WHERE id = $2 RETURNING id, status;
+    `;
+    const { rows } = await db.query(query, [status, userId]);
+    return rows[0];
+};
+
+Admin.softDeleteUser = async (userId) => {
+    // A soft delete sets the status to 'deleted' and anonymizes some data.
+    const query = `
+        UPDATE users
+        SET
+            status = 'deleted',
+            username = 'deleted_user_' || id::text,
+            display_name = 'Deleted User',
+            hashed_password = 'deleted',
+            updated_at = NOW()
+        WHERE id = $1 RETURNING id, status;
+    `;
+     const { rows } = await db.query(query, [userId]);
+    return rows[0];
+};
+
+
+module.exports = Admin;

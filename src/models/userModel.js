@@ -45,7 +45,7 @@ User.findByUsername = async (username) => {
 };
 
 User.findById = async (id) => {
-    const query = 'SELECT id, username, display_name, avatar_url, status, created_at FROM users WHERE id = $1';
+    const query = 'SELECT id, username, display_name, avatar_url, status, created_at, role FROM users WHERE id = $1';
     const { rows } = await db.query(query, [id]);
     return rows[0];
 };

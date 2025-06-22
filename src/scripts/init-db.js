@@ -13,6 +13,7 @@ const createTablesQueries = `
       display_name TEXT NOT NULL,
       avatar_url TEXT,
       hashed_password TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'user',
       public_key_identity TEXT NOT NULL,
       public_key_bundle JSONB NOT NULL,
       status TEXT NOT NULL DEFAULT 'active', -- 'active', 'frozen', 'deleted'
