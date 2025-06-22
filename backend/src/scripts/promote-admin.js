@@ -1,6 +1,5 @@
 // Usage: node src/scripts/promote-admin.js <username>
-import { configDotenv } from "dotenv";
-configDotenv();
+import "dotenv/config";
 
 import { getPool } from "../config/db.js";
 

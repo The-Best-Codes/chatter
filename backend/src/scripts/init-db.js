@@ -1,6 +1,5 @@
 // This script initializes the database by creating all necessary tables.
-import { configDotenv } from "dotenv";
-configDotenv();
+import "dotenv/config";
 
 import { getPool, query } from "../config/db.js";
 
