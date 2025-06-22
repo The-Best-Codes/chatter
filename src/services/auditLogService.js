@@ -1,4 +1,4 @@
-const db = require('../config/db');
+const db = require("../config/db");
 
 const AuditLog = {};
 
@@ -12,18 +12,30 @@ const AuditLog = {};
  * @param {string} logData.ipAddress - The IP address of the admin.
  */
 AuditLog.logAction = async (logData) => {
-    const { adminUserId, action, targetUserId = null, details = {}, ipAddress } = logData;
-    const query = `
+  const {
+    adminUserId,
+    action,
+    targetUserId = null,
+    details = {},
+    ipAddress,
+  } = logData;
+  const query = `
         INSERT INTO admin_audit_logs (admin_user_id, action, target_user_id, details, ip_address)
         VALUES ($1, $2, $3, $4, $5);
     `;
-    try {
-        await db.query(query, [adminUserId, action, targetUserId, details, ipAddress]);
-    } catch (error) {
-        // We log the error but don't throw, as a failing audit log
-        // shouldn't block the primary action from completing.
-        console.error("Failed to write to audit log:", error);
-    }
+  try {
+    await db.query(query, [
+      adminUserId,
+      action,
+      targetUserId,
+      details,
+      ipAddress,
+    ]);
+  } catch (error) {
+    // We log the error but don't throw, as a failing audit log
+    // shouldn't block the primary action from completing.
+    console.error("Failed to write to audit log:", error);
+  }
 };
 
 module.exports = AuditLog;

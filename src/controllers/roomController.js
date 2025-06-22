@@ -35,7 +35,6 @@ exports.createOrGetDmRoom = async (req, res) => {
   }
 
   try {
-    // *** NEW: Block check ***
     const isBlocked = await Room.isBlocked(currentUserId, targetUserId);
     if (isBlocked) {
       return res

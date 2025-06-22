@@ -1,6 +1,6 @@
-const express = require('express');
-const roomController = require('../controllers/roomController');
-const { protect } = require('../middleware/authMiddleware');
+const express = require("express");
+const roomController = require("../controllers/roomController");
+const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -8,11 +8,11 @@ const router = express.Router();
 router.use(protect);
 
 // POST /api/rooms/dm - to create/get a DM room
-router.post('/dm', roomController.createOrGetDmRoom);
+router.post("/dm", roomController.createOrGetDmRoom);
 
 // GET /api/rooms/:roomId/messages - to get message history
-router.get('/:roomId/messages', roomController.getMessagesForRoom);
+router.get("/:roomId/messages", roomController.getMessagesForRoom);
 
-router.post('/:roomId/pins', roomController.pinMessage);
+router.post("/:roomId/pins", roomController.pinMessage);
 
 module.exports = router;

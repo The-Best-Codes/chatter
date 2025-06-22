@@ -1,31 +1,33 @@
-const Notification = require('../models/notificationModel');
+const Notification = require("../models/notificationModel");
 
 // GET /api/notifications
 exports.getNotifications = async (req, res) => {
-    try {
-        const [notifications, count] = await Promise.all([
-            Notification.getUnreadForUser(req.user.id),
-            Notification.getUnreadCountForUser(req.user.id)
-        ]);
-        res.status(200).json({ count, notifications });
-    } catch (error) {
-        console.error('Error fetching notifications:', error);
-        res.status(500).json({ message: 'Failed to retrieve notifications.' });
-    }
+  try {
+    const [notifications, count] = await Promise.all([
+      Notification.getUnreadForUser(req.user.id),
+      Notification.getUnreadCountForUser(req.user.id),
+    ]);
+    res.status(200).json({ count, notifications });
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    res.status(500).json({ message: "Failed to retrieve notifications." });
+  }
 };
 
 // POST /api/notifications/clear
 exports.clearNotifications = async (req, res) => {
-    const { notificationIds } = req.body;
-    if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
-        return res.status(400).json({ message: 'notificationIds must be a non-empty array.' });
-    }
+  const { notificationIds } = req.body;
+  if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
+    return res
+      .status(400)
+      .json({ message: "notificationIds must be a non-empty array." });
+  }
 
-    try {
-        const result = await Notification.clearByIds(notificationIds, req.user.id);
-        res.status(200).json(result);
-    } catch (error) {
-        console.error('Error clearing notifications:', error);
-        res.status(500).json({ message: 'Failed to clear notifications.' });
-    }
+  try {
+    const result = await Notification.clearByIds(notificationIds, req.user.id);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error clearing notifications:", error);
+    res.status(500).json({ message: "Failed to clear notifications." });
+  }
 };

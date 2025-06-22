@@ -1,13 +1,16 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/userModel');
+const jwt = require("jsonwebtoken");
+const User = require("../models/userModel");
 
 exports.protect = async (req, res, next) => {
   let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
     try {
       // Get token from header (e.g., "Bearer <token>")
-      token = req.headers.authorization.split(' ')[1];
+      token = req.headers.authorization.split(" ")[1];
 
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -15,18 +18,20 @@ exports.protect = async (req, res, next) => {
       // Attach user to the request object, but without the password
       req.user = await User.findById(decoded.userId);
 
-      if (!req.user || req.user.status !== 'active') {
-        return res.status(401).json({ message: 'Not authorized, user not active' });
+      if (!req.user || req.user.status !== "active") {
+        return res
+          .status(401)
+          .json({ message: "Not authorized, user not active" });
       }
 
-      next(); // Proceed to the next middleware/controller
+      next();
     } catch (error) {
       console.error(error);
-      return res.status(401).json({ message: 'Not authorized, token failed' });
+      return res.status(401).json({ message: "Not authorized, token failed" });
     }
   }
 
   if (!token) {
-    return res.status(401).json({ message: 'Not authorized, no token' });
+    return res.status(401).json({ message: "Not authorized, no token" });
   }
 };

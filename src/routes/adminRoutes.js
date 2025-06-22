@@ -1,7 +1,7 @@
-const express = require('express');
-const adminController = require('../controllers/adminController');
-const { protect } = require('../middleware/authMiddleware');
-const { isAdmin } = require('../middleware/adminMiddleware');
+const express = require("express");
+const adminController = require("../controllers/adminController");
+const { protect } = require("../middleware/authMiddleware");
+const { isAdmin } = require("../middleware/adminMiddleware");
 
 const router = express.Router();
 
@@ -9,15 +9,18 @@ const router = express.Router();
 router.use(protect, isAdmin);
 
 // Settings Routes
-router.get('/settings', adminController.getAppSettings);
-router.put('/settings', adminController.updateAppSettings);
+router.get("/settings", adminController.getAppSettings);
+router.put("/settings", adminController.updateAppSettings);
 
 // User Management Routes
-router.get('/users', adminController.listUsers);
-router.post('/users/:userId/status', adminController.updateUserStatus);
-router.delete('/users/:userId', adminController.deleteUser);
+router.get("/users", adminController.listUsers);
+router.post("/users/:userId/status", adminController.updateUserStatus);
+router.delete("/users/:userId", adminController.deleteUser);
 
-router.put('/users/:userId/permissions', adminController.updateUserPermissions);
-router.post('/users/:userId/password-reset', adminController.generatePasswordResetCode);
+router.put("/users/:userId/permissions", adminController.updateUserPermissions);
+router.post(
+  "/users/:userId/password-reset",
+  adminController.generatePasswordResetCode,
+);
 
 module.exports = router;

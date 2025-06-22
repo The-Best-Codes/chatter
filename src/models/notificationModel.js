@@ -1,9 +1,9 @@
-const db = require('../config/db');
+const db = require("../config/db");
 
 const Notification = {};
 
 Notification.getUnreadForUser = async (userId) => {
-    const query = `
+  const query = `
         SELECT
             n.id,
             n.type,
@@ -19,28 +19,29 @@ Notification.getUnreadForUser = async (userId) => {
         WHERE n.recipient_user_id = $1 AND n.is_cleared = false
         ORDER BY n.created_at DESC;
     `;
-    const { rows } = await db.query(query, [userId]);
-    return rows;
+  const { rows } = await db.query(query, [userId]);
+  return rows;
 };
 
 Notification.getUnreadCountForUser = async (userId) => {
-    const query = 'SELECT COUNT(*) FROM notifications WHERE recipient_user_id = $1 AND is_cleared = false;';
-    const { rows } = await db.query(query, [userId]);
-    return parseInt(rows[0].count, 10);
+  const query =
+    "SELECT COUNT(*) FROM notifications WHERE recipient_user_id = $1 AND is_cleared = false;";
+  const { rows } = await db.query(query, [userId]);
+  return parseInt(rows[0].count, 10);
 };
 
 Notification.clearByIds = async (notificationIds, userId) => {
-    if (!notificationIds || notificationIds.length === 0) {
-        return { clearedCount: 0 };
-    }
-    const query = `
+  if (!notificationIds || notificationIds.length === 0) {
+    return { clearedCount: 0 };
+  }
+  const query = `
         UPDATE notifications
         SET is_cleared = true
         WHERE id = ANY($1::bigint[]) AND recipient_user_id = $2;
     `;
-    // We ensure the user can only clear their own notifications.
-    const { rowCount } = await db.query(query, [notificationIds, userId]);
-    return { clearedCount: rowCount };
+  // We ensure the user can only clear their own notifications.
+  const { rowCount } = await db.query(query, [notificationIds, userId]);
+  return { clearedCount: rowCount };
 };
 
 module.exports = Notification;
