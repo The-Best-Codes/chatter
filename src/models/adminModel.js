@@ -72,5 +72,26 @@ Admin.softDeleteUser = async (userId) => {
     return rows[0];
 };
 
+Admin.updatePermissionsForUser = async (userId, perms) => {
+    // This is a complex dynamic query. Be careful.
+    const fields = Object.keys(perms);
+    const values = Object.values(perms);
+
+    if (fields.length === 0) return {};
+
+    const setClauses = fields.map((field, i) => `${field} = $${i + 2}`).join(', ');
+
+    const query = `
+        INSERT INTO user_permissions (user_id, ${fields.join(', ')}, updated_at)
+        VALUES ($1, ${fields.map((_, i) => `$${i + 2}`).join(', ')}, NOW())
+        ON CONFLICT (user_id) DO UPDATE
+        SET ${setClauses}, updated_at = NOW()
+        RETURNING *;
+    `;
+
+    const { rows } = await db.query(query, [userId, ...values]);
+    return rows[0];
+};
+
 
 module.exports = Admin;

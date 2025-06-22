@@ -9,5 +9,7 @@ router.use(protect);
 
 // GET /api/users?search=...
 router.get('/', userController.searchUsers);
+router.post('/:userId/block', userController.blockUser);
+router.delete('/:userId/block', userController.unblockUser);
 
 module.exports = router;

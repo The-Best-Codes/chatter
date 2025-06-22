@@ -67,4 +67,15 @@ Room.findOrCreateDmRoom = async (userId1, userId2) => {
     }
 };
 
+Room.isBlocked = async (userId1, userId2) => {
+    // Check if either user has blocked the other
+    const query = `
+        SELECT 1 FROM blocked_users
+        WHERE (blocker_user_id = $1 AND blocked_user_id = $2)
+           OR (blocker_user_id = $2 AND blocked_user_id = $1);
+    `;
+    const { rows } = await db.query(query, [userId1, userId2]);
+    return rows.length > 0;
+};
+
 module.exports = Room;

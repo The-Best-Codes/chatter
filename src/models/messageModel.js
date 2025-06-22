@@ -142,4 +142,12 @@ Message.getReactionsForMessage = async (messageId) => {
     return rows;
 };
 
+Message.pin = async (roomId, messageId, userId) => {
+    const query = `
+        INSERT INTO pinned_messages (room_id, message_id, pinned_by_user_id)
+        VALUES ($1, $2, $3) ON CONFLICT (room_id, message_id) DO NOTHING;
+    `;
+    await db.query(query, [roomId, messageId, userId]);
+};
+
 module.exports = Message;

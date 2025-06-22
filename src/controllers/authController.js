@@ -1,5 +1,6 @@
 const User = require('../models/userModel');
 const Room = require('../models/roomModel'); // Import Room model
+const Session = require('../models/sessionModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
@@ -69,6 +70,9 @@ exports.login = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN }
         );
+
+        // *** NEW: Record the session ***
+        await Session.create(user.id, token, req.headers['user-agent'], req.ip);
 
         // *** NEW: Fetch user's rooms ***
         const rooms = await Room.getRoomsForUser(user.id);

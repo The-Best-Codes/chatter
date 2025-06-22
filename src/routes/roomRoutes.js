@@ -13,5 +13,6 @@ router.post('/dm', roomController.createOrGetDmRoom);
 // GET /api/rooms/:roomId/messages - to get message history
 router.get('/:roomId/messages', roomController.getMessagesForRoom);
 
+router.post('/:roomId/pins', roomController.pinMessage);
 
 module.exports = router;

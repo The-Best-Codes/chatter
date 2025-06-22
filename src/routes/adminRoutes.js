@@ -17,5 +17,7 @@ router.get('/users', adminController.listUsers);
 router.post('/users/:userId/status', adminController.updateUserStatus);
 router.delete('/users/:userId', adminController.deleteUser);
 
+router.put('/users/:userId/permissions', adminController.updateUserPermissions);
+router.post('/users/:userId/password-reset', adminController.generatePasswordResetCode);
 
 module.exports = router;

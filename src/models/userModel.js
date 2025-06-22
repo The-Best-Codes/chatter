@@ -62,4 +62,19 @@ User.searchByUsername = async (searchTerm, excludeUserId) => {
     return rows;
 };
 
+User.blockUser = async (blockerUserId, blockedUserId) => {
+    const query = `
+        INSERT INTO blocked_users (blocker_user_id, blocked_user_id)
+        VALUES ($1, $2) ON CONFLICT DO NOTHING;
+    `;
+    await db.query(query, [blockerUserId, blockedUserId]);
+    return { success: true };
+};
+
+User.unblockUser = async (blockerUserId, blockedUserId) => {
+    const query = `DELETE FROM blocked_users WHERE blocker_user_id = $1 AND blocked_user_id = $2;`;
+    await db.query(query, [blockerUserId, blockedUserId]);
+    return { success: true };
+};
+
 module.exports = User;
