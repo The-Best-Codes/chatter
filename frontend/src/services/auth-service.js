@@ -73,7 +73,7 @@ const AuthService = {
         throw new Error(errorMessage);
       }
 
-      localStorage.setItem("userToken", data.token);
+      localStorage.setItem("chatterUserToken", data.token);
 
       return data;
     } catch (error) {
@@ -84,12 +84,12 @@ const AuthService = {
 
   logout: () => {
     // TODO: API route for this? Use session routes?
-    localStorage.removeItem("userToken");
+    localStorage.removeItem("chatterUserToken");
   },
 
   getToken: () => {
     // TODO: User info endpoint?
-    return localStorage.getItem("userToken");
+    return localStorage.getItem("chatterUserToken");
   },
 };
 

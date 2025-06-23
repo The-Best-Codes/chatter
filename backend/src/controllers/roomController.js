@@ -3,8 +3,41 @@ import {
   isBlocked as _isBlocked,
   findOrCreateDmRoom,
   isUserInRoom,
+  getRoomsForUser,
+  createRoom,
 } from "../models/roomModel.js";
 import { canPinMessage } from "../services/permissionService.js";
+
+// GET /api/rooms
+export async function getUserRooms(req, res) {
+  const userId = req.user.id;
+
+  try {
+    const rooms = await getRoomsForUser(userId);
+    res.status(200).json(rooms);
+  } catch (error) {
+    console.error("Error fetching user rooms:", error);
+    res.status(500).json({ message: "Failed to fetch rooms." });
+  }
+}
+
+// POST /api/rooms
+export async function createNewRoom(req, res) {
+  const { name, type = "main_chat" } = req.body;
+  const creatorId = req.user.id;
+
+  if (!name || name.trim().length === 0) {
+    return res.status(400).json({ message: "Room name is required." });
+  }
+
+  try {
+    const newRoom = await createRoom(name.trim(), type, creatorId);
+    res.status(201).json(newRoom);
+  } catch (error) {
+    console.error("Error creating room:", error);
+    res.status(500).json({ message: "Failed to create room." });
+  }
+}
 
 // GET /api/rooms/:roomId/messages
 export async function getMessagesForRoom(req, res) {

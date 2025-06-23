@@ -9,9 +9,30 @@ export const isUserInRoom = async (userId, roomId) => {
 
 export const getRoomsForUser = async (userId) => {
   const query = `
-        SELECT r.id, r.type, r.name FROM rooms r
+        SELECT 
+          r.id, 
+          r.type, 
+          r.name,
+          r.created_at,
+          CASE 
+            WHEN r.type = 'dm' THEN (
+              SELECT json_build_object(
+                'id', u.id,
+                'username', u.username,
+                'display_name', u.display_name,
+                'avatar_url', u.avatar_url
+              )
+              FROM users u
+              JOIN room_members rm2 ON u.id = rm2.user_id
+              WHERE rm2.room_id = r.id AND rm2.user_id != $1
+              LIMIT 1
+            )
+            ELSE NULL
+          END as other_user
+        FROM rooms r
         JOIN room_members rm ON r.id = rm.room_id
-        WHERE rm.user_id = $1;
+        WHERE rm.user_id = $1
+        ORDER BY r.created_at DESC;
     `;
   const { rows } = await _query(query, [userId]);
   return rows;
@@ -55,6 +76,34 @@ export const findOrCreateDmRoom = async (userId1, userId2) => {
     // Step 2: Add both users as members of the new room
     const memberInsertQuery = `INSERT INTO room_members (user_id, room_id) VALUES ($1, $2), ($3, $2);`;
     await client.query(memberInsertQuery, [u1, newRoom.id, u2]);
+
+    await client.query("COMMIT");
+    return newRoom;
+  } catch (e) {
+    await client.query("ROLLBACK");
+    throw e;
+  } finally {
+    client.release();
+  }
+};
+
+export const createRoom = async (name, type = "main_chat", creatorId) => {
+  const client = await getPool().connect();
+  try {
+    await client.query("BEGIN");
+
+    // Create the room
+    const roomInsertQuery = `
+      INSERT INTO rooms (name, type) 
+      VALUES ($1, $2) 
+      RETURNING id, name, type, created_at;
+    `;
+    const roomResult = await client.query(roomInsertQuery, [name, type]);
+    const newRoom = roomResult.rows[0];
+
+    // Add the creator as a member
+    const memberInsertQuery = `INSERT INTO room_members (user_id, room_id) VALUES ($1, $2);`;
+    await client.query(memberInsertQuery, [creatorId, newRoom.id]);
 
     await client.query("COMMIT");
     return newRoom;

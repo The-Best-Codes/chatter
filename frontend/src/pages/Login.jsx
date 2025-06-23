@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -10,13 +11,15 @@ import {
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import AuthService from "../services/auth-service";
+import { useAuth } from "../contexts/AuthContext";
 
 export function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -24,9 +27,8 @@ export function LoginPage() {
     setError(null);
 
     try {
-      const response = await AuthService.login(username, password);
-      console.log("Login successful:", response);
-      alert("Login successful! Token stored.");
+      await login(username, password);
+      navigate("/");
     } catch (err) {
       console.error("Login failed:", err.message);
       setError(err.message || "Failed to login. Please try again.");
@@ -87,8 +89,8 @@ export function LoginPage() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Logging in..." : "Login"}
               </Button>
-              <Button type="button" variant="link">
-                I don't have an account
+              <Button type="button" variant="link" asChild>
+                <Link to="/signup">I don't have an account</Link>
               </Button>
             </CardFooter>
           </form>

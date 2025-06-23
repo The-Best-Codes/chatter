@@ -17,8 +17,8 @@ export async function signup(req, res) {
     username,
     displayName,
     password,
-    publicKeyIdentity,
-    publicKeyBundle,
+    publicKeyIdentity = "placeholder", // TODO: Implement E2E encryption
+    publicKeyBundle = {}, // TODO: Implement E2E encryption
   } = req.body;
 
   try {
