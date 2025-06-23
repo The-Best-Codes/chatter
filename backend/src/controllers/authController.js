@@ -89,15 +89,12 @@ export async function login(req, res) {
 
     await _create(user.id, token, req.headers["user-agent"], req.ip);
 
-    const rooms = await getRoomsForUser(user.id);
-
     const { hashed_password, ...userWithoutPassword } = user;
 
     res.status(200).json({
       message: "Login successful!",
       token,
       user: userWithoutPassword,
-      rooms,
     });
   } catch (error) {
     console.error("Login Error:", error);
