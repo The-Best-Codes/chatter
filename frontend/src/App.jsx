@@ -1,10 +1,16 @@
-import { LoginComponent } from "./components/Login";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+
+import { LoginPage } from "./pages/Login";
+import { NotFoundPage } from "./pages/NotFound";
 
 function App() {
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen py-2">
-      <LoginComponent />
-    </main>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Router>
   );
 }
 
