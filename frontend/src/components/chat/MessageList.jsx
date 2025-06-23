@@ -18,7 +18,7 @@ export function MessageList({
 
   const handleStartEdit = (message) => {
     setEditingMessageId(message.id);
-    setEditContent(message.encrypted_content); // In real app, this would be decrypted
+    setEditContent(message.encrypted_content); // Later, this will be decrypted
   };
 
   const handleSaveEdit = () => {

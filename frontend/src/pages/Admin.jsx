@@ -23,11 +23,11 @@ import {
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { useAuth } from "../contexts/AuthContext";
+//import { useAuth } from "../contexts/AuthContext";
 import ApiService from "../services/api-service";
 
 export function AdminPage() {
-  const { user } = useAuth();
+  //const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
@@ -36,24 +36,28 @@ export function AdminPage() {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const loadData = async () => {
     setLoading(true);
     try {
       switch (activeTab) {
-        case "users":
+        case "users": {
           const userList = await ApiService.getUsers();
           setUsers(userList);
           break;
-        case "audit":
+        }
+        case "audit": {
           const logs = await ApiService.getAuditLogs();
           setAuditLogs(logs);
           break;
-        case "invites":
+        }
+        case "invites": {
           const codes = await ApiService.getInviteCodes();
           setInviteCodes(codes);
           break;
+        }
       }
     } catch (error) {
       console.error("Failed to load data:", error);

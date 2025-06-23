@@ -1,4 +1,4 @@
-import { Paperclip, Send, Smile } from "lucide-react";
+import { Send, Smile } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
@@ -75,10 +75,6 @@ export function MessageInput({ onSendMessage, onStartTyping, onStopTyping }) {
   return (
     <div className="p-4 border-t border-border bg-card">
       <div className="flex items-end gap-2">
-        <Button variant="ghost" size="icon" className="mb-2">
-          <Paperclip className="h-4 w-4" />
-        </Button>
-
         <div className="flex-1 relative">
           <Textarea
             ref={textareaRef}
@@ -86,10 +82,11 @@ export function MessageInput({ onSendMessage, onStartTyping, onStopTyping }) {
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             placeholder="Type a message..."
-            className="min-h-[40px] max-h-32 resize-none pr-12"
+            className="min-h-10 max-h-32 resize-none pr-12"
             rows={1}
           />
 
+          {/* TODO: Emoji picker */}
           <Button
             variant="ghost"
             size="icon"
@@ -100,9 +97,9 @@ export function MessageInput({ onSendMessage, onStartTyping, onStopTyping }) {
         </div>
 
         <Button
+          size="icon"
           onClick={handleSendMessage}
           disabled={!message.trim()}
-          className="mb-2"
         >
           <Send className="h-4 w-4" />
         </Button>

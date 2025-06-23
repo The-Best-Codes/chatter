@@ -71,6 +71,7 @@ export function ChatArea({ room }) {
         WebSocketService.off("user_stopped_typing", handleUserStoppedTyping);
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room]);
 
   const loadMessages = async () => {
@@ -79,7 +80,7 @@ export function ChatArea({ room }) {
     setLoading(true);
     try {
       const roomMessages = await ApiService.getRoomMessages(room.id);
-      setMessages(roomMessages.reverse()); // API returns newest first, we want oldest first
+      setMessages(roomMessages);
       scrollToBottom();
     } catch (error) {
       console.error("Failed to load messages:", error);
@@ -96,7 +97,7 @@ export function ChatArea({ room }) {
 
   const handleSendMessage = (content, replyToMessageId = null) => {
     // For now, we'll send the content as-is (not encrypted)
-    // In a real implementation, you'd encrypt the content here
+    // Later, we will encrypt the content here
     WebSocketService.sendMessage(room.id, content, replyToMessageId);
   };
 
@@ -124,7 +125,6 @@ export function ChatArea({ room }) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="p-4 border-b border-border bg-card">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -152,6 +152,7 @@ export function ChatArea({ room }) {
             </div>
           </div>
 
+          {/* TODO: Implement */}
           <div className="flex items-center gap-2">
             {room.type !== "dm" && (
               <Button variant="ghost" size="icon">
@@ -168,7 +169,6 @@ export function ChatArea({ room }) {
         </div>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center h-full">
@@ -183,9 +183,9 @@ export function ChatArea({ room }) {
               onPinMessage={handlePinMessage}
             />
 
-            {/* Typing indicators */}
             {typingUsers.length > 0 && (
               <div className="px-4 py-2 text-sm text-muted-foreground">
+                {/* TODO: Hide if too many users, also add and to last user if multiple */}
                 {typingUsers.map((u) => u.displayName || u.username).join(", ")}
                 {typingUsers.length === 1 ? " is" : " are"} typing...
               </div>
@@ -196,7 +196,6 @@ export function ChatArea({ room }) {
         )}
       </div>
 
-      {/* Message Input */}
       <MessageInput
         onSendMessage={handleSendMessage}
         onStartTyping={() => WebSocketService.startTyping(room.id)}
