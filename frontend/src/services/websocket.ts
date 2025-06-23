@@ -151,6 +151,15 @@ class WebSocketService {
       }
     };
   }
+  
+  public off<K extends keyof WebSocketEventMap>(
+    event: K,
+    handler: WebSocketEventHandler<K>
+  ): void {
+    if (this.eventHandlers[event]) {
+      this.eventHandlers[event] = (this.eventHandlers[event] as Array<WebSocketEventHandler<K>>).filter(h => h !== handler);
+    }
+  }
 
   private notifyListeners<K extends keyof WebSocketEventMap>(
     event: K,
@@ -200,6 +209,14 @@ class WebSocketService {
 
   public stopTyping(roomId: string): void {
     this.sendMessage('stop_typing', { roomId });
+  }
+  
+  public sendTypingStatus(roomId: string, isTyping: boolean): void {
+    if (isTyping) {
+      this.startTyping(roomId);
+    } else {
+      this.stopTyping(roomId);
+    }
   }
 }
 

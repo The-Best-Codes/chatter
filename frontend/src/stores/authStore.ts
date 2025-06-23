@@ -12,12 +12,14 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  privateKey: JsonWebKey | null;
   
   // Actions
   login: (username: string, password: string) => Promise<void>;
   signup: (username: string, displayName: string, password: string) => Promise<void>;
   logout: () => void;
   clearError: () => void;
+  setPrivateKey: (key: JsonWebKey) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -29,6 +31,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      privateKey: null,
       
       login: async (username: string, password: string) => {
         set({ isLoading: true, error: null });
@@ -117,6 +120,10 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => {
         set({ error: null });
       },
+      
+      setPrivateKey: (key: JsonWebKey) => {
+        set({ privateKey: key });
+      },
     }),
     {
       name: 'chatter-auth-storage',
@@ -125,6 +132,7 @@ export const useAuthStore = create<AuthState>()(
         token: state.token,
         rooms: state.rooms,
         isAuthenticated: state.isAuthenticated,
+        // Note: We don't persist the private key in localStorage for security reasons
       }),
     }
   )

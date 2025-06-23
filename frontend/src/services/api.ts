@@ -1,5 +1,7 @@
 import { AuthResponse, ApiError } from '../types';
 
+// In development, we'll use a mock API if the backend is not available
+const isDev = import.meta.env.DEV;
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Helper function to handle API responses

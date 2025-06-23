@@ -6,21 +6,29 @@ import { SignupPage } from './pages/SignupPage';
 import { ChatPage } from './pages/ChatPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { useAuthStore } from './stores/authStore';
+import { useRoomStore } from './stores/roomStore';
+import { useUserStore } from './stores/userStore';
 import { websocketService } from './services/websocket';
 
 function App() {
   const { token, isAuthenticated } = useAuthStore();
+  const { fetchRooms } = useRoomStore();
+  const { fetchUsers } = useUserStore();
   
   // Connect to WebSocket when the app loads if authenticated
   useEffect(() => {
     if (isAuthenticated && token) {
       websocketService.connect(token);
+      
+      // Fetch initial data
+      fetchRooms();
+      fetchUsers();
     }
     
     return () => {
       websocketService.disconnect();
     };
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, token, fetchRooms, fetchUsers]);
   
   return (
     <BrowserRouter>

@@ -15,18 +15,24 @@ export interface Room {
   type: 'dm' | 'group';
   name?: string;
   created_at?: string;
+  encrypted?: boolean;
+  publicKey?: string; // For encrypted DMs
+  participants?: User[];
+  owner_id?: string;
 }
 
 export interface Message {
   id: string;
-  room_id: string;
+  roomId: string;
   sender_id: string;
-  encrypted_content: string;
-  reply_to_message_id?: string;
+  content: string;
+  encrypted?: boolean;
+  reply_to_id?: string;
   created_at: string;
   updated_at?: string;
   deleted_at?: string;
   sender?: {
+    id: string;
     username: string;
     display_name: string;
     avatar_url?: string;
