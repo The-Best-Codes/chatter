@@ -39,6 +39,7 @@ export async function addReaction(req, res) {
     // Broadcast the change to the room
     await broadcastToRoom(messageRoom.room_id, "reaction_changed", {
       messageId,
+      roomId: messageRoom.room_id,
       reactions: updatedReactions,
     });
 
@@ -76,6 +77,7 @@ export async function removeReaction(req, res) {
 
     await broadcastToRoom(messageRoom.room_id, "reaction_changed", {
       messageId,
+      roomId: messageRoom.room_id,
       reactions: updatedReactions,
     });
 

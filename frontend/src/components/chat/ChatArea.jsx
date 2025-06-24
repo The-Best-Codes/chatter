@@ -1,5 +1,6 @@
 import { Hash, MoreVertical, Pin, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 import ApiService from "../../services/api-service";
 import WebSocketService from "../../services/websocket-service";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -12,6 +13,7 @@ export function ChatArea({ room }) {
   const [loading, setLoading] = useState(true);
   const [typingUsers, setTypingUsers] = useState([]);
   const messagesEndRef = useRef(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (room) {
@@ -57,11 +59,20 @@ export function ChatArea({ room }) {
         }
       };
 
+      const handleReactionChanged = ({ messageId, roomId, reactions }) => {
+        if (roomId === room.id) {
+          setMessages((prev) =>
+            prev.map((m) => (m.id === messageId ? { ...m, reactions } : m)),
+          );
+        }
+      };
+
       WebSocketService.on("new_message", handleNewMessage);
       WebSocketService.on("message_edited", handleMessageEdited);
       WebSocketService.on("message_deleted", handleMessageDeleted);
       WebSocketService.on("user_typing", handleUserTyping);
       WebSocketService.on("user_stopped_typing", handleUserStoppedTyping);
+      WebSocketService.on("reaction_changed", handleReactionChanged);
 
       return () => {
         WebSocketService.off("new_message", handleNewMessage);
@@ -69,6 +80,7 @@ export function ChatArea({ room }) {
         WebSocketService.off("message_deleted", handleMessageDeleted);
         WebSocketService.off("user_typing", handleUserTyping);
         WebSocketService.off("user_stopped_typing", handleUserStoppedTyping);
+        WebSocketService.off("reaction_changed", handleReactionChanged);
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -116,6 +128,25 @@ export function ChatArea({ room }) {
       loadMessages();
     } catch (error) {
       console.error("Failed to pin message:", error);
+    }
+  };
+
+  const handleToggleReaction = async (messageId, emoji) => {
+    const message = messages.find((m) => m.id === messageId);
+    if (!message || !user) return;
+
+    const reaction = message.reactions?.find((r) => r.emoji === emoji);
+    const userHasReacted = reaction?.users?.some((u) => u.userId === user.id);
+
+    try {
+      if (userHasReacted) {
+        await ApiService.removeReaction(messageId, emoji);
+      } else {
+        await ApiService.addReaction(messageId, emoji);
+      }
+      // No local state update needed, we wait for the WebSocket broadcast.
+    } catch (error) {
+      console.error("Failed to toggle reaction:", error);
     }
   };
 
@@ -181,6 +212,7 @@ export function ChatArea({ room }) {
               onEditMessage={handleEditMessage}
               onDeleteMessage={handleDeleteMessage}
               onPinMessage={handlePinMessage}
+              onToggleReaction={handleToggleReaction}
             />
 
             {typingUsers.length > 0 && (
