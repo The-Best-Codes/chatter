@@ -1,11 +1,29 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import emojisData from "../data/emojis.json";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
 function EmojiPicker({ messageId, onEmojiSelect }) {
   const [searchTerm, setSearchTerm] = useState("");
+  const inputRef = useRef(null);
+  const containerRef = useRef(null);
+
+  const emojiButtonRefsMap = useRef(new Map());
+
+  const setEmojiButtonRef = useCallback((itemSlug, el) => {
+    if (el) {
+      emojiButtonRefsMap.current.set(itemSlug, el);
+    } else {
+      emojiButtonRefsMap.current.delete(itemSlug);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   const handleSelect = useCallback(
     (emojiItem) => {
@@ -28,14 +46,52 @@ function EmojiPicker({ messageId, onEmojiSelect }) {
     })
     .filter((categoryObject) => categoryObject.emojis.length > 0);
 
+  const handleKeyDown = useCallback((event) => {
+    if (event.key === "Tab") {
+      const currentFocusedElement = document.activeElement;
+
+      const inputElement = inputRef.current;
+
+      const sortedEmojiButtons = Array.from(emojiButtonRefsMap.current.values())
+        .filter(Boolean)
+        .sort(
+          (a, b) => a.compareDocumentPosition(b) - b.compareDocumentPosition(a),
+        );
+
+      const focusableElements = [inputElement, ...sortedEmojiButtons].filter(
+        Boolean,
+      );
+
+      const currentIdx = focusableElements.indexOf(currentFocusedElement);
+
+      if (currentIdx === -1) {
+        return;
+      }
+
+      event.preventDefault();
+
+      let nextIdx;
+      if (event.shiftKey) {
+        nextIdx = (currentIdx + 1) % focusableElements.length;
+      } else {
+        nextIdx =
+          (currentIdx - 1 + focusableElements.length) %
+          focusableElements.length;
+      }
+
+      focusableElements[nextIdx]?.focus();
+    }
+  }, []);
+
   return (
-    <div className="p-2">
+    <div className="p-2" ref={containerRef} onKeyDown={handleKeyDown}>
       <Input
         type="text"
         placeholder="Search emojis..."
         className="mb-4"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
+        ref={inputRef}
       />
       <div className="h-64 overflow-y-auto pr-2">
         {filteredEmojisData.length === 0 && (
@@ -57,6 +113,7 @@ function EmojiPicker({ messageId, onEmojiSelect }) {
                   className="flex h-8 w-8 text-2xl"
                   aria-label={item.name}
                   title={item.name}
+                  ref={(el) => setEmojiButtonRef(item.slug, el)}
                 >
                   {item.emoji}
                 </Button>
