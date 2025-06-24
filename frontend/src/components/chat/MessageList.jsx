@@ -147,17 +147,29 @@ export function MessageList({
             </div>
 
             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="flex items-center gap-1">
-                <Button variant="outline" size="icon" className="h-6 w-6">
+              <div className="flex items-center gap-0">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-6 w-6 border-r-0 outline-0 rounded-r-none"
+                >
                   <Smile className="h-3 w-3" />
                 </Button>
-                <Button variant="outline" size="icon" className="h-6 w-6">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-6 w-6 border-x-0 outline-0 rounded-none"
+                >
                   <Reply className="h-3 w-3" />
                 </Button>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-6 w-6">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-6 w-6 border-l-0 outline-0 rounded-l-none"
+                    >
                       <MoreVertical className="h-3 w-3" />
                     </Button>
                   </DropdownMenuTrigger>
