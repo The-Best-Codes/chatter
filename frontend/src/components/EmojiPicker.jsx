@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useState } from "react";
 import emojisData from "../data/emojis.json";
+import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
 function EmojiPicker({ messageId, onEmojiSelect }) {
@@ -49,15 +50,16 @@ function EmojiPicker({ messageId, onEmojiSelect }) {
             </h5>
             <div className="grid grid-cols-8 gap-1">
               {categoryObject.emojis.map((item) => (
-                <button
+                <Button
                   key={item.slug}
                   onClick={() => handleSelect(item)}
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-2xl hover:bg-accent hover:text-accent-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  variant="ghost"
+                  className="flex h-8 w-8 text-2xl"
                   aria-label={item.name}
                   title={item.name}
                 >
                   {item.emoji}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
