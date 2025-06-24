@@ -179,8 +179,8 @@ export function ChatSidebar({
                       </AvatarFallback>
                     </Avatar>
                   ) : (
-                    <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center">
-                      <Hash className="h-4 w-4" />
+                    <div className="h-8 w-8 rounded-md bg-foreground flex items-center justify-center">
+                      <Hash className="h-4 w-4 text-background" />
                     </div>
                   )}
                 </div>
