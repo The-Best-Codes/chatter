@@ -1,8 +1,8 @@
 import { formatDistanceToNow } from "date-fns";
-import EmojiPicker, { Theme } from "emoji-picker-react"; // TODO: Use something else (native + tanstack virtual?)
 import { Edit, MoreVertical, Pin, Reply, Smile, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { EmojiPicker } from "../EmojiPicker";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -25,12 +25,10 @@ export function MessageList({
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editContent, setEditContent] = useState("");
   const [openDropdowns, setOpenDropdowns] = useState({});
-  const [pickerOpenForMessage, setPickerOpenForMessage] = useState(null);
 
   const handleStartEdit = (message) => {
     setEditingMessageId(message.id);
     setEditContent(message.encrypted_content); // Later, this will be decrypted
-    setPickerOpenForMessage(null); // Close picker if open
   };
 
   const handleSaveEdit = () => {
@@ -48,7 +46,6 @@ export function MessageList({
 
   const handleEmojiSelect = (messageId, emojiData) => {
     onToggleReaction(messageId, emojiData.emoji);
-    setPickerOpenForMessage(null);
   };
 
   const formatTime = (timestamp) => {
@@ -73,7 +70,7 @@ export function MessageList({
       {messages.map((message) => (
         <div
           key={message.id}
-          className={`group hover:bg-muted p-4 ${openDropdowns[message.id] || pickerOpenForMessage === message.id ? "bg-muted" : ""}`}
+          className={`group hover:bg-muted p-4 ${openDropdowns[message.id] ? "bg-muted" : ""}`}
         >
           <div className="flex items-start gap-3">
             <Avatar className="h-8 w-8">
@@ -169,24 +166,33 @@ export function MessageList({
 
             <div
               className={`${
-                openDropdowns[message.id] || pickerOpenForMessage === message.id
+                openDropdowns[message.id]
                   ? "opacity-100"
                   : "opacity-0 group-hover:opacity-100"
               }`}
             >
               <div className="relative flex items-center gap-0">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-6 w-6 border-r-0 outline-0 rounded-r-none"
-                  onClick={() =>
-                    setPickerOpenForMessage(
-                      pickerOpenForMessage === message.id ? null : message.id,
-                    )
-                  }
+                <DropdownMenu
+                  onOpenChange={(isOpen) => {
+                    setOpenDropdowns((prev) => ({
+                      ...prev,
+                      [message.id]: isOpen,
+                    }));
+                  }}
                 >
-                  <Smile className="h-3 w-3" />
-                </Button>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-6 w-6 border-r-0 outline-0 rounded-r-none"
+                    >
+                      <Smile className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button
                   variant="outline"
                   size="icon"
@@ -201,7 +207,6 @@ export function MessageList({
                       ...prev,
                       [message.id]: isOpen,
                     }));
-                    if (isOpen) setPickerOpenForMessage(null); // Close picker if dropdown opens
                   }}
                 >
                   <DropdownMenuTrigger asChild>
@@ -239,21 +244,6 @@ export function MessageList({
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
-
-                {pickerOpenForMessage === message.id && (
-                  <div className="absolute bottom-full right-0 z-10 mb-2">
-                    <EmojiPicker
-                      onEmojiClick={(emojiData) =>
-                        handleEmojiSelect(message.id, emojiData)
-                      }
-                      theme={Theme.AUTO}
-                      searchDisabled
-                      previewConfig={{ showPreview: false }}
-                      height={350}
-                      width={300}
-                    />
-                  </div>
-                )}
               </div>
             </div>
           </div>
