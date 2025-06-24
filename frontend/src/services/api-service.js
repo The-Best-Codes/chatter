@@ -67,6 +67,21 @@ class ApiService {
     });
   }
 
+  // Reaction endpoints
+  async addReaction(messageId, emoji) {
+    return this.request(`/api/messages/${messageId}/reactions`, {
+      method: "POST",
+      body: JSON.stringify({ emojiCode: emoji }),
+    });
+  }
+
+  async removeReaction(messageId, emoji) {
+    return this.request(`/api/messages/${messageId}/reactions`, {
+      method: "DELETE",
+      body: JSON.stringify({ emojiCode: emoji }),
+    });
+  }
+
   // Notification endpoints
   async getNotifications() {
     return this.request("/api/notifications");

@@ -103,9 +103,27 @@ export const getMessagesByRoomId = async (
   beforeId = null,
 ) => {
   let query = `
-        SELECT m.id, m.room_id, m.sender_id, m.encrypted_content, m.reply_to_message_id, m.created_at, m.updated_at, u.username, u.display_name, u.avatar_url
+        SELECT m.id, m.room_id, m.sender_id, m.encrypted_content, m.reply_to_message_id, m.created_at, m.updated_at, u.username, u.display_name, u.avatar_url,
+              p.id IS NOT NULL AS is_pinned,
+              COALESCE(
+                (
+                  SELECT json_agg(r)::jsonb -- Explicitly cast json_agg result to jsonb
+                  FROM (
+                      SELECT
+                          mr.emoji_code as "emoji",
+                          COUNT(mr.user_id)::int as "count",
+                          json_agg(json_build_object('userId', u_react.id, 'username', u_react.username)) as "users"
+                      FROM message_reactions mr
+                      JOIN users u_react ON mr.user_id = u_react.id
+                      WHERE mr.message_id = m.id
+                      GROUP BY mr.emoji_code
+                  ) r
+                ),
+                '[]'::jsonb
+              ) as reactions
         FROM messages m
         JOIN users u ON m.sender_id = u.id
+        LEFT JOIN pinned_messages p ON m.id = p.message_id AND p.room_id = m.room_id
         WHERE m.room_id = $1 AND m.deleted_at IS NULL
     `;
   const params = [roomId];
@@ -180,13 +198,13 @@ export const getReactionsForMessage = async (messageId) => {
   // This query aggregates reactions by emoji, counting them and listing who reacted.
   const query = `
         SELECT
-            emoji_code,
-            COUNT(*) as count,
-            JSON_AGG(json_build_object('userId', user_id, 'username', u.username)) as users
+            mr.emoji_code as "emoji",
+            COUNT(*)::int as "count",
+            json_agg(json_build_object('userId', mr.user_id, 'username', u.username)) as "users"
         FROM message_reactions mr
         JOIN users u on mr.user_id = u.id
         WHERE message_id = $1
-        GROUP BY emoji_code;
+        GROUP BY mr.emoji_code;
     `;
   const { rows } = await _query(query, [messageId]);
   return rows;
