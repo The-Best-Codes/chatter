@@ -35,7 +35,12 @@ export function MessageList({
   };
 
   const formatTime = (timestamp) => {
-    return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
+    try {
+      return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
+    } catch (error) {
+      console.error("Error formatting time:", error);
+      return "Unknown time";
+    }
   };
 
   const canEditMessage = (message) => {
@@ -66,7 +71,8 @@ export function MessageList({
                   {message.display_name || message.username}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {formatTime(message.created_at)}
+                  {message?.updated_at && "Edited"}{" "}
+                  {formatTime(message?.updated_at || message?.created_at)}
                 </span>
                 {message.is_pinned && (
                   <Badge variant="secondary" className="text-xs">

@@ -28,7 +28,7 @@ export function ChatArea({ room }) {
       const handleMessageEdited = (message) => {
         if (message.room_id === room.id) {
           setMessages((prev) =>
-            prev.map((m) => (m.id === message.id ? message : m)),
+            prev.map((m) => (m.id === message.id ? { ...m, ...message } : m)),
           );
         }
       };

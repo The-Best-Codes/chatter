@@ -1,18 +1,14 @@
 import jsonWebToken from "jsonwebtoken";
 import { WebSocket } from "ws";
 import { create, edit, softDelete } from "../models/messageModel.js";
-import {
-  getRoomMemberIds,
-  getRoomsForUser,
-  isUserInRoom,
-} from "../models/roomModel.js";
+import { getRoomMemberIds, isUserInRoom } from "../models/roomModel.js";
 import { findById } from "../models/userModel.js";
 import { hasPermission } from "./permissionService.js";
 
 const { verify } = jsonWebToken;
 
 // This will store all active client connections
-// Map<userId, { ws: WebSocket, rooms: Set<string> }>
+// Map<userId, Set<WebSocket>>
 const clients = new Map();
 
 function sendToClient(ws, event, payload) {
@@ -29,24 +25,31 @@ export async function broadcastToRoom(
   for (const memberId of roomMembers) {
     if (memberId === excludeUserId) continue;
 
-    const client = clients.get(memberId);
-    // Check if the user is currently connected
-    if (client && client.ws.readyState === WebSocket.OPEN) {
-      sendToClient(client.ws, event, payload);
+    const userConnections = clients.get(memberId);
+    // Check if the user is currently connected and has active sessions
+    if (userConnections) {
+      for (const ws of userConnections) {
+        if (ws.readyState === WebSocket.OPEN) {
+          sendToClient(ws, event, payload);
+        }
+      }
     }
   }
 }
 
 /**
- * Disconnect a specific user's websocket connection
+ * Disconnect a specific user's websocket connection(s)
  * Used when user status is changed or user is deleted
  */
 export function disconnectUser(userId) {
-  const client = clients.get(userId);
-  if (client && client.ws.readyState === WebSocket.OPEN) {
-    client.ws.close(1008, "User session invalidated");
+  const userConnections = clients.get(userId);
+  if (userConnections) {
+    // Terminate all websocket connections for this user
+    for (const ws of userConnections) {
+      ws.close(1008, "User session invalidated");
+    }
     clients.delete(userId);
-    console.log(`Disconnected websocket for user ${userId}`);
+    console.log(`Disconnected all websocket(s) for user ${userId}`);
     return true;
   }
   return false;
@@ -243,13 +246,11 @@ export function init(wss) {
             );
             ws.userId = decoded.userId;
 
-            // Fetch the rooms this user is part of
-            const userRooms = await getRoomsForUser(decoded.userId);
-
-            clients.set(ws.userId, {
-              ws,
-              rooms: new Set(userRooms.map((r) => r.id)),
-            });
+            // Add the new connection to the set for this user
+            if (!clients.has(ws.userId)) {
+              clients.set(ws.userId, new Set());
+            }
+            clients.get(ws.userId).add(ws);
             clearTimeout(authTimeout);
 
             console.log(`✅ WS Client authenticated: User ${ws.userId}`);
@@ -271,7 +272,15 @@ export function init(wss) {
 
     ws.on("close", () => {
       if (ws.userId) {
-        clients.delete(ws.userId);
+        const userConnections = clients.get(ws.userId);
+        if (userConnections) {
+          // Remove the specific connection that closed
+          userConnections.delete(ws);
+          // If the user has no more open connections, remove their entry
+          if (userConnections.size === 0) {
+            clients.delete(ws.userId);
+          }
+        }
         console.log(`❌ WS Client disconnected: User ${ws.userId}`);
       } else {
         console.log("WS: Unauthenticated client disconnected.");

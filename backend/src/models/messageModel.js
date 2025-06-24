@@ -103,7 +103,7 @@ export const getMessagesByRoomId = async (
   beforeId = null,
 ) => {
   let query = `
-        SELECT m.id, m.room_id, m.sender_id, m.encrypted_content, m.reply_to_message_id, m.created_at, u.username, u.display_name, u.avatar_url
+        SELECT m.id, m.room_id, m.sender_id, m.encrypted_content, m.reply_to_message_id, m.created_at, m.updated_at, u.username, u.display_name, u.avatar_url
         FROM messages m
         JOIN users u ON m.sender_id = u.id
         WHERE m.room_id = $1 AND m.deleted_at IS NULL
@@ -120,8 +120,6 @@ export const getMessagesByRoomId = async (
 
   const { rows } = await _query(query, params);
 
-  // We reverse the result so they are in chronological order for the client
-  // TODO: Check if this puts oldest or newest first?
   return rows.reverse();
 };
 

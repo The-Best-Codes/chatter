@@ -25,6 +25,7 @@ router.post("/dm", createOrGetDmRoom);
 // GET /api/rooms/:roomId/messages - to get message history
 router.get("/:roomId/messages", getMessagesForRoom);
 
+// POST /api/rooms/:roomId/pins - to pin a message in a room
 router.post("/:roomId/pins", pinMessage);
 
 export default router;
