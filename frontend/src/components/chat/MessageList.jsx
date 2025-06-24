@@ -22,6 +22,7 @@ export function MessageList({
   const { user } = useAuth();
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editContent, setEditContent] = useState("");
+  const [openDropdowns, setOpenDropdowns] = useState({});
 
   const handleStartEdit = (message) => {
     setEditingMessageId(message.id);
@@ -61,7 +62,10 @@ export function MessageList({
   return (
     <div>
       {messages.map((message) => (
-        <div key={message.id} className="group hover:bg-muted p-4">
+        <div
+          key={message.id}
+          className={`group hover:bg-muted p-4 ${openDropdowns[message.id] ? "bg-muted" : ""}`}
+        >
           <div className="flex items-start gap-3">
             <Avatar className="h-8 w-8">
               <AvatarImage src={message.avatar_url} />
@@ -146,7 +150,13 @@ export function MessageList({
               )}
             </div>
 
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+            <div
+              className={`${
+                openDropdowns[message.id]
+                  ? "opacity-100"
+                  : "opacity-0 group-hover:opacity-100"
+              }`}
+            >
               <div className="flex items-center gap-0">
                 <Button
                   variant="outline"
@@ -163,7 +173,14 @@ export function MessageList({
                   <Reply className="h-3 w-3" />
                 </Button>
 
-                <DropdownMenu>
+                <DropdownMenu
+                  onOpenChange={(isOpen) =>
+                    setOpenDropdowns((prev) => ({
+                      ...prev,
+                      [message.id]: isOpen,
+                    }))
+                  }
+                >
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
