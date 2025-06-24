@@ -190,9 +190,13 @@ export function MessageList({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                    <EmojiPicker
+                      messageId={message.id}
+                      onEmojiSelect={handleEmojiSelect}
+                    />
                   </DropdownMenuContent>
                 </DropdownMenu>
+
                 <Button
                   variant="outline"
                   size="icon"
