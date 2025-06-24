@@ -70,10 +70,10 @@ export function MessageList({
       {messages.map((message) => (
         <div
           key={message.id}
-          className={`group hover:bg-muted p-4 ${openDropdowns[message.id] ? "bg-muted" : ""}`}
+          className={`group hover:bg-muted focus-within:bg-muted p-4 ${openDropdowns[message.id] ? "bg-muted" : ""}`}
         >
-          <div className="flex items-start gap-3">
-            <Avatar className="h-8 w-8">
+          <div className="flex items-start gap-2">
+            <Avatar className="h-10 w-10">
               <AvatarImage src={message.avatar_url} />
               <AvatarFallback>
                 {message.display_name?.charAt(0) ||
@@ -83,8 +83,8 @@ export function MessageList({
             </Avatar>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-medium">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="font-medium leading-tight">
                   {message.display_name || message.username}
                 </span>
                 <span className="text-xs text-muted-foreground">
@@ -168,7 +168,7 @@ export function MessageList({
               className={`${
                 openDropdowns[message.id]
                   ? "opacity-100"
-                  : "opacity-0 group-hover:opacity-100"
+                  : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"
               }`}
             >
               <div className="relative flex items-center gap-0">
@@ -184,7 +184,7 @@ export function MessageList({
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-6 w-6 border-r-0 outline-0 rounded-r-none"
+                      className="h-6 w-6 not-focus-visible:border-r-transparent rounded-r-none focus-visible:z-10"
                     >
                       <Smile className="h-3 w-3" />
                     </Button>
@@ -200,7 +200,7 @@ export function MessageList({
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-6 w-6 border-x-0 outline-0 rounded-none"
+                  className="h-6 w-6 not-focus-visible:border-x-transparent rounded-none focus-visible:z-10"
                 >
                   <Reply className="h-3 w-3" />
                 </Button>
@@ -217,7 +217,7 @@ export function MessageList({
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-6 w-6 border-l-0 outline-0 rounded-l-none"
+                      className="h-6 w-6 not-focus-visible:border-l-transparent rounded-l-none focus-visible:z-10"
                     >
                       <MoreVertical className="h-3 w-3" />
                     </Button>
