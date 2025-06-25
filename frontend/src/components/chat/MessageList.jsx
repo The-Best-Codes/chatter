@@ -2,6 +2,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Edit, MoreVertical, Pin, Reply, Smile, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { cn } from "../../lib/utils";
 import { EmojiPicker } from "../EmojiPicker";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
@@ -20,6 +21,8 @@ export function MessageList({
   onDeleteMessage,
   onPinMessage,
   onToggleReaction,
+  onReplyToMessage,
+  replyingTo,
 }) {
   const { user } = useAuth();
   const [editingMessageId, setEditingMessageId] = useState(null);
@@ -70,8 +73,27 @@ export function MessageList({
       {messages.map((message) => (
         <div
           key={message.id}
-          className={`group hover:bg-muted focus-within:bg-muted p-4 ${openDropdowns[message.id] ? "bg-muted" : ""}`}
+          className={cn(
+            "group relative p-4",
+            openDropdowns[message.id] && "bg-muted",
+            replyingTo?.id === message.id
+              ? "bg-blue-100 dark:bg-blue-900"
+              : "focus-within:bg-muted hover:bg-muted",
+          )}
         >
+          {message.reply_to_message && (
+            // TODO: Scroll to reply when clicked
+            <Badge
+              variant="outline"
+              className="text-xs mb-2 hover:bg-background cursor-pointer"
+            >
+              <Reply className="h-3 w-3 mr-1" />
+              <span className="max-w-60 overflow-hidden truncate select-none">
+                {message.reply_to_message.encrypted_content}
+              </span>
+            </Badge>
+          )}
+
           <div className="flex items-start gap-2">
             <Avatar className="h-10 w-10">
               <AvatarImage src={message.avatar_url} />
@@ -93,25 +115,12 @@ export function MessageList({
                   {formatTime(message?.updated_at || message?.created_at)}
                 </span>
                 {message.is_pinned && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="default" className="text-xs">
                     <Pin className="h-3 w-3 mr-1" />
                     Pinned
                   </Badge>
                 )}
               </div>
-
-              {message.reply_to_message && (
-                <div className="mb-2 p-2 bg-muted rounded border-l-2 border-primary">
-                  <div className="text-xs text-muted-foreground">
-                    Replying to{" "}
-                    {message.reply_to_message.display_name ||
-                      message.reply_to_message.username}
-                  </div>
-                  <div className="text-sm truncate">
-                    {message.reply_to_message.encrypted_content}
-                  </div>
-                </div>
-              )}
 
               {editingMessageId === message.id ? (
                 <div className="space-y-2">
@@ -165,11 +174,12 @@ export function MessageList({
             </div>
 
             <div
-              className={`${
+              className={cn(
+                "absolute right-4 top-4 z-20",
                 openDropdowns[message.id]
                   ? "opacity-100"
-                  : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"
-              }`}
+                  : "opacity-0 group-hover:opacity-100 focus-within:opacity-100",
+              )}
             >
               <div className="relative flex items-center gap-0">
                 <DropdownMenu
@@ -201,6 +211,7 @@ export function MessageList({
                   variant="outline"
                   size="icon"
                   className="h-6 w-6 not-focus-visible:border-x-transparent rounded-none focus-visible:z-10"
+                  onClick={() => onReplyToMessage(message)}
                 >
                   <Reply className="h-3 w-3" />
                 </Button>

@@ -84,9 +84,25 @@ export const create = async (messageData) => {
       newMessage.sender_id,
     ]);
 
+    // Fetch reply message info if this is a reply
+    let replyToMessage = null;
+    if (replyToMessageId) {
+      const replyQuery = `
+        SELECT m.id, m.encrypted_content, u.username, u.display_name
+        FROM messages m
+        JOIN users u ON m.sender_id = u.id
+        WHERE m.id = $1
+      `;
+      const { rows: replyRows } = await _query(replyQuery, [replyToMessageId]);
+      if (replyRows.length > 0) {
+        replyToMessage = replyRows[0];
+      }
+    }
+
     return {
       ...newMessage,
       sender: senderRows[0],
+      reply_to_message: replyToMessage,
     };
   } catch (e) {
     await client.query("ROLLBACK");
@@ -120,10 +136,22 @@ export const getMessagesByRoomId = async (
                   ) r
                 ),
                 '[]'::jsonb
-              ) as reactions
+              ) as reactions,
+              CASE
+                WHEN m.reply_to_message_id IS NOT NULL THEN
+                  json_build_object(
+                    'id', reply_msg.id,
+                    'encrypted_content', reply_msg.encrypted_content,
+                    'username', reply_user.username,
+                    'display_name', reply_user.display_name
+                  )
+                ELSE NULL
+              END as reply_to_message
         FROM messages m
         JOIN users u ON m.sender_id = u.id
         LEFT JOIN pinned_messages p ON m.id = p.message_id AND p.room_id = m.room_id
+        LEFT JOIN messages reply_msg ON m.reply_to_message_id = reply_msg.id
+        LEFT JOIN users reply_user ON reply_msg.sender_id = reply_user.id
         WHERE m.room_id = $1 AND m.deleted_at IS NULL
     `;
   const params = [roomId];

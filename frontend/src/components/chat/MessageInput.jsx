@@ -1,9 +1,17 @@
-import { Send, Smile } from "lucide-react";
+import { Reply, Send, Smile, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
+import { Badge } from "../ui/badge";
+import { cn } from "../../lib/utils";
 
-export function MessageInput({ onSendMessage, onStartTyping, onStopTyping }) {
+export function MessageInput({
+  onSendMessage,
+  onStartTyping,
+  onStopTyping,
+  replyingTo,
+  onCancelReply,
+}) {
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const textareaRef = useRef(null);
@@ -73,36 +81,59 @@ export function MessageInput({ onSendMessage, onStartTyping, onStopTyping }) {
   }, []);
 
   return (
-    <div className="p-4 border-t border-border bg-card">
-      <div className="flex items-end gap-2">
-        <div className="flex-1 relative">
-          <Textarea
-            ref={textareaRef}
-            value={message}
-            onChange={handleInputChange}
-            onKeyPress={handleKeyPress}
-            placeholder="Type a message..."
-            className="min-h-10 max-h-32 resize-none pr-12"
-            rows={1}
-          />
-
-          {/* TODO: Emoji picker */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 bottom-2 h-6 w-6"
+    <div className="border-t border-border bg-card">
+      <div className={cn("p-4", replyingTo && "pt-2")}>
+        {replyingTo && (
+          // TODO: Scroll to reply if clicked?
+          <Badge
+            variant="outline"
+            className="text-xs mb-2 bg-blue-100 dark:bg-blue-900"
           >
-            <Smile className="h-4 w-4" />
+            <Reply className="h-4 w-4" />
+            <span className="max-w-60 overflow-hidden truncate select-none">
+              {replyingTo.encrypted_content}
+            </span>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-4 w-4"
+              onClick={() => onCancelReply()}
+            >
+              <X />
+            </Button>
+          </Badge>
+        )}
+
+        <div className="flex items-end gap-2">
+          <div className="flex-1 relative">
+            <Textarea
+              ref={textareaRef}
+              value={message}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
+              placeholder="Type a message..."
+              className="min-h-10 max-h-32 resize-none pr-12"
+              rows={1}
+            />
+
+            {/* TODO: Emoji picker */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 bottom-2 h-6 w-6"
+            >
+              <Smile className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <Button
+            size="icon"
+            onClick={handleSendMessage}
+            disabled={!message.trim()}
+          >
+            <Send className="h-4 w-4" />
           </Button>
         </div>
-
-        <Button
-          size="icon"
-          onClick={handleSendMessage}
-          disabled={!message.trim()}
-        >
-          <Send className="h-4 w-4" />
-        </Button>
       </div>
     </div>
   );

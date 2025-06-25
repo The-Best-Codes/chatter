@@ -100,8 +100,23 @@ async function handleMessage(ws, rawMessage, userId) {
           mentionedUserIds,
         });
 
+        const formattedMessage = {
+          id: message.id,
+          room_id: message.room_id,
+          sender_id: message.sender_id,
+          encrypted_content: message.encrypted_content,
+          reply_to_message_id: message.reply_to_message_id,
+          created_at: message.created_at,
+          updated_at: message.updated_at,
+          username: message.sender.username,
+          display_name: message.sender.display_name,
+          is_pinned: false,
+          reactions: [],
+          reply_to_message: message.reply_to_message,
+        };
+
         // Broadcast the new message to everyone in the room (including the sender)
-        await broadcastToRoom(roomId, "new_message", message);
+        await broadcastToRoom(roomId, "new_message", formattedMessage);
       } catch (error) {
         console.error("Error handling send_message:", error);
         sendToClient(ws, "error", { message: "Could not send message." });

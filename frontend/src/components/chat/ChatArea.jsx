@@ -12,6 +12,7 @@ export function ChatArea({ room }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typingUsers, setTypingUsers] = useState([]);
+  const [replyingTo, setReplyingTo] = useState(null);
   const messagesEndRef = useRef(null);
   const { user } = useAuth();
 
@@ -110,7 +111,13 @@ export function ChatArea({ room }) {
   const handleSendMessage = (content, replyToMessageId = null) => {
     // For now, we'll send the content as-is (not encrypted)
     // Later, we will encrypt the content here
-    WebSocketService.sendMessage(room.id, content, replyToMessageId);
+    const finalReplyId = replyToMessageId || replyingTo?.id;
+    WebSocketService.sendMessage(room.id, content, finalReplyId);
+
+    // Clear reply state after sending
+    if (replyingTo) {
+      setReplyingTo(null);
+    }
   };
 
   const handleEditMessage = (messageId, newContent) => {
@@ -148,6 +155,14 @@ export function ChatArea({ room }) {
     } catch (error) {
       console.error("Failed to toggle reaction:", error);
     }
+  };
+
+  const handleReplyToMessage = (message) => {
+    setReplyingTo(message);
+  };
+
+  const handleCancelReply = () => {
+    setReplyingTo(null);
   };
 
   if (!room) {
@@ -213,6 +228,8 @@ export function ChatArea({ room }) {
               onDeleteMessage={handleDeleteMessage}
               onPinMessage={handlePinMessage}
               onToggleReaction={handleToggleReaction}
+              onReplyToMessage={handleReplyToMessage}
+              replyingTo={replyingTo}
             />
 
             {typingUsers.length > 0 && (
@@ -232,6 +249,8 @@ export function ChatArea({ room }) {
         onSendMessage={handleSendMessage}
         onStartTyping={() => WebSocketService.startTyping(room.id)}
         onStopTyping={() => WebSocketService.stopTyping(room.id)}
+        replyingTo={replyingTo}
+        onCancelReply={handleCancelReply}
       />
     </div>
   );
