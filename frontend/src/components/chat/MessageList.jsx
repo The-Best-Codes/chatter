@@ -1,4 +1,3 @@
-import { formatDistanceToNow } from "date-fns";
 import { Edit, MoreVertical, Pin, Reply, Smile, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -14,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Textarea } from "../ui/textarea";
+import { Timestamp } from "../Timestamp";
 
 export function MessageList({
   messages,
@@ -49,15 +49,6 @@ export function MessageList({
 
   const handleEmojiSelect = (messageId, emojiData) => {
     onToggleReaction(messageId, emojiData.emoji);
-  };
-
-  const formatTime = (timestamp) => {
-    try {
-      return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
-    } catch (error) {
-      console.error("Error formatting time:", error);
-      return "Unknown time";
-    }
   };
 
   const canEditMessage = (message) => {
@@ -109,11 +100,10 @@ export function MessageList({
                 <span className="font-medium leading-tight">
                   {message.display_name || message.username}
                 </span>
-                <span className="text-xs text-muted-foreground">
-                  {/* TODO: Make a seperate time component with error boundaries and live updates */}
-                  {message?.updated_at && "Edited"}{" "}
-                  {formatTime(message?.updated_at || message?.created_at)}
-                </span>
+                <Timestamp
+                  createdAt={message.created_at}
+                  updatedAt={message.updated_at}
+                />
                 {message.is_pinned && (
                   <Badge variant="default" className="text-xs">
                     <Pin className="h-3 w-3 mr-1" />
