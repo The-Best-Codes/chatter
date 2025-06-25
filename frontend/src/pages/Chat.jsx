@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ChatArea } from "../components/chat/ChatArea";
 import { ChatSidebar } from "../components/chat/ChatSidebar";
 import { UserProfile } from "../components/chat/UserProfile";
@@ -18,32 +18,63 @@ export function ChatPage() {
     setSelectedRoom(newRoom);
   };
 
+  const selectRoomById = useCallback(
+    (roomId) => {
+      const roomToSelect = rooms.find((r) => r.id === roomId);
+      if (roomToSelect) {
+        setSelectedRoom(roomToSelect);
+      }
+    },
+    [rooms],
+  );
+
   useEffect(() => {
-    // Connect to WebSocket and load rooms when component mounts
     const initializeChat = async () => {
       try {
-        // Load rooms first
         const userRooms = await ApiService.getRooms();
         setRooms(userRooms);
 
-        // Then connect to WebSocket
         await WebSocketService.connect(token);
         setConnected(true);
         console.log("Connected to WebSocket");
       } catch (error) {
         console.error("Failed to initialize chat:", error);
-        // If connection fails, might need to re-authenticate
         logout();
       }
     };
 
     initializeChat();
 
-    // Cleanup on unmount
     return () => {
       WebSocketService.disconnect();
     };
   }, [token, logout]);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith("#room=")) {
+        const roomId = hash.substring(6);
+        selectRoomById(roomId);
+      }
+    };
+
+    // Set initial room from hash
+    handleHashChange();
+
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, [selectRoomById]);
+
+  useEffect(() => {
+    // Update URL hash when selectedRoom changes
+    if (selectedRoom) {
+      window.location.hash = `room=${selectedRoom.id}`;
+    }
+  }, [selectedRoom]);
 
   if (!connected) {
     return (
