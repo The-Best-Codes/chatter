@@ -72,18 +72,26 @@ export function MessageList({
               : "focus-within:bg-muted hover:bg-muted",
           )}
         >
-          {message.reply_to_message && (
-            // TODO: Scroll to reply when clicked
-            <Badge
-              variant="outline"
-              className="text-xs mb-2 hover:bg-background cursor-pointer"
-            >
-              <Reply className="h-3 w-3 mr-1" />
-              <span className="max-w-60 overflow-hidden truncate select-none">
-                {message.reply_to_message.encrypted_content}
-              </span>
-            </Badge>
-          )}
+          <div className="flex items-center gap-2 mb-2">
+            {message.reply_to_message && (
+              // TODO: Scroll to reply when clicked
+              <Badge
+                variant="outline"
+                className="text-xs hover:bg-background cursor-pointer"
+              >
+                <Reply className="h-3 w-3 mr-1" />
+                <span className="max-w-60 overflow-hidden truncate select-none">
+                  {message.reply_to_message.encrypted_content}
+                </span>
+              </Badge>
+            )}
+            {message.is_pinned && (
+              <Badge variant="default" className="text-xs">
+                <Pin className="h-3 w-3 mr-1" />
+                Pinned
+              </Badge>
+            )}
+          </div>
 
           <div className="flex items-start gap-2">
             <Avatar className="h-10 w-10">
@@ -104,12 +112,6 @@ export function MessageList({
                   createdAt={message.created_at}
                   updatedAt={message.updated_at}
                 />
-                {message.is_pinned && (
-                  <Badge variant="default" className="text-xs">
-                    <Pin className="h-3 w-3 mr-1" />
-                    Pinned
-                  </Badge>
-                )}
               </div>
 
               {editingMessageId === message.id ? (

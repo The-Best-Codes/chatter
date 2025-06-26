@@ -1,4 +1,4 @@
-import { getMessagesByRoomId, pin } from "../models/messageModel.js";
+import { getMessagesByRoomId, pin, unpin } from "../models/messageModel.js";
 import {
   isBlocked as _isBlocked,
   findOrCreateDmRoom,
@@ -96,11 +96,9 @@ export async function pinMessage(req, res) {
   // Check if user has permission to pin messages in this room
   const canPin = await canPinMessage(req.user.id, roomId);
   if (!canPin) {
-    return res
-      .status(403)
-      .json({
-        message: "You do not have permission to pin messages in this room.",
-      });
+    return res.status(403).json({
+      message: "You do not have permission to pin messages in this room.",
+    });
   }
 
   try {
@@ -109,5 +107,27 @@ export async function pinMessage(req, res) {
   } catch (error) {
     console.error("Pin message error:", error);
     res.status(500).json({ message: "Failed to pin message." });
+  }
+}
+
+// DELETE /api/rooms/:roomId/pins/:messageId
+// TODO: Don't let users unpin other user's pinned messages?
+export async function unpinMessage(req, res) {
+  const { roomId, messageId } = req.params;
+
+  // Check if user has permission to pin messages in this room
+  const canPin = await canPinMessage(req.user.id, roomId);
+  if (!canPin) {
+    return res.status(403).json({
+      message: "You do not have permission to unpin messages in this room.",
+    });
+  }
+
+  try {
+    await unpin(roomId, messageId);
+    res.status(200).json({ message: "Message unpinned." });
+  } catch (error) {
+    console.error("Unpin message error:", error);
+    res.status(500).json({ message: "Failed to unpin message." });
   }
 }

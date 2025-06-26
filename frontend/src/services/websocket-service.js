@@ -203,6 +203,20 @@ class WebSocketService {
     });
   }
 
+  pinMessage(roomId, messageId) {
+    this.send("pin_message", {
+      roomId,
+      messageId,
+    });
+  }
+
+  unpinMessage(roomId, messageId) {
+    this.send("unpin_message", {
+      roomId,
+      messageId,
+    });
+  }
+
   startTyping(roomId) {
     this.send("start_typing", { roomId });
   }

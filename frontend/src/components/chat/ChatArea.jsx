@@ -68,12 +68,21 @@ export function ChatArea({ room }) {
         }
       };
 
+      const handleMessagePinned = ({ messageId, roomId, isPinned }) => {
+        if (roomId === room.id) {
+          setMessages((prev) =>
+            prev.map((m) => (m.id === messageId ? { ...m, is_pinned: isPinned } : m)),
+          );
+        }
+      };
+
       WebSocketService.on("new_message", handleNewMessage);
       WebSocketService.on("message_edited", handleMessageEdited);
       WebSocketService.on("message_deleted", handleMessageDeleted);
       WebSocketService.on("user_typing", handleUserTyping);
       WebSocketService.on("user_stopped_typing", handleUserStoppedTyping);
       WebSocketService.on("reaction_changed", handleReactionChanged);
+      WebSocketService.on("message_pinned", handleMessagePinned);
 
       return () => {
         WebSocketService.off("new_message", handleNewMessage);
@@ -82,6 +91,7 @@ export function ChatArea({ room }) {
         WebSocketService.off("user_typing", handleUserTyping);
         WebSocketService.off("user_stopped_typing", handleUserStoppedTyping);
         WebSocketService.off("reaction_changed", handleReactionChanged);
+        WebSocketService.off("message_pinned", handleMessagePinned);
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,13 +138,18 @@ export function ChatArea({ room }) {
     WebSocketService.deleteMessage(messageId);
   };
 
-  const handlePinMessage = async (messageId) => {
+  const handlePinMessage = (messageId) => {
+    const message = messages.find((m) => m.id === messageId);
+    if (!message) return;
+
     try {
-      await ApiService.pinMessage(room.id, messageId);
-      // Refresh messages to show updated pin status
-      loadMessages();
+      if (message.is_pinned) {
+        WebSocketService.unpinMessage(room.id, messageId);
+      } else {
+        WebSocketService.pinMessage(room.id, messageId);
+      }
     } catch (error) {
-      console.error("Failed to pin message:", error);
+      console.error("Failed to toggle pin status:", error);
     }
   };
 

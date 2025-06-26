@@ -1,10 +1,11 @@
 import { Router } from "express";
 import {
+  createNewRoom,
   createOrGetDmRoom,
   getMessagesForRoom,
-  pinMessage,
   getUserRooms,
-  createNewRoom,
+  pinMessage,
+  unpinMessage,
 } from "../controllers/roomController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -27,5 +28,8 @@ router.get("/:roomId/messages", getMessagesForRoom);
 
 // POST /api/rooms/:roomId/pins - to pin a message in a room
 router.post("/:roomId/pins", pinMessage);
+
+// DELETE /api/rooms/:roomId/pins/:messageId - to unpin a message in a room
+router.delete("/:roomId/pins/:messageId", unpinMessage);
 
 export default router;

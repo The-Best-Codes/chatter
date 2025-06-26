@@ -245,3 +245,11 @@ export const pin = async (roomId, messageId, userId) => {
     `;
   await _query(query, [roomId, messageId, userId]);
 };
+
+export const unpin = async (roomId, messageId) => {
+  const query = `
+        DELETE FROM pinned_messages
+        WHERE room_id = $1 AND message_id = $2;
+    `;
+  await _query(query, [roomId, messageId]);
+};

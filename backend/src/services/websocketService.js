@@ -1,9 +1,15 @@
 import jsonWebToken from "jsonwebtoken";
 import { WebSocket } from "ws";
-import { create, edit, softDelete } from "../models/messageModel.js";
+import {
+  create,
+  edit,
+  pin,
+  softDelete,
+  unpin,
+} from "../models/messageModel.js";
 import { getRoomMemberIds, isUserInRoom } from "../models/roomModel.js";
 import { findById } from "../models/userModel.js";
-import { hasPermission } from "./permissionService.js";
+import { canPinMessage, hasPermission } from "./permissionService.js";
 
 const { verify } = jsonWebToken;
 
@@ -225,6 +231,66 @@ async function handleMessage(ws, rawMessage, userId) {
         { roomId, userId },
         userId,
       );
+      break;
+    }
+
+    case "pin_message": {
+      const { roomId, messageId } = payload;
+      if (!roomId || !messageId) {
+        return sendToClient(ws, "error", {
+          message: "Missing roomId or messageId for pin_message.",
+        });
+      }
+
+      // Check if user has permission to pin messages in this room
+      const canPin = await canPinMessage(userId, roomId);
+      if (!canPin) {
+        return sendToClient(ws, "error", {
+          message: "You do not have permission to pin messages in this room.",
+        });
+      }
+
+      try {
+        await pin(roomId, messageId, userId);
+        await broadcastToRoom(roomId, "message_pinned", {
+          messageId,
+          roomId,
+          isPinned: true,
+        });
+      } catch (error) {
+        console.error("Error handling pin_message:", error);
+        sendToClient(ws, "error", { message: "Could not pin message." });
+      }
+      break;
+    }
+
+    case "unpin_message": {
+      const { roomId, messageId } = payload;
+      if (!roomId || !messageId) {
+        return sendToClient(ws, "error", {
+          message: "Missing roomId or messageId for unpin_message.",
+        });
+      }
+
+      // Check if user has permission to pin messages in this room
+      const canPin = await canPinMessage(userId, roomId);
+      if (!canPin) {
+        return sendToClient(ws, "error", {
+          message: "You do not have permission to unpin messages in this room.",
+        });
+      }
+
+      try {
+        await unpin(roomId, messageId);
+        await broadcastToRoom(roomId, "message_pinned", {
+          messageId,
+          roomId,
+          isPinned: false,
+        });
+      } catch (error) {
+        console.error("Error handling unpin_message:", error);
+        sendToClient(ws, "error", { message: "Could not unpin message." });
+      }
       break;
     }
 
