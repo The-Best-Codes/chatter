@@ -23,6 +23,35 @@ export function MessageInput({
   const [isTyping, setIsTyping] = useState(false);
   const textareaRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const cursorPositionRef = useRef(null);
+
+  const updateMessageAndTyping = (newMessage, newCursorPos = null) => {
+    setMessage(newMessage);
+    if (newCursorPos !== null) {
+      cursorPositionRef.current = newCursorPos;
+    }
+
+    // Handle typing indicators
+    if (!isTyping && newMessage.trim()) {
+      setIsTyping(true);
+      onStartTyping();
+    } else if (isTyping && !newMessage.trim()) {
+      // If message becomes empty and user was typing, stop typing immediately
+      handleStopTyping();
+    }
+
+    // Reset typing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set a new typing timeout only if there's actual text
+    if (newMessage.trim()) {
+      typingTimeoutRef.current = setTimeout(() => {
+        handleStopTyping();
+      }, 1000);
+    }
+  };
 
   const handleSendMessage = () => {
     if (message.trim()) {
@@ -45,28 +74,7 @@ export function MessageInput({
   };
 
   const handleInputChange = (e) => {
-    setMessage(e.target.value);
-
-    // Auto-resize textarea
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-
-    // Handle typing indicators
-    if (!isTyping && e.target.value.trim()) {
-      setIsTyping(true);
-      onStartTyping();
-    }
-
-    // Reset typing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    typingTimeoutRef.current = setTimeout(() => {
-      handleStopTyping();
-    }, 1000);
+    updateMessageAndTyping(e.target.value);
   };
 
   const handleStopTyping = () => {
@@ -79,6 +87,24 @@ export function MessageInput({
     }
   };
 
+  const handleEmojiSelect = (_messageId, emojiItem) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const emoji = emojiItem.emoji;
+    const start = textarea.selectionStart;
+    const currentMessage = message;
+
+    const newMessage =
+      currentMessage.substring(0, start) +
+      emoji +
+      currentMessage.substring(start);
+
+    const newCursorPos = start + emoji.length;
+
+    updateMessageAndTyping(newMessage, newCursorPos);
+  };
+
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) {
@@ -86,6 +112,19 @@ export function MessageInput({
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (textareaRef.current && cursorPositionRef.current !== null) {
+      const newPos = cursorPositionRef.current;
+      textareaRef.current.setSelectionRange(newPos, newPos);
+      cursorPositionRef.current = null;
+    }
+
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [message]);
 
   return (
     <div className="flex items-center border-t border-border bg-background min-h-20">
@@ -149,7 +188,7 @@ export function MessageInput({
               <DropdownMenuContent align="end">
                 <EmojiPicker
                   messageId={"no-id-message-textarea"}
-                  onEmojiSelect={() => {}}
+                  onEmojiSelect={handleEmojiSelect}
                 />
               </DropdownMenuContent>
             </DropdownMenu>
