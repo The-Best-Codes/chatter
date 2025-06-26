@@ -222,8 +222,8 @@ export function ChatArea({ room }) {
 
             <div className="flex items-center gap-2">
               {room.type !== "dm" && (
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   onClick={() => {
                     setShowUserList(!showUserList);
@@ -269,16 +269,6 @@ export function ChatArea({ room }) {
                 replyingTo={replyingTo}
               />
 
-              {typingUsers.length > 0 && (
-                <div className="px-4 py-2 text-sm text-muted-foreground">
-                  {/* TODO: Hide if too many users, also add and to last user if multiple */}
-                  {typingUsers
-                    .map((u) => u.displayName || u.username)
-                    .join(", ")}
-                  {typingUsers.length === 1 ? " is" : " are"} typing...
-                </div>
-              )}
-
               <div ref={messagesEndRef} />
             </>
           )}
@@ -290,6 +280,7 @@ export function ChatArea({ room }) {
           onStopTyping={() => WebSocketService.stopTyping(room.id)}
           replyingTo={replyingTo}
           onCancelReply={handleCancelReply}
+          typingUsers={typingUsers} // TODO: There are known bugs with this not sending stop typing events when it should, need to fix
         />
       </div>
 
@@ -306,10 +297,7 @@ export function ChatArea({ room }) {
       )}
 
       {showUserList && (
-        <UserList
-          room={room}
-          onClose={() => setShowUserList(false)}
-        />
+        <UserList room={room} onClose={() => setShowUserList(false)} />
       )}
     </div>
   );

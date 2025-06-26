@@ -11,6 +11,7 @@ export function MessageInput({
   onStopTyping,
   replyingTo,
   onCancelReply,
+  typingUsers,
 }) {
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -82,7 +83,9 @@ export function MessageInput({
 
   return (
     <div className="border-t border-border bg-card">
-      <div className={cn("p-4", replyingTo && "pt-2")}>
+      <div
+        className={cn("p-4", (replyingTo || typingUsers.length > 0) && "pt-2")}
+      >
         {replyingTo && (
           // TODO: Scroll to reply if clicked?
           <Badge
@@ -102,6 +105,14 @@ export function MessageInput({
               <X />
             </Button>
           </Badge>
+        )}
+
+        {typingUsers.length > 0 && (
+          <div className="text-xs text-muted-foreground mb-2">
+            {/* TODO: Hide if too many users, also add and to last user if multiple. Probably just move to a new function / component */}
+            {typingUsers.map((u) => u.displayName || u.username).join(", ")}
+            {typingUsers.length === 1 ? " is" : " are"} typing...
+          </div>
         )}
 
         <div className="flex items-end gap-2">
