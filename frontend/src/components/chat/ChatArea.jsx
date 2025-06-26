@@ -1,10 +1,12 @@
 import { Hash, MoreVertical, Pin, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNotifications } from "../../contexts/NotificationContext";
 import ApiService from "../../services/api-service";
 import WebSocketService from "../../services/websocket-service";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
+import { NotificationCenter } from "../NotificationCenter";
 import { MessageInput } from "./MessageInput";
 import { MessageList } from "./MessageList";
 import { PinnedMessages } from "./PinnedMessages";
@@ -19,6 +21,7 @@ export function ChatArea({ room }) {
   const [showUserList, setShowUserList] = useState(false);
   const messagesEndRef = useRef(null);
   const { user } = useAuth();
+  const { getNotificationsByMessage } = useNotifications();
 
   useEffect(() => {
     if (room) {
@@ -186,6 +189,22 @@ export function ChatArea({ room }) {
     setReplyingTo(null);
   };
 
+  const handleNavigateToMessage = (messageId, roomId) => {
+    // If it's a different room, we'd need to switch rooms first
+    // For now, just scroll to the message if it's in the current room
+    if (roomId === room.id) {
+      const messageElement = document.getElementById(`message-${messageId}`);
+      if (messageElement) {
+        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Add a highlight effect
+        messageElement.classList.add('bg-yellow-100', 'dark:bg-yellow-900');
+        setTimeout(() => {
+          messageElement.classList.remove('bg-yellow-100', 'dark:bg-yellow-900');
+        }, 2000);
+      }
+    }
+  };
+
   if (!room) {
     return null;
   }
@@ -221,6 +240,7 @@ export function ChatArea({ room }) {
             </div>
 
             <div className="flex items-center gap-2">
+              <NotificationCenter onNavigateToMessage={handleNavigateToMessage} />
               {room.type !== "dm" && (
                 <Button
                   variant="ghost"

@@ -17,6 +17,30 @@ const { verify } = jsonWebToken;
 // Map<userId, Set<WebSocket>>
 const clients = new Map();
 
+/**
+ * Broadcast to a specific user across all their connections
+ */
+export function broadcastToUser(userId, event, payload) {
+  const userConnections = clients.get(userId);
+  if (userConnections) {
+    for (const ws of userConnections) {
+      if (ws.readyState === WebSocket.OPEN) {
+        sendToClient(ws, event, payload);
+      }
+    }
+  }
+}
+
+/**
+ * Broadcast to multiple users
+ */
+export function broadcastToUsers(userIds, event, payload, excludeUserId = null) {
+  for (const userId of userIds) {
+    if (userId === excludeUserId) continue;
+    broadcastToUser(userId, event, payload);
+  }
+}
+
 function sendToClient(ws, event, payload) {
   ws.send(JSON.stringify({ event, payload }));
 }

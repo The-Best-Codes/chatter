@@ -1,4 +1,5 @@
 import { query as _query, getPool } from "../config/db.js";
+import { broadcastToUser, broadcastToUsers } from "../services/websocketService.js";
 
 export const isUserInRoom = async (userId, roomId) => {
   const query =
@@ -142,4 +143,128 @@ export const isBlocked = async (userId1, userId2) => {
     `;
   const { rows } = await _query(query, [userId1, userId2]);
   return rows.length > 0;
+};
+
+/**
+ * Add a user to a room and broadcast the change
+ */
+export const addUserToRoom = async (userId, roomId) => {
+  const query = `
+    INSERT INTO room_members (user_id, room_id)
+    VALUES ($1, $2)
+    ON CONFLICT (user_id, room_id) DO NOTHING
+    RETURNING *;
+  `;
+  
+  const { rows } = await _query(query, [userId, roomId]);
+  
+  if (rows.length > 0) {
+    // Get updated room list for the user
+    const userRooms = await getRoomsForUser(userId);
+    
+    // Broadcast room list update to the user
+    broadcastToUser(userId, "rooms_updated", {
+      rooms: userRooms
+    });
+    
+    // Get room members to notify them of the new member
+    const roomMemberIds = await getRoomMemberIds(roomId);
+    const roomMembers = await getRoomMembers(roomId);
+    
+    // Broadcast member list update to all room members
+    broadcastToUsers(roomMemberIds, "room_members_updated", {
+      roomId,
+      members: roomMembers
+    });
+    
+    return rows[0];
+  }
+  
+  return null;
+};
+
+/**
+ * Remove a user from a room and broadcast the change
+ */
+export const removeUserFromRoom = async (userId, roomId) => {
+  const query = `
+    DELETE FROM room_members
+    WHERE user_id = $1 AND room_id = $2
+    RETURNING *;
+  `;
+  
+  const { rows } = await _query(query, [userId, roomId]);
+  
+  if (rows.length > 0) {
+    // Get updated room list for the user
+    const userRooms = await getRoomsForUser(userId);
+    
+    // Broadcast room list update to the user
+    broadcastToUser(userId, "rooms_updated", {
+      rooms: userRooms
+    });
+    
+    // Get remaining room members to notify them
+    const roomMemberIds = await getRoomMemberIds(roomId);
+    const roomMembers = await getRoomMembers(roomId);
+    
+    // Broadcast member list update to remaining room members
+    broadcastToUsers(roomMemberIds, "room_members_updated", {
+      roomId,
+      members: roomMembers
+    });
+    
+    return rows[0];
+  }
+  
+  return null;
+};
+
+/**
+ * Block a user and broadcast the change
+ */
+export const blockUser = async (blockerUserId, blockedUserId) => {
+  const query = `
+    INSERT INTO blocked_users (blocker_user_id, blocked_user_id)
+    VALUES ($1, $2)
+    ON CONFLICT (blocker_user_id, blocked_user_id) DO NOTHING
+    RETURNING *;
+  `;
+  
+  const { rows } = await _query(query, [blockerUserId, blockedUserId]);
+  
+  if (rows.length > 0) {
+    // Broadcast to the blocker that they've blocked someone
+    broadcastToUser(blockerUserId, "user_blocked", {
+      blockedUserId
+    });
+    
+    return rows[0];
+  }
+  
+  return null;
+};
+
+/**
+ * Unblock a user and broadcast the change
+ */
+export const unblockUser = async (blockerUserId, blockedUserId) => {
+  const query = `
+    DELETE FROM blocked_users
+    WHERE blocker_user_id = $1 AND blocked_user_id = $2
+    RETURNING *;
+  `;
+  
+  const { rows } = await _query(query, [blockerUserId, blockedUserId]);
+  
+  if (rows.length > 0) {
+    // Broadcast to the blocker that they've unblocked someone
+    broadcastToUser(blockerUserId, "user_unblocked", {
+      unblockedUserId: blockedUserId
+    });
+    
+    return rows[0];
+  }
+  
+  return null;
 };

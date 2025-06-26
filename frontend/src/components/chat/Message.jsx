@@ -1,6 +1,7 @@
 import { Edit, MoreVertical, Pin, Reply, Smile, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { usePermissions } from "../../contexts/PermissionContext";
 import { cn } from "../../lib/utils";
 import { EmojiPicker } from "../EmojiPicker";
 import { Timestamp } from "../Timestamp";
@@ -28,6 +29,7 @@ export function Message({
   setOpenDropdowns = () => {},
 }) {
   const { user } = useAuth();
+  const { canEditMessage, canDeleteMessage, canPinMessage, canReactToMessage } = usePermissions();
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editContent, setEditContent] = useState("");
 
@@ -53,18 +55,14 @@ export function Message({
     onToggleReaction(messageId, emojiData.emoji);
   };
 
-  const canEditMessage = (message) => {
-    return message.sender_id === user?.id;
-  };
-
-  const canDeleteMessage = (message) => {
-    return message.sender_id === user?.id;
-  };
+  // Get room ID from message for permission checks
+  const roomId = message.room_id;
 
   return (
     <div
+      id={`message-${message.id}`}
       className={cn(
-        "group relative p-4",
+        "group relative p-4 transition-colors",
         !simplified && openDropdowns[message.id] && "bg-muted",
         !simplified && replyingTo?.id === message.id
           ? "bg-blue-100 dark:bg-blue-900"
@@ -151,7 +149,8 @@ export function Message({
                     variant={userReacted ? "secondary" : "outline"}
                     size="sm"
                     className="h-6 px-2 text-xs"
-                    onClick={() => onToggleReaction(message.id, reaction.emoji)}
+                    onClick={() => canReactToMessage() && onToggleReaction(message.id, reaction.emoji)}
+                    disabled={!canReactToMessage()}
                   >
                     {reaction.emoji} {reaction.count}
                   </Button>
@@ -171,30 +170,32 @@ export function Message({
             )}
           >
             <div className="relative flex items-center gap-0">
-              <DropdownMenu
-                onOpenChange={(isOpen) => {
-                  setOpenDropdowns((prev) => ({
-                    ...prev,
-                    [message.id]: isOpen,
-                  }));
-                }}
-              >
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-6 w-6 not-focus-visible:border-r-transparent rounded-r-none focus-visible:z-10"
-                  >
-                    <Smile className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <EmojiPicker
-                    messageId={message.id}
-                    onEmojiSelect={handleEmojiSelect}
-                  />
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {canReactToMessage() && (
+                <DropdownMenu
+                  onOpenChange={(isOpen) => {
+                    setOpenDropdowns((prev) => ({
+                      ...prev,
+                      [message.id]: isOpen,
+                    }));
+                  }}
+                >
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-6 w-6 not-focus-visible:border-r-transparent rounded-r-none focus-visible:z-10"
+                    >
+                      <Smile className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <EmojiPicker
+                      messageId={message.id}
+                      onEmojiSelect={handleEmojiSelect}
+                    />
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
               <Button
                 variant="outline"
@@ -230,10 +231,12 @@ export function Message({
                     </DropdownMenuItem>
                   )}
 
-                  <DropdownMenuItem onClick={() => onPinMessage(message.id)}>
-                    <Pin className="h-3 w-3" />
-                    {message.is_pinned ? "Unpin" : "Pin"}
-                  </DropdownMenuItem>
+                  {canPinMessage(roomId) && (
+                    <DropdownMenuItem onClick={() => onPinMessage(message.id)}>
+                      <Pin className="h-3 w-3" />
+                      {message.is_pinned ? "Unpin" : "Pin"}
+                    </DropdownMenuItem>
+                  )}
 
                   {canDeleteMessage(message) && (
                     <DropdownMenuItem

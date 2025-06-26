@@ -1,6 +1,7 @@
 import { Reply, Send, Smile, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../../lib/utils";
+import { usePermissions } from "../../contexts/PermissionContext";
 import { EmojiPicker } from "../EmojiPicker";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -19,6 +20,7 @@ export function MessageInput({
   onCancelReply,
   typingUsers,
 }) {
+  const { canSendMessage } = usePermissions();
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const textareaRef = useRef(null);
@@ -54,7 +56,7 @@ export function MessageInput({
   };
 
   const handleSendMessage = () => {
-    if (message.trim()) {
+    if (message.trim() && canSendMessage()) {
       onSendMessage(message.trim());
       setMessage("");
       handleStopTyping();
@@ -170,9 +172,10 @@ export function MessageInput({
               value={message}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
+              placeholder={canSendMessage() ? "Type a message..." : "You don't have permission to send messages"}
               className="min-h-10 max-h-32 resize-none pr-10 wrap-anywhere"
               rows={1}
+              disabled={!canSendMessage()}
             />
 
             <DropdownMenu>
@@ -197,7 +200,7 @@ export function MessageInput({
           <Button
             className="h-10 w-10"
             onClick={handleSendMessage}
-            disabled={!message.trim()}
+            disabled={!message.trim() || !canSendMessage()}
           >
             <Send />
           </Button>

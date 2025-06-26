@@ -1,4 +1,5 @@
 import { query as _query } from "../config/db.js";
+import { broadcastToUser } from "./websocketService.js";
 
 // Cache for default permissions to avoid repeated DB queries
 let defaultPermissionsCache = null;
@@ -89,6 +90,71 @@ export const hasPermission = async (userId, permission) => {
  */
 export const clearPermissionsCache = () => {
   defaultPermissionsCache = null;
+};
+
+/**
+ * Update user permissions and broadcast the change
+ */
+export const updateUserPermissions = async (userId, permissions) => {
+  const updateFields = [];
+  const values = [userId];
+  let paramIndex = 2;
+
+  // Build dynamic update query
+  for (const [key, value] of Object.entries(permissions)) {
+    if (value !== undefined) {
+      updateFields.push(`${key} = $${paramIndex}`);
+      values.push(value);
+      paramIndex++;
+    }
+  }
+
+  if (updateFields.length === 0) {
+    throw new Error("No permissions to update");
+  }
+
+  const query = `
+    INSERT INTO user_permissions (user_id, ${Object.keys(permissions).join(', ')}, updated_at)
+    VALUES ($1, ${Object.keys(permissions).map((_, i) => `$${i + 2}`).join(', ')}, NOW())
+    ON CONFLICT (user_id)
+    DO UPDATE SET
+      ${updateFields.join(', ')},
+      updated_at = NOW()
+    RETURNING *;
+  `;
+
+  const { rows } = await _query(query, values);
+  const updatedPermissions = await getUserPermissions(userId);
+
+  // Broadcast permission update to the user
+  broadcastToUser(userId, "permissions_updated", {
+    permissions: updatedPermissions
+  });
+
+  return rows[0];
+};
+
+/**
+ * Update user role and broadcast the change
+ */
+export const updateUserRole = async (userId, newRole) => {
+  const query = "UPDATE users SET role = $1 WHERE id = $2 RETURNING role";
+  const { rows } = await _query(query, [newRole, userId]);
+  
+  if (rows.length > 0) {
+    // Get updated permissions (role affects permissions)
+    const updatedPermissions = await getUserPermissions(userId);
+    
+    // Broadcast role and permission update to the user
+    broadcastToUser(userId, "role_updated", {
+      role: newRole,
+      permissions: updatedPermissions
+    });
+    
+    return rows[0];
+  }
+  
+  throw new Error("User not found");
 };
 
 /**

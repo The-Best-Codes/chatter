@@ -14,6 +14,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import sessionRoutes from "./routes/sessionRoutes.js";
+import userPermissionRoutes from "./routes/userPermissionRoutes.js";
 
 const app = express();
 const server = createServer(app);
@@ -29,6 +30,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/sessions", sessionRoutes);
+app.use("/api/user", userPermissionRoutes);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "API is running" });

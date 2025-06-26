@@ -9,6 +9,7 @@ import {
   updateUserStatus as updateUserStatusFromModel,
 } from "../models/adminModel.js";
 import { logAction } from "../services/auditLogService.js";
+import { updateUserRole } from "../services/permissionService.js";
 import { invalidateUserSessions } from "../services/sessionService.js";
 import { disconnectUser } from "../services/websocketService.js";
 
@@ -139,6 +140,38 @@ export async function updateUserPermissions(req, res) {
   } catch (error) {
     console.error("Error updating permissions:", error);
     res.status(500).json({ message: "Failed to update user permissions." });
+  }
+}
+
+// PUT /api/admin/users/:userId/role
+export async function updateUserRoleController(req, res) {
+  const { userId } = req.params;
+  const { role } = req.body;
+
+  if (!role || !["user", "admin"].includes(role)) {
+    return res.status(400).json({ 
+      message: "Valid role (user or admin) is required." 
+    });
+  }
+
+  try {
+    const result = await updateUserRole(userId, role);
+    
+    await logAction({
+      adminUserId: req.user.id,
+      action: "user.role.update",
+      targetUserId: userId,
+      details: { newRole: role },
+      ipAddress: req.ip,
+    });
+
+    res.status(200).json({ 
+      message: "User role updated successfully",
+      role: result.role 
+    });
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    res.status(500).json({ message: "Failed to update user role." });
   }
 }
 

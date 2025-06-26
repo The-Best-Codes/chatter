@@ -6,6 +6,7 @@ import {
   listUsers,
   updateAppSettings,
   updateUserPermissions,
+  updateUserRoleController,
   updateUserStatus,
   getAuditLogs,
   getInviteCodes,
@@ -30,6 +31,7 @@ router.post("/users/:userId/status", updateUserStatus);
 router.delete("/users/:userId", deleteUser);
 
 router.put("/users/:userId/permissions", updateUserPermissions);
+router.put("/users/:userId/role", updateUserRoleController);
 router.post("/users/:userId/password-reset", generatePasswordResetCode);
 
 // Audit Log Routes

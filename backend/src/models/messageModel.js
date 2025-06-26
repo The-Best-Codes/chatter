@@ -1,4 +1,5 @@
 import { query as _query, getPool } from "../config/db.js";
+import { createNotification } from "./notificationModel.js";
 
 export const create = async (messageData) => {
   const {
@@ -27,31 +28,24 @@ export const create = async (messageData) => {
     ]);
     const newMessage = messageResult.rows[0];
 
-    // Create notifications for mentions
+    await client.query("COMMIT");
+
+    // Create notifications for mentions (after commit to avoid transaction issues)
     if (mentionedUserIds && mentionedUserIds.length > 0) {
-      const notificationQuery = `
-                INSERT INTO notifications (recipient_user_id, type, source_message_id, source_user_id, room_id)
-                VALUES ($1, 'mention', $2, $3, $4);
-            `;
       for (const recipientId of mentionedUserIds) {
         // Don't notify someone for mentioning themselves
         if (recipientId !== senderId) {
-          await client.query(notificationQuery, [
-            recipientId,
-            newMessage.id,
-            senderId,
-            roomId,
-          ]);
+          await createNotification(recipientId, 'mention', newMessage.id, senderId, roomId);
         }
       }
     }
 
-    // Create notifications for replies
+    // Create notifications for replies (after commit to avoid transaction issues)
     if (replyToMessageId) {
       // Find the original message sender to notify them
       const originalMessageQuery =
         "SELECT sender_id FROM messages WHERE id = $1";
-      const { rows: originalMessageRows } = await client.query(
+      const { rows: originalMessageRows } = await _query(
         originalMessageQuery,
         [replyToMessageId],
       );
@@ -61,21 +55,10 @@ export const create = async (messageData) => {
 
         // Don't notify someone for replying to their own message
         if (originalSenderId !== senderId) {
-          const replyNotificationQuery = `
-            INSERT INTO notifications (recipient_user_id, type, source_message_id, source_user_id, room_id)
-            VALUES ($1, 'reply', $2, $3, $4);
-          `;
-          await client.query(replyNotificationQuery, [
-            originalSenderId,
-            newMessage.id,
-            senderId,
-            roomId,
-          ]);
+          await createNotification(originalSenderId, 'reply', newMessage.id, senderId, roomId);
         }
       }
     }
-
-    await client.query("COMMIT");
 
     // Fetch sender's info to attach to the message object for broadcasting
     const senderQuery =

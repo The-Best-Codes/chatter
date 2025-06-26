@@ -111,6 +111,18 @@ class ApiService {
     return this.request("/api/notifications", { method: "DELETE" });
   }
 
+  // User permission endpoints
+  async getUserPermissions() {
+    return this.request("/api/user/permissions");
+  }
+
+  // Mark single notification as read
+  async markNotificationAsRead(notificationId) {
+    return this.request(`/api/notifications/${notificationId}/read`, {
+      method: "POST",
+    });
+  }
+
   // Session endpoints
   async getSessions() {
     return this.request("/api/sessions");
