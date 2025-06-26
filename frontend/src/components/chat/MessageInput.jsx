@@ -1,9 +1,15 @@
 import { Reply, Send, Smile, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
-import { Badge } from "../ui/badge";
 import { cn } from "../../lib/utils";
+import { EmojiPicker } from "../EmojiPicker";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Textarea } from "../ui/textarea";
 
 export function MessageInput({
   onSendMessage,
@@ -82,9 +88,12 @@ export function MessageInput({
   }, []);
 
   return (
-    <div className="border-t border-border bg-card">
+    <div className="flex items-center border-t border-border bg-background min-h-20">
       <div
-        className={cn("p-4", (replyingTo || typingUsers.length > 0) && "pt-2")}
+        className={cn(
+          "w-full p-4",
+          (replyingTo || typingUsers.length > 0) && "pt-2",
+        )}
       >
         {replyingTo && (
           // TODO: Scroll to reply if clicked?
@@ -123,26 +132,35 @@ export function MessageInput({
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
-              className="min-h-10 max-h-32 resize-none pr-12"
+              className="min-h-10 max-h-32 resize-none pr-10 wrap-anywhere"
               rows={1}
             />
 
-            {/* TODO: Emoji picker */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 bottom-2 h-6 w-6"
-            >
-              <Smile className="h-4 w-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 bottom-2 h-6 w-6"
+                >
+                  <Smile className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <EmojiPicker
+                  messageId={"no-id-message-textarea"}
+                  onEmojiSelect={() => {}}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <Button
-            size="icon"
+            className="h-10 w-10"
             onClick={handleSendMessage}
             disabled={!message.trim()}
           >
-            <Send className="h-4 w-4" />
+            <Send />
           </Button>
         </div>
       </div>

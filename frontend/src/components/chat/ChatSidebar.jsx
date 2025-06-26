@@ -92,7 +92,7 @@ export function ChatSidebar({
           </div>
         </div>
 
-        {/* Search */}
+        {/* Search... TODO: Move this to a DM modal perhaps? */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -163,8 +163,8 @@ export function ChatSidebar({
             return (
               <div
                 key={room.id}
-                className={`flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-accent ${
-                  isSelected ? "bg-accent" : ""
+                className={`flex items-center gap-3 p-2 not-last:mb-1 rounded-md cursor-pointer hover:bg-accent ${
+                  isSelected ? "bg-border hover:bg-border" : ""
                 }`}
                 onClick={() => onRoomSelect(room)}
               >
@@ -211,7 +211,7 @@ export function ChatSidebar({
       </div>
 
       {/* User Info */}
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-border h-20">
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
             <AvatarImage src={user?.avatar_url} />
@@ -227,7 +227,7 @@ export function ChatSidebar({
             </div>
             <div className="text-sm text-muted-foreground">Online</div>
           </div>
-          <Button variant="ghost" size="sm" onClick={logout}>
+          <Button variant="outline" size="sm" onClick={logout}>
             Logout
           </Button>
         </div>
