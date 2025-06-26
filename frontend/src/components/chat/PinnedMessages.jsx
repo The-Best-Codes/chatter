@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import ApiService from "../../services/api-service";
 import WebSocketService from "../../services/websocket-service";
 import { Button } from "../ui/button";
-import { MessageList } from "./MessageList";
+import { Message } from "./Message";
 
 export function PinnedMessages({
   room,
@@ -112,16 +112,20 @@ export function PinnedMessages({
             </div>
           </div>
         ) : (
-          <div className="p-4">
-            <MessageList
-              messages={pinnedMessages}
-              onEditMessage={onEditMessage}
-              onDeleteMessage={onDeleteMessage}
-              onPinMessage={onPinMessage}
-              onToggleReaction={onToggleReaction}
-              onReplyToMessage={onReplyToMessage}
-              replyingTo={null}
-            />
+          <div>
+            {pinnedMessages.map((message) => (
+              <Message
+                key={message.id}
+                message={message}
+                onEditMessage={onEditMessage}
+                onDeleteMessage={onDeleteMessage}
+                onPinMessage={onPinMessage}
+                onToggleReaction={onToggleReaction}
+                onReplyToMessage={onReplyToMessage}
+                replyingTo={null}
+                simplified={true}
+              />
+            ))}
           </div>
         )}
       </div>
