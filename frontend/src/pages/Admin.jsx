@@ -442,6 +442,11 @@ export function AdminPage() {
                             <div>
                               <div className="font-medium">
                                 {user.display_name || user.username}
+                                {user.permissions && (
+                                  <Badge variant="secondary" className="ml-2 text-xs">
+                                    Custom Permissions
+                                  </Badge>
+                                )}
                               </div>
                               <div className="text-sm text-muted-foreground">
                                 @{user.username} • Joined{" "}
