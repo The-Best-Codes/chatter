@@ -253,3 +253,46 @@ export const unpin = async (roomId, messageId) => {
     `;
   await _query(query, [roomId, messageId]);
 };
+
+export const getPinnedMessagesByRoomId = async (roomId) => {
+  const query = `
+        SELECT m.id, m.room_id, m.sender_id, m.encrypted_content, m.reply_to_message_id, m.created_at, m.updated_at, u.username, u.display_name, u.avatar_url,
+               true AS is_pinned,
+               pm.pinned_at,
+               COALESCE(
+                 (
+                   SELECT json_agg(r)::jsonb
+                   FROM (
+                       SELECT
+                           mr.emoji_code as "emoji",
+                           COUNT(mr.user_id)::int as "count",
+                           json_agg(json_build_object('userId', u_react.id, 'username', u_react.username)) as "users"
+                       FROM message_reactions mr
+                       JOIN users u_react ON mr.user_id = u_react.id
+                       WHERE mr.message_id = m.id
+                       GROUP BY mr.emoji_code
+                   ) r
+                 ),
+                 '[]'::jsonb
+               ) as reactions,
+               CASE
+                 WHEN m.reply_to_message_id IS NOT NULL THEN
+                   json_build_object(
+                     'id', reply_msg.id,
+                     'encrypted_content', reply_msg.encrypted_content,
+                     'username', reply_user.username,
+                     'display_name', reply_user.display_name
+                   )
+                 ELSE NULL
+               END as reply_to_message
+        FROM pinned_messages pm
+        JOIN messages m ON pm.message_id = m.id
+        JOIN users u ON m.sender_id = u.id
+        LEFT JOIN messages reply_msg ON m.reply_to_message_id = reply_msg.id
+        LEFT JOIN users reply_user ON reply_msg.sender_id = reply_user.id
+        WHERE pm.room_id = $1 AND m.deleted_at IS NULL
+        ORDER BY pm.pinned_at DESC;
+    `;
+  const { rows } = await _query(query, [roomId]);
+  return rows;
+};

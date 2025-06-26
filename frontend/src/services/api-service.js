@@ -73,6 +73,10 @@ class ApiService {
     });
   }
 
+  async getPinnedMessages(roomId) {
+    return this.request(`/api/rooms/${roomId}/pins`);
+  }
+
   // Reaction endpoints
   async addReaction(messageId, emoji) {
     return this.request(`/api/messages/${messageId}/reactions`, {

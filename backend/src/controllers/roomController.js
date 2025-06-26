@@ -1,4 +1,4 @@
-import { getMessagesByRoomId, pin, unpin } from "../models/messageModel.js";
+import { getMessagesByRoomId, pin, unpin, getPinnedMessagesByRoomId } from "../models/messageModel.js";
 import {
   isBlocked as _isBlocked,
   findOrCreateDmRoom,
@@ -129,5 +129,27 @@ export async function unpinMessage(req, res) {
   } catch (error) {
     console.error("Unpin message error:", error);
     res.status(500).json({ message: "Failed to unpin message." });
+  }
+}
+
+// GET /api/rooms/:roomId/pins
+// Get pinned messages in a room
+export async function getPinnedMessages(req, res) {
+  const { roomId } = req.params;
+  const userId = req.user.id;
+
+  try {
+    const isMember = await isUserInRoom(userId, roomId);
+    if (!isMember) {
+      return res
+        .status(403)
+        .json({ message: "You are not a member of this room." });
+    }
+
+    const pinnedMessages = await getPinnedMessagesByRoomId(roomId);
+    res.status(200).json(pinnedMessages);
+  } catch (error) {
+    console.error("Error fetching pinned messages:", error);
+    res.status(500).json({ message: "Failed to fetch pinned messages." });
   }
 }
