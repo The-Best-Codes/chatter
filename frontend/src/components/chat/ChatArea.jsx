@@ -8,6 +8,7 @@ import { Button } from "../ui/button";
 import { MessageInput } from "./MessageInput";
 import { MessageList } from "./MessageList";
 import { PinnedMessages } from "./PinnedMessages";
+import { UserList } from "./UserList";
 
 export function ChatArea({ room }) {
   const [messages, setMessages] = useState([]);
@@ -15,6 +16,7 @@ export function ChatArea({ room }) {
   const [typingUsers, setTypingUsers] = useState([]);
   const [replyingTo, setReplyingTo] = useState(null);
   const [showPinnedMessages, setShowPinnedMessages] = useState(false);
+  const [showUserList, setShowUserList] = useState(false);
   const messagesEndRef = useRef(null);
   const { user } = useAuth();
 
@@ -218,17 +220,27 @@ export function ChatArea({ room }) {
               </div>
             </div>
 
-            {/* TODO: Implement */}
             <div className="flex items-center gap-2">
               {room.type !== "dm" && (
-                <Button variant="ghost" size="icon">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => {
+                    setShowUserList(!showUserList);
+                    setShowPinnedMessages(false); // Close pins when opening users
+                  }}
+                  className={showUserList ? "bg-accent" : ""}
+                >
                   <Users className="h-4 w-4" />
                 </Button>
               )}
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setShowPinnedMessages(!showPinnedMessages)}
+                onClick={() => {
+                  setShowPinnedMessages(!showPinnedMessages);
+                  setShowUserList(false); // Close users when opening pins
+                }}
                 className={showPinnedMessages ? "bg-accent" : ""}
               >
                 <Pin className="h-4 w-4" />
@@ -290,6 +302,13 @@ export function ChatArea({ room }) {
           onPinMessage={handlePinMessage}
           onToggleReaction={handleToggleReaction}
           onReplyToMessage={handleReplyToMessage}
+        />
+      )}
+
+      {showUserList && (
+        <UserList
+          room={room}
+          onClose={() => setShowUserList(false)}
         />
       )}
     </div>

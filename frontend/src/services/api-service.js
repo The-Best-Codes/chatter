@@ -77,6 +77,10 @@ class ApiService {
     return this.request(`/api/rooms/${roomId}/pins`);
   }
 
+  async getRoomMembers(roomId) {
+    return this.request(`/api/rooms/${roomId}/members`);
+  }
+
   // Reaction endpoints
   async addReaction(messageId, emoji) {
     return this.request(`/api/messages/${messageId}/reactions`, {

@@ -3,10 +3,11 @@ import {
   createNewRoom,
   createOrGetDmRoom,
   getMessagesForRoom,
+  getPinnedMessages,
+  getRoomMembersController,
   getUserRooms,
   pinMessage,
   unpinMessage,
-  getPinnedMessages,
 } from "../controllers/roomController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -35,5 +36,8 @@ router.post("/:roomId/pins", pinMessage);
 
 // DELETE /api/rooms/:roomId/pins/:messageId - to unpin a message in a room
 router.delete("/:roomId/pins/:messageId", unpinMessage);
+
+// GET /api/rooms/:roomId/members - to get members of a room
+router.get("/:roomId/members", getRoomMembersController);
 
 export default router;

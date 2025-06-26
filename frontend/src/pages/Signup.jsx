@@ -48,6 +48,8 @@ export function SignupPage() {
         username: formData.username,
         displayName: formData.displayName,
         password: formData.password,
+        publicKeyIdentity: "placeholder", // TODO: Implement public key identity generation
+        publicKeyBundle: { placeholder: "placeholder" }, // TODO: Public key bundle generation
       });
       navigate("/");
     } catch (err) {

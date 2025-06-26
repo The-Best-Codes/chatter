@@ -9,12 +9,12 @@ export const isUserInRoom = async (userId, roomId) => {
 
 export const getRoomsForUser = async (userId) => {
   const query = `
-        SELECT 
-          r.id, 
-          r.type, 
+        SELECT
+          r.id,
+          r.type,
           r.name,
           r.created_at,
-          CASE 
+          CASE
             WHEN r.type = 'dm' THEN (
               SELECT json_build_object(
                 'id', u.id,
@@ -42,6 +42,24 @@ export const getRoomMemberIds = async (roomId) => {
   const query = "SELECT user_id FROM room_members WHERE room_id = $1";
   const { rows } = await _query(query, [roomId]);
   return rows.map((r) => r.user_id);
+};
+
+export const getRoomMembers = async (roomId) => {
+  const query = `
+    SELECT
+      u.id,
+      u.username,
+      u.display_name,
+      u.avatar_url,
+      u.status,
+      rm.notification_level
+    FROM users u
+    JOIN room_members rm ON u.id = rm.user_id
+    WHERE rm.room_id = $1 AND u.status = 'active'
+    ORDER BY u.display_name, u.username;
+  `;
+  const { rows } = await _query(query, [roomId]);
+  return rows;
 };
 
 export const findOrCreateDmRoom = async (userId1, userId2) => {
@@ -94,8 +112,8 @@ export const createRoom = async (name, type = "main_chat", creatorId) => {
 
     // Create the room
     const roomInsertQuery = `
-      INSERT INTO rooms (name, type) 
-      VALUES ($1, $2) 
+      INSERT INTO rooms (name, type)
+      VALUES ($1, $2)
       RETURNING id, name, type, created_at;
     `;
     const roomResult = await client.query(roomInsertQuery, [name, type]);
