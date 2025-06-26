@@ -7,6 +7,10 @@ import {
   updateAppSettings,
   updateUserPermissions,
   updateUserStatus,
+  getAuditLogs,
+  getInviteCodes,
+  generateInviteCode,
+  deleteInviteCode,
 } from "../controllers/adminController.js";
 import { isAdmin } from "../middleware/adminMiddleware.js";
 import { protect } from "../middleware/authMiddleware.js";
@@ -27,5 +31,13 @@ router.delete("/users/:userId", deleteUser);
 
 router.put("/users/:userId/permissions", updateUserPermissions);
 router.post("/users/:userId/password-reset", generatePasswordResetCode);
+
+// Audit Log Routes
+router.get("/audit-logs", getAuditLogs);
+
+// Invite Code Routes
+router.get("/invite-codes", getInviteCodes);
+router.post("/invite-codes", generateInviteCode);
+router.delete("/invite-codes/:codeId", deleteInviteCode);
 
 export default router;

@@ -21,10 +21,191 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
+import { Checkbox } from "../components/ui/checkbox";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 //import { useAuth } from "../contexts/AuthContext";
 import ApiService from "../services/api-service";
+
+// Simple permissions form component
+const PermissionsForm = ({ user, onSave, onCancel }) => {
+  const [permissions, setPermissions] = useState({
+    can_send_messages: user.permissions?.can_send_messages ?? true,
+    can_dm_users: user.permissions?.can_dm_users ?? true,
+    can_send_attachments: user.permissions?.can_send_attachments ?? true,
+    max_attachment_size_kb: user.permissions?.max_attachment_size_kb ?? 10240,
+    max_message_length: user.permissions?.max_message_length ?? 2000,
+    can_edit_messages: user.permissions?.can_edit_messages ?? true,
+    can_delete_messages: user.permissions?.can_delete_messages ?? true,
+    can_react_to_messages: user.permissions?.can_react_to_messages ?? true,
+    message_rate_limit: user.permissions?.message_rate_limit ?? 10,
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(permissions);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="can_send_messages"
+            checked={permissions.can_send_messages}
+            onCheckedChange={(checked) =>
+              setPermissions({
+                ...permissions,
+                can_send_messages: checked,
+              })
+            }
+          />
+          <Label htmlFor="can_send_messages">Can send messages</Label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="can_dm_users"
+            checked={permissions.can_dm_users}
+            onCheckedChange={(checked) =>
+              setPermissions({
+                ...permissions,
+                can_dm_users: checked,
+              })
+            }
+          />
+          <Label htmlFor="can_dm_users">Can DM users</Label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="can_send_attachments"
+            checked={permissions.can_send_attachments}
+            onCheckedChange={(checked) =>
+              setPermissions({
+                ...permissions,
+                can_send_attachments: checked,
+              })
+            }
+          />
+          <Label htmlFor="can_send_attachments">Can send attachments</Label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="can_edit_messages"
+            checked={permissions.can_edit_messages}
+            onCheckedChange={(checked) =>
+              setPermissions({
+                ...permissions,
+                can_edit_messages: checked,
+              })
+            }
+          />
+          <Label htmlFor="can_edit_messages">Can edit messages</Label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="can_delete_messages"
+            checked={permissions.can_delete_messages}
+            onCheckedChange={(checked) =>
+              setPermissions({
+                ...permissions,
+                can_delete_messages: checked,
+              })
+            }
+          />
+          <Label htmlFor="can_delete_messages">Can delete messages</Label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="can_react_to_messages"
+            checked={permissions.can_react_to_messages}
+            onCheckedChange={(checked) =>
+              setPermissions({
+                ...permissions,
+                can_react_to_messages: checked,
+              })
+            }
+          />
+          <Label htmlFor="can_react_to_messages">Can react to messages</Label>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="max_message_length">Max message length:</Label>
+          <Input
+            id="max_message_length"
+            type="number"
+            value={permissions.max_message_length}
+            onChange={(e) =>
+              setPermissions({
+                ...permissions,
+                max_message_length: parseInt(e.target.value),
+              })
+            }
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="max_attachment_size_kb">Max attachment size (KB):</Label>
+          <Input
+            id="max_attachment_size_kb"
+            type="number"
+            value={permissions.max_attachment_size_kb}
+            onChange={(e) =>
+              setPermissions({
+                ...permissions,
+                max_attachment_size_kb: parseInt(e.target.value),
+              })
+            }
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="message_rate_limit">Message rate limit (per minute):</Label>
+          <Input
+            id="message_rate_limit"
+            type="number"
+            value={permissions.message_rate_limit}
+            onChange={(e) =>
+              setPermissions({
+                ...permissions,
+                message_rate_limit: parseInt(e.target.value),
+              })
+            }
+            className="mt-1"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit">Save Permissions</Button>
+      </div>
+    </form>
+  );
+};
 
 export function AdminPage() {
   //const { user } = useAuth();
@@ -32,7 +213,10 @@ export function AdminPage() {
   const [users, setUsers] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [inviteCodes, setInviteCodes] = useState([]);
+  const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -45,7 +229,7 @@ export function AdminPage() {
       switch (activeTab) {
         case "users": {
           const userList = await ApiService.getUsers();
-          setUsers(userList);
+          setUsers(userList.users || []);
           break;
         }
         case "audit": {
@@ -56,6 +240,19 @@ export function AdminPage() {
         case "invites": {
           const codes = await ApiService.getInviteCodes();
           setInviteCodes(codes);
+          break;
+        }
+        case "settings": {
+          const appSettings = await ApiService.getSettings();
+          // Convert JSONB values to simple values
+          const processedSettings = {};
+          Object.keys(appSettings).forEach(key => {
+            const value = appSettings[key];
+            processedSettings[key] = value && typeof value === 'object' && value.value !== undefined 
+              ? value.value 
+              : value;
+          });
+          setSettings(processedSettings);
           break;
         }
       }
@@ -77,6 +274,17 @@ export function AdminPage() {
     }
   };
 
+  const handleDeleteUser = async (userId) => {
+    try {
+      await ApiService.deleteUser(userId);
+      setUsers(
+        users.map((u) => (u.id === userId ? { ...u, status: "deleted" } : u)),
+      );
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+    }
+  };
+
   const handleGenerateInviteCode = async () => {
     try {
       const newCode = await ApiService.generateInviteCode();
@@ -92,6 +300,35 @@ export function AdminPage() {
       setInviteCodes(inviteCodes.filter((c) => c.id !== codeId));
     } catch (error) {
       console.error("Failed to delete invite code:", error);
+    }
+  };
+
+  const handleUpdateSetting = async (key, value) => {
+    try {
+      await ApiService.updateSetting(key, value);
+      setSettings({ ...settings, [key]: value });
+    } catch (error) {
+      console.error("Failed to update setting:", error);
+    }
+  };
+
+  const handleEditPermissions = (user) => {
+    setSelectedUser(user);
+    setShowPermissionsModal(true);
+  };
+
+  const handleSavePermissions = async (permissions) => {
+    try {
+      await ApiService.updateUserPermissions(selectedUser.id, permissions);
+      setUsers(
+        users.map((u) =>
+          u.id === selectedUser.id ? { ...u, permissions } : u,
+        ),
+      );
+      setShowPermissionsModal(false);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error("Failed to update permissions:", error);
     }
   };
 
@@ -181,6 +418,12 @@ export function AdminPage() {
                 <CardContent>
                   {loading ? (
                     <div className="text-center py-8">Loading users...</div>
+                  ) : users.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <div className="text-lg font-medium mb-2">No users found</div>
+                      <div className="text-sm">Users will appear here once they sign up</div>
+                    </div>
                   ) : (
                     <div className="space-y-4">
                       {users.map((user) => (
@@ -232,11 +475,17 @@ export function AdminPage() {
                                 Freeze
                               </Button>
                               <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditPermissions(user)}
+                                className="mr-2"
+                              >
+                                Permissions
+                              </Button>
+                              <Button
                                 variant="destructive"
                                 size="sm"
-                                onClick={() =>
-                                  handleUserStatusChange(user.id, "deleted")
-                                }
+                                onClick={() => handleDeleteUser(user.id)}
                                 disabled={user.status === "deleted"}
                               >
                                 Delete
@@ -261,6 +510,12 @@ export function AdminPage() {
                     <div className="text-center py-8">
                       Loading audit logs...
                     </div>
+                  ) : auditLogs.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <div className="text-lg font-medium mb-2">No audit logs found</div>
+                      <div className="text-sm">Admin actions will be logged here</div>
+                    </div>
                   ) : (
                     <div className="space-y-3">
                       {auditLogs.map((log) => (
@@ -284,7 +539,9 @@ export function AdminPage() {
                           </div>
                           {log.details && (
                             <div className="mt-2 text-sm text-muted-foreground">
-                              {log.details}
+                              {typeof log.details === 'object' 
+                                ? JSON.stringify(log.details, null, 2)
+                                : log.details}
                             </div>
                           )}
                         </div>
@@ -308,6 +565,12 @@ export function AdminPage() {
                   {loading ? (
                     <div className="text-center py-8">
                       Loading invite codes...
+                    </div>
+                  ) : inviteCodes.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <div className="text-lg font-medium mb-2">No invite codes found</div>
+                      <div className="text-sm">Generate invite codes to allow new users to join</div>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -368,49 +631,88 @@ export function AdminPage() {
                   <CardTitle>System Settings</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
-                    <div>
-                      <Label htmlFor="signupMode">Signup Mode</Label>
-                      <select
-                        id="signupMode"
-                        className="w-full mt-1 p-2 border border-border rounded-md"
-                      >
-                        <option value="enabled">Enabled</option>
-                        <option value="disabled">Disabled</option>
-                        <option value="invite-only">Invite Only</option>
-                      </select>
-                    </div>
+                  {loading ? (
+                    <div className="text-center py-8">Loading settings...</div>
+                  ) : (
+                    <div className="space-y-6">
+                      <div>
+                        <Label htmlFor="signupMode">Signup Mode</Label>
+                        <Select
+                          value={settings.signup_mode || "enabled"}
+                          onValueChange={(value) =>
+                            handleUpdateSetting("signup_mode", value)
+                          }
+                        >
+                          <SelectTrigger className="w-full mt-1">
+                            <SelectValue placeholder="Select signup mode" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="enabled">Enabled</SelectItem>
+                            <SelectItem value="disabled">Disabled</SelectItem>
+                            <SelectItem value="invite-only">Invite Only</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                    <div>
-                      <Label htmlFor="maxMessageLength">
-                        Max Message Length
-                      </Label>
-                      <Input
-                        id="maxMessageLength"
-                        type="number"
-                        defaultValue="2000"
-                        className="mt-1"
-                      />
-                    </div>
+                      <div>
+                        <Label htmlFor="maxMessageLength">
+                          Max Message Length
+                        </Label>
+                        <Input
+                          id="maxMessageLength"
+                          type="number"
+                          value={settings.max_message_length || "2000"}
+                          onChange={(e) =>
+                            handleUpdateSetting(
+                              "max_message_length",
+                              e.target.value,
+                            )
+                          }
+                          className="mt-1"
+                        />
+                      </div>
 
-                    <div>
-                      <Label htmlFor="maxFileSize">Max File Size (MB)</Label>
-                      <Input
-                        id="maxFileSize"
-                        type="number"
-                        defaultValue="10"
-                        className="mt-1"
-                      />
+                      <div>
+                        <Label htmlFor="maxFileSize">Max File Size (MB)</Label>
+                        <Input
+                          id="maxFileSize"
+                          type="number"
+                          value={settings.max_file_size || "10"}
+                          onChange={(e) =>
+                            handleUpdateSetting("max_file_size", e.target.value)
+                          }
+                          className="mt-1"
+                        />
+                      </div>
                     </div>
-
-                    <Button>Save Settings</Button>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             )}
           </div>
         </div>
       </div>
+
+      {/* Permissions Modal */}
+      <Dialog open={showPermissionsModal} onOpenChange={setShowPermissionsModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Edit Permissions for {selectedUser?.username}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <PermissionsForm
+              user={selectedUser}
+              onSave={handleSavePermissions}
+              onCancel={() => {
+                setShowPermissionsModal(false);
+                setSelectedUser(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

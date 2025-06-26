@@ -131,15 +131,21 @@ class ApiService {
 
   async updateUserStatus(userId, status) {
     return this.request(`/api/admin/users/${userId}/status`, {
-      method: "PATCH",
+      method: "POST",
       body: JSON.stringify({ status }),
     });
   }
 
   async updateUserPermissions(userId, permissions) {
     return this.request(`/api/admin/users/${userId}/permissions`, {
-      method: "PATCH",
-      body: JSON.stringify({ permissions }),
+      method: "PUT",
+      body: JSON.stringify(permissions),
+    });
+  }
+
+  async deleteUser(userId) {
+    return this.request(`/api/admin/users/${userId}`, {
+      method: "DELETE",
     });
   }
 
@@ -163,6 +169,18 @@ class ApiService {
       method: "DELETE",
     });
   }
+
+  async getSettings() {
+    return this.request("/api/admin/settings");
+  }
+
+  async updateSetting(key, value) {
+    return this.request("/api/admin/settings", {
+      method: "PUT",
+      body: JSON.stringify({ key, value }),
+    });
+  }
+
 }
 
 export default new ApiService();

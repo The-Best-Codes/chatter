@@ -182,3 +182,116 @@ export async function generatePasswordResetCode(req, res) {
     resetCode: resetCode,
   });
 }
+
+// GET /api/admin/audit-logs
+export async function getAuditLogs(req, res) {
+  const { page = 1, limit = 50 } = req.query;
+  const offset = (page - 1) * limit;
+  
+  try {
+    const query = `
+      SELECT 
+        al.id,
+        al.action,
+        al.details,
+        al.ip_address,
+        al.created_at,
+        au.username as admin_username,
+        tu.username as target_username
+      FROM admin_audit_logs al
+      LEFT JOIN users au ON al.admin_user_id = au.id
+      LEFT JOIN users tu ON al.target_user_id = tu.id
+      ORDER BY al.created_at DESC
+      LIMIT $1 OFFSET $2
+    `;
+    
+    const { rows } = await queryDatabase(query, [limit, offset]);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error("Error fetching audit logs:", error);
+    res.status(500).json({ message: "Failed to retrieve audit logs." });
+  }
+}
+
+// GET /api/admin/invite-codes
+export async function getInviteCodes(req, res) {
+  try {
+    const query = `
+      SELECT 
+        ic.id,
+        ic.code,
+        ic.created_at,
+        ic.expires_at,
+        ic.used_by_user_id,
+        u.username as used_by_username
+      FROM invite_codes ic
+      LEFT JOIN users u ON ic.used_by_user_id = u.id
+      ORDER BY ic.created_at DESC
+    `;
+    
+    const { rows } = await queryDatabase(query);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error("Error fetching invite codes:", error);
+    res.status(500).json({ message: "Failed to retrieve invite codes." });
+  }
+}
+
+// POST /api/admin/invite-codes
+export async function generateInviteCode(req, res) {
+  const { expiresAt } = req.body;
+  const code = randomBytes(8).toString("hex").toUpperCase();
+  
+  try {
+    const query = `
+      INSERT INTO invite_codes (code, expires_at, created_by_admin_id)
+      VALUES ($1, $2, $3)
+      RETURNING *
+    `;
+    
+    const { rows } = await queryDatabase(query, [code, expiresAt, req.user.id]);
+    
+    await logAction({
+      adminUserId: req.user.id,
+      action: "invite_code.generate",
+      details: { code, expiresAt },
+      ipAddress: req.ip,
+    });
+    
+    res.status(201).json(rows[0]);
+  } catch (error) {
+    console.error("Error generating invite code:", error);
+    res.status(500).json({ message: "Failed to generate invite code." });
+  }
+}
+
+// DELETE /api/admin/invite-codes/:codeId
+export async function deleteInviteCode(req, res) {
+  const { codeId } = req.params;
+  
+  try {
+    const query = `
+      DELETE FROM invite_codes 
+      WHERE id = $1 
+      RETURNING *
+    `;
+    
+    const { rows } = await queryDatabase(query, [codeId]);
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Invite code not found." });
+    }
+    
+    await logAction({
+      adminUserId: req.user.id,
+      action: "invite_code.delete",
+      details: { deletedCode: rows[0].code },
+      ipAddress: req.ip,
+    });
+    
+    res.status(200).json({ message: "Invite code deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting invite code:", error);
+    res.status(500).json({ message: "Failed to delete invite code." });
+  }
+}
