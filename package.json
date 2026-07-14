@@ -1,9 +1,9 @@
 {
   "name": "chatter",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "module": "index.ts",
   "type": "module",
-  "packageManager": "bun@1.2.7",
+  "packageManager": "bun@1.3.14",
   "scripts": {
     "dev": "bun run --watch index.ts",
     "css:watch": "bunx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
@@ -26,22 +26,22 @@
     "deps:update": "bun update --latest"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.8",
-    "bun-types": "^1.2.7"
+    "@types/bun": "^1.3.14",
+    "bun-types": "^1.3.14"
   },
   "peerDependencies": {
-    "typescript": "^5.8.2"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.0.17",
-    "@tailwindcss/typography": "^0.5.16",
+    "@tailwindcss/postcss": "^4.3.2",
+    "@tailwindcss/typography": "^0.5.20",
     "@types/bcryptjs": "^3.0.0",
-    "bcryptjs": "^3.0.2",
-    "dotenv": "^16.4.7",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
     "node-fetch": "^3.3.2",
-    "node-html-parser": "^7.0.1",
-    "postcss": "^8.5.3",
-    "sharp": "^0.34.1",
-    "tailwindcss": "^4.0.17"
+    "node-html-parser": "^9.0.0",
+    "postcss": "^8.5.19",
+    "sharp": "^0.35.3",
+    "tailwindcss": "^4.3.2"
   }
 }
